@@ -190,7 +190,7 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                                         </div>
 
                                         <div className="space-y-1">
-                                            <h3 className="text-xl md:text-[30px] font-black text-white leading-tight max-w-2xl mt-[15px] drop-shadow-lg">
+                                            <h3 className="text-xl md:text-[30px] font-black text-white leading-tight max-w-2xl m-0 drop-shadow-lg">
                                                 {renderTitleWithGreenEnd(activeEpisode.title)}
                                             </h3>
                                             {activeEpisode.description && activeEpisode.description.trim() !== '' && (
@@ -236,7 +236,7 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                                         <span className="bg-[#f97316] text-white text-[10px] font-black uppercase px-2 py-0.5">PRÓXIMO VÍDEO</span>
                                         <span className="text-white/80 text-[10px] font-bold uppercase tracking-widest">{nextEpisode.category}</span>
                                     </div>
-                                    <h3 className="text-[18px] font-black text-white leading-tight mt-[15px] transition-colors line-clamp-3">
+                                    <h3 className="text-[18px] font-black text-white leading-tight mt-[10px] m-0 transition-colors line-clamp-3">
                                         {nextEpisode.title}
                                     </h3>
                                     {nextEpisode.description && nextEpisode.description.trim() !== '' && (
