@@ -1,8 +1,10 @@
 import { ServiceForm } from "@/components/admin/ServiceForm";
 import { createClient } from "@/utils/supabase/server";
 
-export default async function ServiceEditPage({ params }: { params: { id: string } }) {
-    if (params.id === 'novo') {
+export default async function ServiceEditPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+
+    if (id === 'novo') {
         return <ServiceForm />;
     }
 
@@ -10,7 +12,7 @@ export default async function ServiceEditPage({ params }: { params: { id: string
     const { data: service } = await supabase
         .from('services')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', id)
         .single();
 
     if (!service) {

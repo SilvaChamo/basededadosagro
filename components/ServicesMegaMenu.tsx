@@ -20,6 +20,7 @@ interface ServiceCategory {
     description: string;
     groups?: {
         name: string;
+        image?: string;
         items: {
             title: string;
             slug: string;
@@ -53,7 +54,8 @@ const serviceCategories: ServiceCategory[] = [
         description: "Acesso direto à rede nacional de fornecedores de sementes certificadas, fertilizantes de alta performance e maquinaria de última geração.",
         groups: [
             {
-                name: "1. Insumos Biológicos",
+                name: "Insumos Biológicos",
+                image: "/images/insumos/biologicos.png",
                 items: [
                     { title: "Sementes", slug: "sementes" },
                     { title: "Mudas", slug: "mudas" },
@@ -64,7 +66,8 @@ const serviceCategories: ServiceCategory[] = [
                 ]
             },
             {
-                name: "2. Químicos",
+                name: "Químicos",
+                image: "/images/insumos/quimicos.png",
                 items: [
                     { title: "Fertilizantes minerais", slug: "fertilizantes-minerais" },
                     { title: "Corretivos de solo", slug: "corretivos-solo" },
@@ -74,7 +77,8 @@ const serviceCategories: ServiceCategory[] = [
                 ]
             },
             {
-                name: "3. Orgânicos",
+                name: "Orgânicos",
+                image: "/images/insumos/organicos.png",
                 items: [
                     { title: "Esterco", slug: "esterco" },
                     { title: "Compostagem", slug: "compostagem" },
@@ -84,7 +88,8 @@ const serviceCategories: ServiceCategory[] = [
                 ]
             },
             {
-                name: "4. Pecuários",
+                name: "Pecuários",
+                image: "/images/insumos/pecuarios.png",
                 items: [
                     { title: "Rações", slug: "racoes" },
                     { title: "Suplementos minerais", slug: "suplementos-minerais" },
@@ -94,7 +99,8 @@ const serviceCategories: ServiceCategory[] = [
                 ]
             },
             {
-                name: "5. Mecânicos",
+                name: "Mecânicos",
+                image: "/images/insumos/mecanicos.png",
                 items: [
                     { title: "Tratores", slug: "tratores" },
                     { title: "Arados", slug: "arados" },
@@ -104,7 +110,8 @@ const serviceCategories: ServiceCategory[] = [
                 ]
             },
             {
-                name: "6. Tecnológicos",
+                name: "Tecnológicos",
+                image: "/images/insumos/tecnologicos.png",
                 items: [
                     { title: "Sistemas de irrigação", slug: "sistemas-irrigacao" },
                     { title: "Sensores agrícolas", slug: "sensores-agricolas" },
@@ -114,7 +121,8 @@ const serviceCategories: ServiceCategory[] = [
                 ]
             },
             {
-                name: "7. Estruturais",
+                name: "Estruturais",
+                image: "/images/insumos/estruturais.png",
                 items: [
                     { title: "Cercas", slug: "cercas" },
                     { title: "Postes", slug: "postes" },
@@ -124,7 +132,8 @@ const serviceCategories: ServiceCategory[] = [
                 ]
             },
             {
-                name: "8. Financeiros",
+                name: "Financeiros",
+                image: "/images/insumos/financeiros.png",
                 items: [
                     { title: "Crédito agrícola", slug: "credito-agricola" },
                     { title: "Seguro rural", slug: "seguro-rural" },
@@ -242,6 +251,7 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
     const supabase = createClient();
     const [services, setServices] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState(serviceCategories[0].id);
+    const [lojasInnerTab, setLojasInnerTab] = useState<"insumos" | "lojas">("insumos");
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -325,44 +335,110 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
                         </div>
                     </div>
 
-                    {/* Right Content Area - Redesigned to Horizontal Layout */}
+                    {/* Right Content Area */}
                     <div className="flex-1 bg-white py-10 px-0 relative overflow-hidden">
 
                         <div className="relative z-10">
-                            <div className="flex flex-col gap-1 pt-0 pb-8 px-12 border-b border-slate-200">
-                                <h3 className="text-2xl font-black text-slate-900/90 tracking-tighter">
-                                    {activeCategory.title}
-                                </h3>
-                                <p className="text-[14px] text-slate-500 font-medium leading-relaxed line-clamp-3 max-w-[800px]">
-                                    {activeCategory.description}
-                                </p>
-                            </div>
+                            {/* Header: Title + Description OR Tabs for Lojas */}
+                            {activeCategory.groups ? (
+                                /* Lojas e Insumos: Show tabs instead of title/description */
+                                <div className="flex items-center gap-0 px-12 pb-6 border-b border-slate-200">
+                                    <button
+                                        onClick={() => setLojasInnerTab("insumos")}
+                                        className={`px-6 py-2.5 text-[13px] font-black uppercase tracking-wider transition-all border-b-2 ${lojasInnerTab === "insumos"
+                                                ? "text-[#f97316] border-[#f97316]"
+                                                : "text-slate-400 border-transparent hover:text-slate-600"
+                                            }`}
+                                    >
+                                        Insumos
+                                    </button>
+                                    <button
+                                        onClick={() => setLojasInnerTab("lojas")}
+                                        className={`px-6 py-2.5 text-[13px] font-black uppercase tracking-wider transition-all border-b-2 ${lojasInnerTab === "lojas"
+                                                ? "text-[#f97316] border-[#f97316]"
+                                                : "text-slate-400 border-transparent hover:text-slate-600"
+                                            }`}
+                                    >
+                                        Lojas
+                                    </button>
+                                </div>
+                            ) : (
+                                /* Other categories: Show normal title + description */
+                                <div className="flex flex-col gap-1 pt-0 pb-8 px-12 border-b border-slate-200">
+                                    <h3 className="text-2xl font-black text-slate-900/90 tracking-tighter">
+                                        {activeCategory.title}
+                                    </h3>
+                                    <p className="text-[14px] text-slate-500 font-medium leading-relaxed line-clamp-3 max-w-[800px]">
+                                        {activeCategory.description}
+                                    </p>
+                                </div>
+                            )}
 
-                            {/* Sub-categories Grid - Redesigned for Groups if they exist */}
-                            <div className="pt-10 px-12">
+                            {/* Content Area */}
+                            <div className="pt-8 px-12 overflow-y-auto max-h-[380px]">
                                 {activeCategory.groups ? (
-                                    <div className="grid grid-cols-4 gap-x-8 gap-y-10">
-                                        {activeCategory.groups.map((group: any, gidx: number) => (
-                                            <div key={gidx} className="space-y-4">
-                                                <h4 className="text-[12px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">
-                                                    {group.name}
-                                                </h4>
-                                                <div className="flex flex-col gap-2.5">
-                                                    {group.items.map((item: any, idx: number) => (
-                                                        <Link
-                                                            key={idx}
-                                                            href={`/servicos/${activeTab}/${item.slug}`}
-                                                            onClick={onClose}
-                                                            className="text-[14px] font-bold text-slate-700 hover:text-[#f97316] transition-colors leading-tight"
-                                                        >
-                                                            {item.title}
-                                                        </Link>
-                                                    ))}
+                                    /* Lojas e Insumos content */
+                                    lojasInnerTab === "insumos" ? (
+                                        /* INSUMOS TAB: Groups with circular image icons */
+                                        <div className="space-y-8">
+                                            {activeCategory.groups.map((group: any, gidx: number) => (
+                                                <div key={gidx}>
+                                                    <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">
+                                                        {group.name}
+                                                    </h4>
+                                                    <div className="flex flex-wrap gap-6">
+                                                        {group.items.map((item: any, idx: number) => (
+                                                            <Link
+                                                                key={idx}
+                                                                href={`/servicos/${activeTab}/${item.slug}`}
+                                                                onClick={onClose}
+                                                                className="group/icon flex flex-col items-center gap-2 w-[80px]"
+                                                            >
+                                                                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-100 group-hover/icon:border-[#f97316] transition-colors bg-slate-50 flex items-center justify-center">
+                                                                    {group.image ? (
+                                                                        <img
+                                                                            src={group.image}
+                                                                            alt={item.title}
+                                                                            className="w-full h-full object-cover"
+                                                                        />
+                                                                    ) : (
+                                                                        <Store className="w-5 h-5 text-slate-400" />
+                                                                    )}
+                                                                </div>
+                                                                <span className="text-[11px] font-semibold text-slate-600 group-hover/icon:text-[#f97316] transition-colors text-center leading-tight">
+                                                                    {item.title}
+                                                                </span>
+                                                            </Link>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        /* LOJAS TAB: Show store items */
+                                        <div className="grid grid-cols-3 gap-x-12 gap-y-8">
+                                            {activeItems.slice(0, 9).map((item: any, idx: number) => (
+                                                <Link
+                                                    key={idx}
+                                                    href={`/servicos/${activeTab}/${item.slug}`}
+                                                    onClick={onClose}
+                                                    className="group/item flex flex-col gap-1.5"
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        {typeof item.icon === 'string' ? null : <item.icon className="w-4 h-4 text-slate-300 group-hover/item:text-[#f97316] transition-colors" />}
+                                                        <span className="text-[15px] font-bold text-slate-800 group-hover/item:text-[#f97316] transition-colors">
+                                                            {item.title}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-[12px] text-slate-400 font-medium leading-tight line-clamp-2 group-hover/item:text-slate-500 transition-colors">
+                                                        {item.description}
+                                                    </span>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    )
                                 ) : (
+                                    /* Other categories: Normal grid */
                                     <div className="grid grid-cols-3 gap-x-12 gap-y-8">
                                         {activeItems.slice(0, 9).map((item: any, idx: number) => (
                                             <Link

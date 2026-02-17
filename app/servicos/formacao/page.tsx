@@ -41,7 +41,7 @@ export default function FormacaoPage() {
                 setUpcomingTrainings(data.slice(0, 10)); // Just showing a subset for upcoming
 
                 // Populate "Programs" (Cursos Passados) area dynamically too
-                const mappedPrograms = data.slice(-3).map((t, i) => {
+                const mappedPrograms = data.slice(-3).map((t: any, i: number) => {
                     const configs = [
                         { icon: Laptop, bg: "bg-blue-50", color: "text-blue-500" },
                         { icon: BookOpen, bg: "bg-emerald-50", color: "text-emerald-500" },
@@ -84,10 +84,10 @@ export default function FormacaoPage() {
         };
 
         // Get initial user
-        supabase.auth.getUser().then(({ data: { user } }) => fetchUserData(user));
+        supabase.auth.getUser().then(({ data: { user } }: { data: { user: any } }) => fetchUserData(user));
 
         // Listen for changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
             fetchUserData(session?.user ?? null);
         });
 

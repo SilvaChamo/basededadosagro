@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 const validSlugs = ["producao", "economia", "empresas", "emprego"];
 
 export async function generateStaticParams() {
-    return validSlugs.map((slug) => ({ slug }));
+    return validSlugs.map((slug: any) => ({ slug }));
 }
 
 interface PageProps {

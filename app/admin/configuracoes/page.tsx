@@ -169,7 +169,7 @@ export default function AdminSettingsPage() {
                 toast.error("Erro ao carregar configurações");
             } else {
                 const settingsMap: Record<string, any> = {};
-                data?.forEach(item => {
+                data?.forEach((item: any) => {
                     settingsMap[item.key] = item.value;
                 });
                 setSettings(settingsMap);

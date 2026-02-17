@@ -36,7 +36,7 @@ export default function DocumentsArchivePage() {
 
 
 
-    const filteredDocs = docs.filter(doc => {
+    const filteredDocs = docs.filter((doc: any) => {
         const normalize = (text: string) => text ? text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
         const query = normalize(searchQuery);
         const content = normalize(`${doc.title} ${doc.subtitle || ''} ${doc.source || ''}`);
@@ -86,11 +86,11 @@ export default function DocumentsArchivePage() {
                 </div>
 
                 {loading ? (
-                    Array(4).fill(0).map((_, i) => (
+                    Array(4).fill(0).map((_: any, i: any) => (
                         <div key={i} className="animate-pulse bg-white rounded-[15px] h-[100px]" />
                     ))
                 ) : filteredDocs.length > 0 ? (
-                    filteredDocs.map((doc) => (
+                    filteredDocs.map((doc: any) => (
                         <div key={doc.id} className="bg-white p-6 rounded-[15px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row items-start md:items-center justify-between group gap-4">
                             <div className="flex items-start gap-5">
                                 <div className="size-14 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-rose-500 group-hover:text-white transition-all shrink-0">

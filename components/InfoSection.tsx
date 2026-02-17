@@ -147,7 +147,7 @@ export function InfoSection() {
             ]);
 
             if (cats.data) {
-                const formattedCats = cats.data.map(c => {
+                const formattedCats = cats.data.map((c: any) => {
                     // @ts-expect-error: LucideIcons dynamic indexing
                     const Icon = LucideIcons[c.icon_name] || LucideIcons.TreePalm;
                     return {
@@ -169,7 +169,7 @@ export function InfoSection() {
             }
 
             if (stats.data) {
-                setStatsData(stats.data.map(s => ({
+                setStatsData(stats.data.map((s: any) => ({
                     label: s.label || s.category,
                     val: s.variation ? `${s.variation > 0 ? '+' : ''}${s.variation}%` : `${s.value}`,
                     color: s.variation && s.variation < 0 ? "text-red-500" : "text-emerald-500"
@@ -295,7 +295,7 @@ export function InfoSection() {
                         <>
                             {activeTab === "categorias" && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-agro px-[40px]">
-                                    {categoryCards.map((card, idx) => (
+                                    {categoryCards.map((card: any, idx: number) => (
                                         <Link
                                             key={idx}
                                             href={card.href || "#"}
@@ -332,7 +332,7 @@ export function InfoSection() {
 
                             {activeTab === "recursos" && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-agro px-[20px]">
-                                    {RESOURCE_CARDS.map((card, idx) => (
+                                    {RESOURCE_CARDS.map((card: any, idx: number) => (
                                         <Link
                                             key={idx}
                                             href={card.href || "#"}
@@ -388,7 +388,7 @@ export function InfoSection() {
                                     <div className="relative group/embla">
                                         <div className="overflow-hidden" ref={emblaRef}>
                                             <div className="flex -mr-[20px]">
-                                                {articlesData.map((news, i) => (
+                                                {articlesData.map((news: any, i: number) => (
                                                     <div key={i} className="flex-[0_0_100%] md:flex-[0_0_33.33%] min-w-0 pr-[20px]">
                                                         <Link
                                                             href={news.slug ? `/artigos/${news.slug}` : "#"}
@@ -431,7 +431,7 @@ export function InfoSection() {
                                     </div>
 
                                     <div className="flex justify-center gap-2 mt-10">
-                                        {scrollSnaps.map((_, index) => (
+                                        {scrollSnaps.map((_: any, index: number) => (
                                             <button
                                                 key={index}
                                                 onClick={() => scrollTo(index)}

@@ -41,7 +41,7 @@ export default function AdminDocumentosPage() {
 
     const fetchArticles = async () => {
         setLoading(true);
-        const allTypes = tabs.flatMap(t => t.types);
+        const allTypes = tabs.flatMap((t: any) => t.types);
 
         try {
             let query = supabase
@@ -144,7 +144,7 @@ export default function AdminDocumentosPage() {
     };
 
     const handleRestoreAll = async () => {
-        const allTypes = tabs.flatMap(t => t.types);
+        const allTypes = tabs.flatMap((t: any) => t.types);
         const targetStatus = statusFilter === 'archived' ? 'archived' : 'deleted';
         try {
             let query = supabase.from('articles').update({ status: 'active', deleted_at: null }).in('type', allTypes);
@@ -178,7 +178,7 @@ export default function AdminDocumentosPage() {
 
     const handleEmptyBin = async () => {
         try {
-            const allTypes = tabs.flatMap(t => t.types);
+            const allTypes = tabs.flatMap((t: any) => t.types);
             const { error } = await supabase
                 .from('articles')
                 .delete()
@@ -228,12 +228,12 @@ export default function AdminDocumentosPage() {
     };
 
 
-    const filteredArticles = articles.filter(a => {
+    const filteredArticles = articles.filter((a: any) => {
         const matchesSearch = a.title.toLowerCase().includes(search.toLowerCase());
 
         if (activeTab === 'todos') return matchesSearch;
 
-        const activeTabObj = tabs.find(t => t.id === activeTab);
+        const activeTabObj = tabs.find((t: any) => t.id === activeTab);
         const matchesType = activeTabObj ? activeTabObj.types.includes(a.type) : false;
         return matchesSearch && matchesType;
     });
@@ -426,7 +426,7 @@ export default function AdminDocumentosPage() {
                 ) : (
                     // LIST VIEW
                     <AdminDataTable
-                        title={statusFilter === 'deleted' ? "Reciclagem de Documentos" : statusFilter === 'archived' ? "Arquivo de Documentos" : (tabs.find(t => t.id === activeTab)?.label || "Documentos")}
+                        title={statusFilter === 'deleted' ? "Reciclagem de Documentos" : statusFilter === 'archived' ? "Arquivo de Documentos" : (tabs.find((t: any) => t.id === activeTab)?.label || "Documentos")}
                         columns={columns}
                         data={filteredArticles}
                         loading={loading}
@@ -436,11 +436,11 @@ export default function AdminDocumentosPage() {
                         selectedIds={selectedIds}
                         onSelectRow={(id: string, selected: boolean) => {
                             if (selected) setSelectedIds(prev => [...prev, id]);
-                            else setSelectedIds(prev => prev.filter(i => i !== id));
+                            else setSelectedIds(prev => prev.filter((i: any) => i !== id));
                         }}
                         onSelectAll={(all: boolean) => {
                             if (all) {
-                                setSelectedIds(filteredArticles.map(r => r.id));
+                                setSelectedIds(filteredArticles.map((r: any) => r.id));
                             } else {
                                 setSelectedIds([]);
                             }

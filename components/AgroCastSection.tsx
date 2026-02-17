@@ -3,19 +3,30 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Play, Mic, Users, ArrowRight, PlayCircle, Star, Clock } from "lucide-react";
+import { Play, Mic, Users, ArrowRight, ArrowLeft, PlayCircle, Star, Clock } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
 interface PodcastEpisode {
     id: string;
     title: string;
     specialist_name: string;
+    specialist_role?: string;
     duration: string;
     category: string;
     thumbnail_url: string;
     video_url: string;
     description?: string;
     is_active: boolean;
+}
+
+function renderTitleWithGreenEnd(title: string) {
+    const words = title.split(' ');
+    if (words.length <= 2) {
+        return <span className="text-[#f97316]">{title}</span>;
+    }
+    const mainPart = words.slice(0, -2).join(' ');
+    const greenPart = words.slice(-2).join(' ');
+    return (<>{mainPart} <span className="text-[#f97316]">{greenPart}</span></>);
 }
 
 interface AgroCastSectionProps {
@@ -27,8 +38,12 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
     const [activeEpisode, setActiveEpisode] = useState<PodcastEpisode | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [isTeaserMode, setIsTeaserMode] = useState(false);
+    const [featuredEpisode, setFeaturedEpisode] = useState<PodcastEpisode | null>(null);
 
     useEffect(() => {
+        const abortController = new AbortController();
+
         const fetchPodcasts = async () => {
             const supabase = createClient();
             const { data, error } = await supabase
@@ -37,10 +52,13 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                 .eq('is_active', true)
                 .order('is_featured', { ascending: false })
                 .order('created_at', { ascending: false })
-                .limit(3);
+                .limit(3)
+                .abortSignal(abortController.signal);
 
             if (error) {
-                console.error('Error fetching podcasts full error:', JSON.stringify(error, null, 2));
+                // Ignore abort errors (caused by React Strict Mode double-mount)
+                if (error.message?.includes('AbortError') || error.code === 'ABORT_ERR') return;
+                console.error('Error fetching podcasts:', error.message);
             } else if (data && data.length > 0) {
                 setEpisodes(data);
                 setActiveEpisode(data[0]);
@@ -49,10 +67,12 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
         };
 
         fetchPodcasts();
+
+        return () => abortController.abort();
     }, []);
 
     const Wrapper = embedded ? "div" : "section";
-    const wrapperClass = embedded ? "w-full" : "section-agro bg-[#F8FAFC] relative overflow-hidden";
+    const wrapperClass = embedded ? "w-full" : "section-agro !pt-[100px] !pb-[100px] bg-white relative overflow-hidden";
     const containerClass = embedded ? "w-full relative z-10" : "container-site relative z-10";
 
     const handlePlay = () => {
@@ -76,19 +96,13 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
 
     return (
         <Wrapper className={wrapperClass} id="agrocast">
-            {/* Background Decor - Only show if not embedded */}
-            {!embedded && (
-                <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
-                    <div className="absolute -top-[10%] -left-[5%] w-[40%] h-[50%] bg-emerald-500/5 rounded-full blur-[120px]" />
-                    <div className="absolute -bottom-[10%] -right-[5%] w-[40%] h-[50%] bg-orange-500/5 rounded-full blur-[120px]" />
-                </div>
-            )}
+
 
             <div className={containerClass}>
 
 
                 <div className="flex justify-end mb-[30px]">
-                    <Link href="https://www.youtube.com" target="_blank" className="inline-block">
+                    <Link href="/agrocast" className="inline-block">
                         <button className="flex items-center gap-2 text-slate-400 hover:text-emerald-600 transition-colors text-xs font-bold uppercase tracking-widest group">
                             Ver todos os episódios
                             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -98,17 +112,36 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
 
                 <div className="grid lg:grid-cols-[68fr_32fr] gap-agro items-stretch">
                     {/* TV SCREEN FRAME - Main Video */}
-                    <div className="relative group p-3 bg-slate-800 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] rounded-[15px] border border-slate-700">
+                    <div className="relative group p-3 bg-slate-800 rounded-[15px] border border-slate-700">
                         {/* Physical Bezels - Height Reduced */}
                         <div className="relative overflow-hidden bg-slate-900 h-[500px] border-[10px] border-slate-900 rounded-[10px] shadow-inner">
                             {isPlaying && activeEpisode.video_url ? (
-                                <iframe
-                                    src={`${activeEpisode.video_url}${activeEpisode.video_url.includes('?') ? '&' : '?'}autoplay=1`}
-                                    title={activeEpisode.title}
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                    className="w-full h-full object-cover"
-                                />
+                                <div className="relative w-full h-full">
+                                    <iframe
+                                        src={`${activeEpisode.video_url}${activeEpisode.video_url.includes('?') ? '&' : '?'}autoplay=1`}
+                                        title={activeEpisode.title}
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                        className="absolute inset-0 w-full h-full rounded-[10px]"
+                                    />
+                                    {isTeaserMode && featuredEpisode && (
+                                        <div className="absolute inset-0 z-30 pointer-events-none flex items-start justify-start p-4">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    setActiveEpisode(featuredEpisode);
+                                                    setIsPlaying(false);
+                                                    setIsTeaserMode(false);
+                                                }}
+                                                className="pointer-events-auto bg-black/80 hover:bg-[#f97316] text-white text-xs font-bold px-4 py-2.5 rounded-full flex items-center gap-2 transition-all shadow-xl border border-white/10 backdrop-blur-md"
+                                            >
+                                                <ArrowLeft className="w-3.5 h-3.5" />
+                                                Voltar ao Destaque
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             ) : (
                                 <>
                                     {activeEpisode.thumbnail_url ? (
@@ -158,14 +191,17 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
 
                                         <div className="space-y-1">
                                             <h3 className="text-xl md:text-[26px] font-black text-white leading-tight max-w-2xl m-0 drop-shadow-lg">
-                                                {activeEpisode.title}
+                                                {renderTitleWithGreenEnd(activeEpisode.title)}
                                             </h3>
-                                            <p className="text-white/80 text-[11px] md:text-[13px] font-medium leading-relaxed max-w-xl mt-2 line-clamp-2">
-                                                {activeEpisode.description || "Descubra como as novas tecnologias e sistemas de mercado estão transformando a cadeia de valor agrícola."}
-                                            </p>
-                                            <div className="flex items-center gap-2 pt-1">
-                                                <span className="text-white/60 text-[12px] font-bold">Com:</span>
-                                                <span className="text-white text-[13px] font-bold">{activeEpisode.specialist_name}</span>
+                                            {activeEpisode.description && activeEpisode.description.trim() !== '' && (
+                                                <p className="text-white/80 text-[11px] md:text-[13px] font-medium leading-relaxed max-w-xl mt-2 line-clamp-2">
+                                                    {activeEpisode.description}
+                                                </p>
+                                            )}
+                                            <div className="pt-1">
+                                                <span className="text-white text-[13px] font-bold">
+                                                    {activeEpisode.specialist_name}{activeEpisode.specialist_role ? ` — ${activeEpisode.specialist_role}` : ''}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -203,12 +239,32 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                                     <h3 className="text-[15px] font-black text-white leading-tight m-0 transition-colors line-clamp-2">
                                         {nextEpisode.title}
                                     </h3>
-                                    <p className="text-white/70 text-[10px] leading-snug mt-1 line-clamp-2">
-                                        {nextEpisode.description || "Assista ao próximo episódio para mais insights sobre o agronegócio."}
-                                    </p>
-                                    <div className="pt-2 flex items-center gap-2 text-white/90 group-hover:text-white transition-all text-[10px] font-bold uppercase tracking-widest">
+                                    {nextEpisode.description && nextEpisode.description.trim() !== '' && (
+                                        <p className="text-white/70 text-[10px] leading-snug mt-1 line-clamp-2">
+                                            {nextEpisode.description}
+                                        </p>
+                                    )}
+                                    <div className="pt-1 pb-0">
+                                        <span className="text-white text-[11px] font-bold">
+                                            {nextEpisode.specialist_name}{nextEpisode.specialist_role ? ` — ${nextEpisode.specialist_role}` : ''}
+                                        </span>
+                                    </div>
+                                    <div
+                                        className="pt-1 flex items-center gap-2 text-white/90 group-hover:text-white transition-all text-[10px] font-bold uppercase tracking-widest"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setFeaturedEpisode(activeEpisode);
+                                            const baseUrl = nextEpisode.video_url;
+                                            const teaserUrl = baseUrl.includes('?')
+                                                ? `${baseUrl}&start=0&end=110`
+                                                : `${baseUrl}?start=0&end=110`;
+                                            setActiveEpisode({ ...nextEpisode, video_url: teaserUrl });
+                                            setIsPlaying(true);
+                                            setIsTeaserMode(true);
+                                        }}
+                                    >
                                         <PlayCircle className="w-4 h-4 text-[#f97316]" />
-                                        <span>Ver Teaser</span>
+                                        <span>Ver Teaser · 1:50</span>
                                     </div>
                                 </div>
                             </div>

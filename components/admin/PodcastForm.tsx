@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,6 +20,7 @@ const formSchema = z.object({
     title: z.string().min(5, "O título deve ter pelo menos 5 caracteres"),
     video_url: z.string().url("URL inválido (deve ser YouTube ou Vimeo)"),
     specialist_name: z.string().min(2, "Nome do especialista é obrigatório"),
+    specialist_role: z.string().default("").optional(),
     duration: z.string().min(2, "Duração é obrigatória (ex: 45 min)"),
     category: z.string().min(1, "Seleccione uma categoria"),
     description: z.string().default("").optional(),
@@ -38,6 +39,20 @@ interface PodcastFormProps {
 export function PodcastForm({ initialData, isEditing = false }: PodcastFormProps) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            const supabase = createClient();
+            const { data } = await supabase
+                .from("podcast_categories")
+                .select("id, name")
+                .eq("is_active", true)
+                .order("name");
+            if (data) setCategories(data);
+        };
+        fetchCategories();
+    }, []);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -45,6 +60,7 @@ export function PodcastForm({ initialData, isEditing = false }: PodcastFormProps
             title: initialData?.title || "",
             video_url: initialData?.video_url || "",
             specialist_name: initialData?.specialist_name || "",
+            specialist_role: initialData?.specialist_role || "",
             duration: initialData?.duration || "",
             category: initialData?.category || "Estratégia",
             description: initialData?.description || "",
@@ -56,13 +72,27 @@ export function PodcastForm({ initialData, isEditing = false }: PodcastFormProps
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setLoading(true);
+        const supabase = createClient();
         try {
-            // Helper to transform standard YT link to Embed if needed (optional)
+            // Helper to transform standard YT link to clean Embed URL
             let videoUrl = values.video_url;
-            if (videoUrl.includes('watch?v=')) {
-                videoUrl = videoUrl.replace('watch?v=', 'embed/');
-            } else if (videoUrl.includes('youtu.be/')) {
-                videoUrl = videoUrl.replace('youtu.be/', 'youtube.com/embed/');
+            let videoId = '';
+            try {
+                const urlObj = new URL(videoUrl);
+                if (urlObj.hostname.includes('youtube.com') && urlObj.searchParams.get('v')) {
+                    videoId = urlObj.searchParams.get('v')!;
+                } else if (urlObj.hostname.includes('youtu.be')) {
+                    videoId = urlObj.pathname.replace('/', '');
+                } else if (urlObj.pathname.includes('/embed/')) {
+                    videoId = urlObj.pathname.split('/embed/')[1]?.split('/')[0] || '';
+                }
+            } catch {
+                // If URL parsing fails, try regex fallback
+                const match = videoUrl.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]+)/);
+                if (match) videoId = match[1];
+            }
+            if (videoId) {
+                videoUrl = `https://www.youtube.com/embed/${videoId}`;
             }
 
             const payload = { ...values, video_url: videoUrl };
@@ -159,13 +189,13 @@ export function PodcastForm({ initialData, isEditing = false }: PodcastFormProps
                             )}
                         />
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="specialist_name"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Especialista / Convidado</FormLabel>
+                                        <FormLabel>Nome do Convidado</FormLabel>
                                         <FormControl>
                                             <div className="relative">
                                                 <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
@@ -176,6 +206,23 @@ export function PodcastForm({ initialData, isEditing = false }: PodcastFormProps
                                     </FormItem>
                                 )}
                             />
+
+                            <FormField
+                                control={form.control}
+                                name="specialist_role"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Especialidade / Cargo</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ex: Agrónomo, CEO da AgroTech" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-[25fr_75fr] gap-4">
 
                             <FormField
                                 control={form.control}
@@ -193,32 +240,30 @@ export function PodcastForm({ initialData, isEditing = false }: PodcastFormProps
                                     </FormItem>
                                 )}
                             />
-                        </div>
 
-                        <FormField
-                            control={form.control}
-                            name="category"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Categoria / Tema</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Seleccione um tema" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="Estratégia">Estratégia</SelectItem>
-                                            <SelectItem value="Produção">Produção</SelectItem>
-                                            <SelectItem value="Economia">Economia</SelectItem>
-                                            <SelectItem value="Inovação">Inovação</SelectItem>
-                                            <SelectItem value="Sustentabilidade">Sustentabilidade</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                            <FormField
+                                control={form.control}
+                                name="category"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Categoria / Tema</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Seleccione um tema" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {categories.map((cat) => (
+                                                    <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                     </div>
 
                     {/* Right Column */}

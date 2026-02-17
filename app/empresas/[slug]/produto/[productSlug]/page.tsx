@@ -64,7 +64,7 @@ export default async function ProductPage({ params }: PageProps) {
         .order('created_at', { ascending: false })
         .limit(3);
 
-    const similarProducts = (similarProductsData || []).map(p => ({
+    const similarProducts = (similarProductsData || []).map((p: any) => ({
         ...p,
         companySlug: (Array.isArray(p.companies) ? p.companies[0]?.slug : p.companies?.slug) || slug
     }));
@@ -78,7 +78,7 @@ export default async function ProductPage({ params }: PageProps) {
             }}
             product={finalProduct}
             companySlug={slug}
-            otherSellers={(otherSellers || []).map(p => ({
+            otherSellers={(otherSellers || []).map((p: any) => ({
                 id: p.id,
                 name: p.name,
                 price: p.price,

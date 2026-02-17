@@ -31,7 +31,7 @@ export default function AdminMessagesPage() {
 
     const handlePlanToggle = (plan: string) => {
         if (selectedPlans.includes(plan)) {
-            setSelectedPlans(selectedPlans.filter(p => p !== plan));
+            setSelectedPlans(selectedPlans.filter((p: any) => p !== plan));
         } else {
             setSelectedPlans([...selectedPlans, plan]);
         }
@@ -76,7 +76,7 @@ export default function AdminMessagesPage() {
 
             // A. Fetch from Profiles and Companies based on Plans
             // We include "Gratuito" as a special case for "Visitante" too
-            const selectedPlanNames = selectedPlans.filter(p => !["Subscritores (Newsletter)", "Profissionais"].includes(p));
+            const selectedPlanNames = selectedPlans.filter((p: any) => !["Subscritores (Newsletter)", "Profissionais"].includes(p));
 
             if (selectedPlanNames.length > 0) {
                 // Prepare normalized plans for query (case sensitive handling if needed)
@@ -105,7 +105,7 @@ export default function AdminMessagesPage() {
 
                 if (compError) throw compError;
                 if (companyUsers) {
-                    const mappedCompUsers = companyUsers.map(c => ({ id: c.user_id, email: c.email }));
+                    const mappedCompUsers = companyUsers.map((c: any) => ({ id: c.user_id, email: c.email }));
                     allRecipients = [...allRecipients, ...mappedCompUsers];
                 }
             }
@@ -118,7 +118,7 @@ export default function AdminMessagesPage() {
 
                 if (extraError) throw extraError;
                 if (professionals) {
-                    const mappedProfs = professionals.map(p => ({ id: p.user_id, email: p.email }));
+                    const mappedProfs = professionals.map((p: any) => ({ id: p.user_id, email: p.email }));
                     allRecipients = [...allRecipients, ...mappedProfs];
                 }
             }
@@ -131,7 +131,7 @@ export default function AdminMessagesPage() {
 
                 if (subError) throw subError;
                 if (subscribers) {
-                    const mappedSubs = subscribers.map(s => ({ email: s.email }));
+                    const mappedSubs = subscribers.map((s: any) => ({ email: s.email }));
                     allRecipients = [...allRecipients, ...mappedSubs];
                 }
             }
@@ -143,13 +143,13 @@ export default function AdminMessagesPage() {
             }
 
             // Remove duplicates (users might be in newsletter too)
-            const uniqueEmails = Array.from(new Set(allRecipients.map(r => r.email)));
-            const uniqueRecipients = uniqueEmails.map(email => allRecipients.find(r => r.email === email)!);
+            const uniqueEmails = Array.from(new Set(allRecipients.map((r: any) => r.email)));
+            const uniqueRecipients = uniqueEmails.map((email: any) => allRecipients.find((r: any) => r.email === email)!);
 
             // 3. Create Notifications (Only for Registered Users with IDs)
-            const registeredUsers = uniqueRecipients.filter(u => u.id);
+            const registeredUsers = uniqueRecipients.filter((u: any) => u.id);
             if (registeredUsers.length > 0) {
-                const notifications = registeredUsers.map(u => ({
+                const notifications = registeredUsers.map((u: any) => ({
                     user_id: u.id,
                     message_id: msgData.id,
                     read: false
@@ -163,7 +163,7 @@ export default function AdminMessagesPage() {
             }
 
             // 4. Send Email via SMTP API
-            const emailRecipients = uniqueRecipients.map(u => u.email).filter(Boolean);
+            const emailRecipients = uniqueRecipients.map((u: any) => u.email).filter(Boolean);
 
             if (emailRecipients.length > 0) {
                 const emailResponse = await fetch('/api/messages/send', {
@@ -327,7 +327,7 @@ export default function AdminMessagesPage() {
                                                 {url.split('/').pop()}
                                             </a>
                                             <button
-                                                onClick={() => setAttachments(attachments.filter(a => a !== url))}
+                                                onClick={() => setAttachments(attachments.filter((a: any) => a !== url))}
                                                 className="text-slate-400 hover:text-red-500 transition-colors"
                                                 title="Remover anexo"
                                             >

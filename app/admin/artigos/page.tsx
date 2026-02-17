@@ -40,7 +40,7 @@ export default function AdminArtigosCientificosPage() {
             let query = supabase
                 .from('articles')
                 .select('*')
-                .in('type', tabs.map(t => t.id));
+                .in('type', tabs.map((t: any) => t.id));
 
             if (statusFilter === 'active') {
                 query = query.is('deleted_at', null).or('status.eq.active,status.is.null');
@@ -59,7 +59,7 @@ export default function AdminArtigosCientificosPage() {
                     let fallbackQuery = supabase
                         .from('articles')
                         .select('*')
-                        .in('type', tabs.map(t => t.id))
+                        .in('type', tabs.map((t: any) => t.id))
                         .order('created_at', { ascending: false });
 
                     if (statusFilter === 'deleted') {
@@ -190,7 +190,7 @@ export default function AdminArtigosCientificosPage() {
             const query = supabase.from('articles').update({
                 deleted_at: null,
                 status: 'active'
-            }).in('type', tabs.map(t => t.id));
+            }).in('type', tabs.map((t: any) => t.id));
 
             if (statusFilter === 'deleted') {
                 query.not('deleted_at', 'is', null);
@@ -214,7 +214,7 @@ export default function AdminArtigosCientificosPage() {
                 .from('articles')
                 .delete({ count: 'exact' })
                 .not('deleted_at', 'is', null)
-                .in('type', tabs.map(t => t.id));
+                .in('type', tabs.map((t: any) => t.id));
 
             if (error) throw error;
 
@@ -229,7 +229,7 @@ export default function AdminArtigosCientificosPage() {
         const previousArticles = [...articles];
         try {
             // Optimistic update
-            setArticles(prev => prev.filter(a => !selectedIds.includes(a.id)));
+            setArticles(prev => prev.filter((a: any) => !selectedIds.includes(a.id)));
 
             const { error } = await supabase
                 .from('articles')
@@ -259,7 +259,7 @@ export default function AdminArtigosCientificosPage() {
     };
 
 
-    const filteredArticles = articles.filter(a => {
+    const filteredArticles = articles.filter((a: any) => {
         const matchesSearch = a.title.toLowerCase().includes(search.toLowerCase());
         const matchesType = a.type === activeTab;
         return matchesSearch && matchesType;
@@ -314,7 +314,7 @@ export default function AdminArtigosCientificosPage() {
                         }}
                         className="bg-white border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wide rounded-lg px-4 py-2 outline-none focus:border-emerald-500 h-10 w-full md:w-40"
                     >
-                        {tabs.map(tab => (
+                        {tabs.map((tab: any) => (
                             <option key={tab.id} value={tab.id}>{tab.label}</option>
                         ))}
                     </select>
@@ -456,7 +456,7 @@ export default function AdminArtigosCientificosPage() {
                     }}
                     onSelectAll={(all: boolean) => {
                         if (all) {
-                            setSelectedIds(filteredArticles.map(r => r.id));
+                            setSelectedIds(filteredArticles.map((r: any) => r.id));
                         } else {
                             setSelectedIds([]);
                         }

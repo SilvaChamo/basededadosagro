@@ -1,5 +1,5 @@
-import { createClient } from './utils/supabase/client';
-import { servicesData } from './lib/services-data';
+import { createClient } from '../utils/supabase/client';
+import { servicesData } from '../lib/services-data';
 
 interface SubCategory {
     slug: string;

@@ -30,16 +30,41 @@ export async function createClient() {
 
     if (!isValidUrl(url) || !key) {
         if (process.env.NODE_ENV !== 'production') {
-            console.warn('⚠️ Warning: Supabase credentials missing in utils/supabase/server.ts during build.')
+            console.warn('⚠️ Warning: Supabase credentials missing or invalid in utils/supabase/server.ts.')
         }
 
-        // In server context, throw or return a proxy
+        // Return a proxy that returns empty data/error responses instead of throwing
+        // This prevents 500 errors in Server Components
         return new Proxy({} as any, {
             get: (_, prop) => {
-                return () => {
-                    console.error(`🔴 Supabase method "${String(prop)}" called via server client without configuration.`)
-                    throw new Error(`Supabase server client is not configured.`)
+                if (prop === 'auth') {
+                    return new Proxy({} as any, {
+                        get: (_, authProp) => {
+                            if (authProp === 'getUser' || authProp === 'getSession') {
+                                return async () => ({ data: { user: null, session: null }, error: null })
+                            }
+                            return () => {
+                                console.error(`🔴 Supabase auth method "${String(authProp)}" called without configuration.`)
+                                return { data: null, error: new Error('Supabase not configured') }
+                            }
+                        }
+                    })
                 }
+                return () => ({
+                    from: () => ({
+                        select: () => ({
+                            eq: () => ({
+                                order: () => ({
+                                    limit: () => Promise.resolve({ data: [], error: null })
+                                }),
+                                limit: () => Promise.resolve({ data: [], error: null }),
+                                single: () => Promise.resolve({ data: null, error: null })
+                            }),
+                            single: () => Promise.resolve({ data: null, error: null })
+                        })
+                    }),
+                    rpc: () => Promise.resolve({ data: null, error: null })
+                })
             }
         })
     }

@@ -16,7 +16,7 @@ export function useSiteSettings() {
                 console.error("Error fetching settings:", error);
             } else {
                 const settingsMap: Record<string, any> = {};
-                data?.forEach(item => {
+                data?.forEach((item: any) => {
                     settingsMap[item.key] = item.value;
                 });
                 setSettings(settingsMap);

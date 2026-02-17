@@ -131,8 +131,8 @@ export default function ArticleReadingPage() {
 
                     if (fallbackData) {
                         // Merge and remove duplicates by ID
-                        const currentIds = new Set(recData?.map(a => a.id) || []);
-                        const newItems = fallbackData.filter(a => !currentIds.has(a.id));
+                        const currentIds = new Set(recData?.map((a: any) => a.id) || []);
+                        const newItems = fallbackData.filter((a: any) => !currentIds.has(a.id));
                         recData = [...(recData || []), ...newItems];
                     }
                 }
@@ -248,7 +248,7 @@ export default function ArticleReadingPage() {
 
                                         {showShareMenu && (
                                             <div className="absolute left-0 top-full mt-2 bg-white border border-slate-100 shadow-xl rounded-xl p-2 z-50 flex gap-1 animate-in fade-in slide-in-from-top-2">
-                                                {shareOptions.map((opt) => (
+                                                {shareOptions.map((opt: any) => (
                                                     <a
                                                         key={opt.name}
                                                         href={opt.url}
@@ -298,7 +298,7 @@ export default function ArticleReadingPage() {
 
                                 <div className="flex items-center gap-3">
                                     <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] mr-2">Siga-nos</p>
-                                    {[Facebook, Twitter, Linkedin].map((Icon, i) => (
+                                    {[Facebook, Twitter, Linkedin].map((Icon: any, i: any) => (
                                         <button key={i} className="size-9 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:text-white hover:bg-[#f97316] hover:border-[#f97316] transition-all">
                                             <Icon className="w-4 h-4" />
                                         </button>
@@ -312,7 +312,7 @@ export default function ArticleReadingPage() {
                                     Continue a ler <span className="flex-1 h-px bg-slate-100"></span>
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {recommended.map((item, i) => {
+                                    {recommended.map((item: any, i: any) => {
                                         const isSpecial = i < 2; // Make 첫 two cards special
                                         if (isSpecial) {
                                             return (
@@ -390,7 +390,7 @@ export default function ArticleReadingPage() {
                                 </h3>
                             </div>
                             <div className="space-y-2">
-                                {["Técnico", "Mercado", "Comunidade", "Institucional"].map((cat, i) => (
+                                {["Técnico", "Mercado", "Comunidade", "Institucional"].map((cat: any, i: any) => (
                                     <Link
                                         key={i}
                                         href={`/blog?cat=${cat}`}

@@ -50,9 +50,9 @@ export function MarketPriceTable() {
     const categories = ["Todos", "Grãos", "Legumes", "Frutas", "Animais", "Óleos"];
 
     // Get unique provinces from data
-    const provinces = ["Todas", ...Array.from(new Set(marketData.map(item => item.location))).sort()];
+    const provinces = ["Todas", ...Array.from(new Set(marketData.map((item: any) => item.location))).sort()];
 
-    const filteredData = marketData.filter(item => {
+    const filteredData = marketData.filter((item: any) => {
         const matchesCategory = activeCategory === "Todos" || item.category === activeCategory;
         const matchesSearch = item.product.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesProvince = selectedProvince === "Todas" || item.location === selectedProvince;

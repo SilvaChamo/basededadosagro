@@ -48,7 +48,7 @@ export function SearchSection({ isOpen, withBottomBorder = false }: SearchSectio
             ]);
 
             // Formatar Empresas
-            const empresasMapped = (companies.data || []).map(c => ({
+            const empresasMapped = (companies.data || []).map((c: any) => ({
                 ...c,
                 title: c.name,
                 sub: c.category || c.description,
@@ -62,7 +62,7 @@ export function SearchSection({ isOpen, withBottomBorder = false }: SearchSectio
 
             // 1. Produtos Globais (se existirem e tiverem vínculo, ou como genéricos)
             if (globalProducts.data) {
-                globalProducts.data.forEach(p => {
+                globalProducts.data.forEach((p: any) => {
                     productsList.push({
                         ...p,
                         title: p.name,
@@ -78,7 +78,7 @@ export function SearchSection({ isOpen, withBottomBorder = false }: SearchSectio
 
             // 2. Produtos embutidos nas Empresas (JSONB)
             if (companies.data) {
-                companies.data.forEach(c => {
+                companies.data.forEach((c: any) => {
                     if (c.products && Array.isArray(c.products)) {
                         c.products.forEach((p: any) => {
                             productsList.push({
@@ -98,9 +98,9 @@ export function SearchSection({ isOpen, withBottomBorder = false }: SearchSectio
             setDbData({
                 empresas: empresasMapped,
                 produtos: productsList,
-                profissionais: (pros.data || []).map(p => ({ ...p, title: p.name, sub: p.role, image: p.image_url, icon: Users, type: 'professional' })),
-                propriedades: (props.data || []).map(p => ({ ...p, title: p.name, sub: p.description, image: p.image_url, icon: LandPlot, type: 'property' })),
-                artigos: (arts.data || []).map(a => ({ ...a, title: a.title, sub: a.subtitle || a.type, image: a.image_url, icon: FileText, type: 'article' }))
+                profissionais: (pros.data || []).map((p: any) => ({ ...p, title: p.name, sub: p.role, image: p.image_url, icon: Users, type: 'professional' })),
+                propriedades: (props.data || []).map((p: any) => ({ ...p, title: p.name, sub: p.description, image: p.image_url, icon: LandPlot, type: 'property' })),
+                artigos: (arts.data || []).map((a: any) => ({ ...a, title: a.title, sub: a.subtitle || a.type, image: a.image_url, icon: FileText, type: 'article' }))
             });
         };
         fetchAll();

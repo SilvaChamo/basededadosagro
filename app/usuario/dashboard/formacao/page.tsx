@@ -86,10 +86,10 @@ export default function FormacaoPage() {
         };
 
         // Get initial user
-        supabase.auth.getUser().then(({ data: { user } }) => fetchUserData(user));
+        supabase.auth.getUser().then(({ data: { user } }: { data: { user: any } }) => fetchUserData(user));
 
         // Listen for changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
             fetchUserData(session?.user ?? null);
         });
 

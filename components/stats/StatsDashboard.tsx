@@ -55,7 +55,7 @@ export function StatsDashboard({ slug }: StatsDashboardProps) {
             if (error) {
                 console.error("Error fetching stats:", error);
             } else if (stats) {
-                const formattedData = stats.map(s => ({
+                const formattedData = stats.map((s: any) => ({
                     name: s.label,
                     value: Number(s.value),
                     variation: Number(s.variation)

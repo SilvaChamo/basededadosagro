@@ -29,7 +29,7 @@ export function FeaturedCompanies() {
                 if (error) throw error;
 
                 if (data) {
-                    const mapped: Company[] = data.map(d => ({
+                    const mapped: Company[] = data.map((d: any) => ({
                         id: d.id,
                         slug: d.slug,
                         name: d.company_name || d.name,

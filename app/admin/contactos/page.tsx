@@ -228,7 +228,7 @@ export default function AdminContactosPage() {
             ]);
         });
 
-        const csvContent = csvRows.map(e => e.join(",")).join("\n");
+        const csvContent = csvRows.map((e: any) => e.join(",")).join("\n");
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
@@ -271,9 +271,9 @@ export default function AdminContactosPage() {
 
                 // Simple company matching logic
                 const companyMap = new Map();
-                companies.forEach(c => companyMap.set(c.name.toLowerCase().trim(), c.id));
+                companies.forEach((c: any) => companyMap.set(c.name.toLowerCase().trim(), c.id));
 
-                const contactsToInsert = data.map(row => {
+                const contactsToInsert = data.map((row: any) => {
                     // Normalize keys (handle different CSV headers)
                     const name = row.Nome || row.name || row.Name || "";
                     const email = row.Email || row.email || row.EMAIL || "";
@@ -292,7 +292,7 @@ export default function AdminContactosPage() {
                         source: 'manual_import',
                         notes: companyName && !companyId ? `Empresa não encontrada: ${companyName}` : ""
                     };
-                }).filter(c => c.name || c.email);
+                }).filter((c: any) => c.name || c.email);
 
                 if (contactsToInsert.length === 0) throw new Error("Nenhum contacto válido encontrado.");
 
@@ -424,7 +424,7 @@ export default function AdminContactosPage() {
         c.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.phone?.includes(searchTerm) ||
         c.company?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    ).sort((a, b) => {
+    ).sort((a: any, b: any) => {
         // Criterion 1: Priority for contacts with phone/whatsapp
         const aHasPhone = !!(a.phone || a.whatsapp);
         const bHasPhone = !!(b.phone || b.whatsapp);

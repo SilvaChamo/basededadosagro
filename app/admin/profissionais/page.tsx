@@ -34,7 +34,7 @@ export default function AdminProfessionalsPage() {
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
-            setSelectedIds(filteredData.map(item => item.id));
+            setSelectedIds(filteredData.map((item: any) => item.id));
         } else {
             setSelectedIds([]);
         }
@@ -44,7 +44,7 @@ export default function AdminProfessionalsPage() {
         if (checked) {
             setSelectedIds(prev => [...prev, id]);
         } else {
-            setSelectedIds(prev => prev.filter(item => item !== id));
+            setSelectedIds(prev => prev.filter((item: any) => item !== id));
         }
     };
 
@@ -67,7 +67,7 @@ export default function AdminProfessionalsPage() {
             }
         }
 
-        setData(prev => prev.map(p => selectedIds.includes(p.id) ? { ...p, status: 'active' } : p));
+        setData(prev => prev.map((p: any) => selectedIds.includes(p.id) ? { ...p, status: 'active' } : p));
         toast.success(`${selectedIds.length} itens restaurados`);
         setSelectedIds([]);
     };
@@ -83,7 +83,7 @@ export default function AdminProfessionalsPage() {
             return;
         }
 
-        setData(prev => prev.map(p => p.status === 'inactive' ? { ...p, status: 'active' } : p));
+        setData(prev => prev.map((p: any) => p.status === 'inactive' ? { ...p, status: 'active' } : p));
         toast.success("Todos os itens restaurados");
     };
 
@@ -110,7 +110,7 @@ export default function AdminProfessionalsPage() {
             console.error('Erro ao carregar dados:', error);
             toast.error("Erro ao carregar profissionais da BD");
         } else {
-            const normalizedDbData = (dbData || []).map(item => ({
+            const normalizedDbData = (dbData || []).map((item: any) => ({
                 ...item,
                 status: item.status || 'active'
             }));
@@ -126,9 +126,9 @@ export default function AdminProfessionalsPage() {
     }, []);
 
     // Get unique professions for the filter
-    const professions = Array.from(new Set(data.map(item => item.profession).filter(Boolean)));
+    const professions = Array.from(new Set(data.map((item: any) => item.profession).filter(Boolean)));
 
-    const filteredData = data.filter(item => {
+    const filteredData = data.filter((item: any) => {
         const matchesSearch =
             item.name?.toLowerCase().includes(search.toLowerCase()) ||
             item.profession?.toLowerCase().includes(search.toLowerCase()) ||
@@ -165,7 +165,7 @@ export default function AdminProfessionalsPage() {
         }
 
         toast.success(newStatus === 'inactive' ? "Profissional arquivado" : "Profissional restaurado");
-        setData(prev => prev.map(p => p.id === row.id ? { ...p, status: newStatus } : p));
+        setData(prev => prev.map((p: any) => p.id === row.id ? { ...p, status: newStatus } : p));
     };
 
     const handleRestoreFromTrash = async (row: any) => {
@@ -184,7 +184,7 @@ export default function AdminProfessionalsPage() {
         }
 
         toast.success("Profissional restaurado da reciclagem");
-        setData(prev => prev.map(p => p.id === row.id ? { ...p, status: 'active' } : p));
+        setData(prev => prev.map((p: any) => p.id === row.id ? { ...p, status: 'active' } : p));
     };
 
     const handleEmptyTrash = async () => {
@@ -202,7 +202,7 @@ export default function AdminProfessionalsPage() {
         }
 
         // 2. Clear local state (remove all 'deleted' items)
-        setData(prev => prev.filter(p => p.status !== 'deleted'));
+        setData(prev => prev.filter((p: any) => p.status !== 'deleted'));
         toast.success("Reciclagem esvaziada com sucesso");
     };
 
@@ -230,7 +230,7 @@ export default function AdminProfessionalsPage() {
                 }
             }
             toast.success("Profissional eliminado permanentemente");
-            setData(prev => prev.filter(p => p.id !== itemToDelete.id));
+            setData(prev => prev.filter((p: any) => p.id !== itemToDelete.id));
         } else {
             // Soft delete
             if (!isMock) {
@@ -246,7 +246,7 @@ export default function AdminProfessionalsPage() {
                 }
             }
             toast.success("Enviado para a reciclagem");
-            setData(prev => prev.map(p => p.id === itemToDelete.id ? { ...p, status: 'deleted' } : p));
+            setData(prev => prev.map((p: any) => p.id === itemToDelete.id ? { ...p, status: 'deleted' } : p));
         }
 
         setIsDeleteModalOpen(false);
@@ -295,7 +295,7 @@ export default function AdminProfessionalsPage() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">Todas</SelectItem>
-                            {professions.map(p => (
+                            {professions.map((p: any) => (
                                 <SelectItem key={p} value={p}>{p}</SelectItem>
                             ))}
                         </SelectContent>

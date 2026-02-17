@@ -23,7 +23,7 @@ function NewTopicContent() {
     const supabase = createClient();
 
     useEffect(() => {
-        supabase.auth.getUser().then(({ data: { user } }) => {
+        supabase.auth.getUser().then(({ data: { user } }: { data: { user: any } }) => {
             if (!user) {
                 router.push('/login?redirect=/forum/novo-topico');
             } else {

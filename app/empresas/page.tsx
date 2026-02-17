@@ -46,19 +46,19 @@ export default function EmpresasPage() {
         let filtered = [...companies];
 
         if (selectedSector) {
-            filtered = filtered.filter(c => c.category === selectedSector);
+            filtered = filtered.filter((c: any) => c.category === selectedSector);
         }
         if (selectedCategory) {
-            filtered = filtered.filter(c => c.sub_category === selectedCategory);
+            filtered = filtered.filter((c: any) => c.sub_category === selectedCategory);
         }
         if (selectedSize) {
-            filtered = filtered.filter(c => c.size === selectedSize);
+            filtered = filtered.filter((c: any) => c.size === selectedSize);
         }
         if (selectedProvince) {
-            filtered = filtered.filter(c => c.province === selectedProvince);
+            filtered = filtered.filter((c: any) => c.province === selectedProvince);
         }
         if (showFeaturedOnly) {
-            filtered = filtered.filter(c => c.is_featured || c.plan === 'Parceiro' || c.plan === 'Partner');
+            filtered = filtered.filter((c: any) => c.is_featured || c.plan === 'Parceiro' || c.plan === 'Partner');
         }
 
         setFilteredCompanies(filtered);
@@ -108,7 +108,7 @@ export default function EmpresasPage() {
                                     className="w-full h-10 rounded-lg border border-slate-100 text-[13px] font-bold text-slate-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none px-3 bg-slate-50 shadow-inner"
                                 >
                                     <option value="">Todos os Sectores</option>
-                                    {SECTORS.map(s => <option key={s} value={s}>{s}</option>)}
+                                    {SECTORS.map((s: any) => <option key={s} value={s}>{s}</option>)}
                                 </select>
                             </div>
 
@@ -122,7 +122,7 @@ export default function EmpresasPage() {
                                         className="w-full h-10 rounded-lg border-2 border-emerald-100/50 text-[13px] font-bold text-slate-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none px-3 bg-emerald-50/30"
                                     >
                                         <option value="">Todas de {selectedSector}</option>
-                                        {SECTOR_CATEGORIES[selectedSector].map(cat => (
+                                        {SECTOR_CATEGORIES[selectedSector].map((cat: any) => (
                                             <option key={cat} value={cat}>{cat}</option>
                                         ))}
                                     </select>
@@ -138,7 +138,7 @@ export default function EmpresasPage() {
                                     className="w-full h-10 rounded-lg border border-slate-100 text-[13px] font-bold text-slate-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none px-3 bg-slate-50 shadow-inner"
                                 >
                                     <option value="">Todas as Províncias</option>
-                                    {Object.keys(MOZ_DATA).map(p => <option key={p} value={p}>{p}</option>)}
+                                    {Object.keys(MOZ_DATA).map((p: any) => <option key={p} value={p}>{p}</option>)}
                                 </select>
                             </div>
 
@@ -151,7 +151,7 @@ export default function EmpresasPage() {
                                     className="w-full h-10 rounded-lg border border-slate-100 text-[13px] font-bold text-slate-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none px-3 bg-slate-50 shadow-inner"
                                 >
                                     <option value="">Qualquer Dimensão</option>
-                                    {COMPANY_SIZES.map(sz => <option key={sz} value={sz}>{sz}</option>)}
+                                    {COMPANY_SIZES.map((sz: any) => <option key={sz} value={sz}>{sz}</option>)}
                                 </select>
                             </div>
 
@@ -181,13 +181,13 @@ export default function EmpresasPage() {
             <div className="space-y-8 pb-10">
                 {loading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-agro">
-                        {[1, 2, 3, 4, 5, 6].map(i => (
+                        {[1, 2, 3, 4, 5, 6].map((i: any) => (
                             <div key={i} className="h-[280px] bg-slate-50 animate-pulse rounded-agro border border-slate-100" />
                         ))}
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-agro">
-                        {filteredCompanies.map((company) => (
+                        {filteredCompanies.map((company: any) => (
                             <CompanyCard
                                 key={company.id}
                                 company={{

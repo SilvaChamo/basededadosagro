@@ -62,7 +62,7 @@ export default function UserPresentationsPage() {
             }
 
             if (isMounted) {
-                const normalized = (activeData || []).map(item => ({
+                const normalized = (activeData || []).map((item: any) => ({
                     ...item,
                     status: item.status || 'active'
                 }));

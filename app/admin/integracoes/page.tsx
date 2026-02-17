@@ -30,8 +30,8 @@ export default function IntegracoesPage() {
                 .select('*');
 
             if (isMounted && data) {
-                const fb = data.find(i => i.provider === 'facebook');
-                const li = data.find(i => i.provider === 'linkedin');
+                const fb = data.find((i: any) => i.provider === 'facebook');
+                const li = data.find((i: any) => i.provider === 'linkedin');
 
                 if (fb) {
                     setFacebookData({
@@ -62,8 +62,8 @@ export default function IntegracoesPage() {
             .select('*');
 
         if (data) {
-            const fb = data.find(i => i.provider === 'facebook');
-            const li = data.find(i => i.provider === 'linkedin');
+            const fb = data.find((i: any) => i.provider === 'facebook');
+            const li = data.find((i: any) => i.provider === 'linkedin');
 
             if (fb) {
                 setFacebookData({

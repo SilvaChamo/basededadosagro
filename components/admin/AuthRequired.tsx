@@ -22,9 +22,9 @@ export function AuthRequired({ children }: AuthRequiredProps) {
 
     useEffect(() => {
         checkUser();
-        
+
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            (event, session) => {
+            (_event: any, session: any) => {
                 setUser(session?.user || null);
                 setLoading(false);
             }
@@ -49,7 +49,7 @@ export function AuthRequired({ children }: AuthRequiredProps) {
                     email,
                     password,
                 });
-                
+
                 if (error) throw error;
                 setUser(data.user);
             } else {
@@ -57,7 +57,7 @@ export function AuthRequired({ children }: AuthRequiredProps) {
                     email,
                     password,
                 });
-                
+
                 if (error) throw error;
                 setError("Verifique seu email para confirmar o registro!");
             }
@@ -119,7 +119,7 @@ export function AuthRequired({ children }: AuthRequiredProps) {
                             {error}
                         </div>
                     )}
-                    
+
                     <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
                         <Input
@@ -130,7 +130,7 @@ export function AuthRequired({ children }: AuthRequiredProps) {
                             placeholder="admin@exemplo.com"
                         />
                     </div>
-                    
+
                     <div className="space-y-2">
                         <Label htmlFor="password">Password</Label>
                         <Input
@@ -141,11 +141,11 @@ export function AuthRequired({ children }: AuthRequiredProps) {
                             placeholder="••••••••"
                         />
                     </div>
-                    
+
                     <Button onClick={handleAuth} disabled={loading} className="w-full">
                         {loading ? "Processando..." : (isLogin ? "Entrar" : "Registrar")}
                     </Button>
-                    
+
                     <div className="text-center">
                         <button
                             onClick={() => setIsLogin(!isLogin)}
@@ -154,7 +154,7 @@ export function AuthRequired({ children }: AuthRequiredProps) {
                             {isLogin ? "Não tem conta? Registre-se" : "Já tem conta? Faça login"}
                         </button>
                     </div>
-                    
+
                     <div className="text-xs text-slate-500 border-t pt-4">
                         <p className="font-medium mb-2">Credenciais de teste:</p>
                         <p>Email: admin@baseagrodata.com</p>

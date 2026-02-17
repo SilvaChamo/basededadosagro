@@ -38,15 +38,15 @@ export default function RepositorioProfissionaisPage() {
             if (error) {
                 console.error('Erro ao carregar dados:', error);
             } else {
-                const normalizedDbData = (dbData || []).map(item => ({
+                const normalizedDbData = (dbData || []).map((item: any) => ({
                     ...item,
                     status: item.status || 'active'
                 }));
 
                 // Combinar mock data com dados reais da BD
                 const combinedData = [...MOCK_DATA, ...normalizedDbData]
-                    .filter(item => item.status === 'active' || !item.status)
-                    .sort((a, b) => a.name.localeCompare(b.name));
+                    .filter((item: any) => item.status === 'active' || !item.status)
+                    .sort((a: any, b: any) => a.name.localeCompare(b.name));
 
                 setData(combinedData);
             }
@@ -57,9 +57,9 @@ export default function RepositorioProfissionaisPage() {
     }, []);
 
     // Get unique professions for the filter
-    const professions = Array.from(new Set(data.map(item => item.profession).filter(Boolean)));
+    const professions = Array.from(new Set(data.map((item: any) => item.profession).filter(Boolean)));
 
-    const filteredData = data.filter(item => {
+    const filteredData = data.filter((item: any) => {
         const matchesSearch =
             item.name?.toLowerCase().includes(search.toLowerCase()) ||
             item.profession?.toLowerCase().includes(search.toLowerCase()) ||

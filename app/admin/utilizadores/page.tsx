@@ -46,7 +46,7 @@ export default function AdminUsersPage() {
             console.error(error);
         } else {
             // Sort: admins first, then by creation date
-            const sorted = (data || []).sort((a, b) => {
+            const sorted = (data || []).sort((a: any, b: any) => {
                 if (a.role === 'admin' && b.role !== 'admin') return -1;
                 if (a.role !== 'admin' && b.role === 'admin') return 1;
                 return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();

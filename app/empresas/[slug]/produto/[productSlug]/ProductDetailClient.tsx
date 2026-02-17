@@ -559,7 +559,7 @@ export default function ProductDetailClient({
                             </div>
 
                             <div className="grid grid-cols-1 gap-3">
-                                {otherSellers.map((seller) => (
+                                {otherSellers.map((seller: any) => (
                                     <div key={seller.id} className="group bg-white border border-slate-200 rounded-[15px] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:border-blue-200 hover:shadow-md hover:shadow-blue-500/5">
                                         <div className="flex items-center gap-4">
                                             <div className="w-12 h-12 bg-white rounded-lg p-2 border border-slate-200 group-hover:bg-white transition-colors">
@@ -611,7 +611,7 @@ export default function ProductDetailClient({
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {similarProducts.slice(0, 3).map((item, idx) => {
+                        {similarProducts.slice(0, 3).map((item: any, idx: any) => {
                             const itemSlug = (item.name || item.nome || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
                             return (
                                 <div key={item.id || idx} className="group bg-white border border-slate-200 rounded-[15px] overflow-hidden hover:shadow-md transition-all">

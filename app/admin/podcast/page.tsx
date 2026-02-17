@@ -138,6 +138,15 @@ export default function PodcastPage() {
                 }}
             />
 
+            <div className="flex justify-end">
+                <a
+                    href="/admin/podcast/categorias"
+                    className="text-sm text-emerald-600 hover:text-emerald-700 font-bold transition-colors"
+                >
+                    Gerir Categorias →
+                </a>
+            </div>
+
             <AdminDataTable
                 title={`Episódios (${data.length})`}
                 columns={columns}

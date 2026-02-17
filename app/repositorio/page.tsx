@@ -149,10 +149,10 @@ export default function RepositorioPage() {
         }
     ];
 
-    const filteredItems = items.filter(item => {
+    const filteredItems = items.filter((item: any) => {
         if (selectedCategory === "Todos os resultados") return true;
         return item.title.includes(selectedCategory);
-    }).sort((a, b) => {
+    }).sort((a: any, b: any) => {
         if (sortOption === "Mais recentes") {
             return new Date(b.date).getTime() - new Date(a.date).getTime();
         }

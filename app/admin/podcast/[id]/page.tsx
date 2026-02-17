@@ -1,8 +1,10 @@
 import { PodcastForm } from "@/components/admin/PodcastForm";
 import { createClient } from "@/utils/supabase/server";
 
-export default async function PodcastEditPage({ params }: { params: { id: string } }) {
-    if (params.id === 'novo') {
+export default async function PodcastEditPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+
+    if (id === 'novo') {
         return <PodcastForm />;
     }
 
@@ -10,7 +12,7 @@ export default async function PodcastEditPage({ params }: { params: { id: string
     const { data: podcast } = await supabase
         .from('podcasts')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', id)
         .single();
 
     if (!podcast) {

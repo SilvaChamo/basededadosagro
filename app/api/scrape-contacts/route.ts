@@ -62,8 +62,8 @@ export async function POST(request: Request) {
 
         // Clean phone numbers
         const cleanedPhones = phones
-            .map(p => p.replace(/[\s.-]/g, ''))
-            .filter(p => p.length >= 9 && p.length <= 15);
+            .map((p: any) => p.replace(/[\s.-]/g, ''))
+            .filter((p: any) => p.length >= 9 && p.length <= 15);
 
         // If no contacts found, return empty
         if (filteredEmails.length === 0 && cleanedPhones.length === 0) {
@@ -116,11 +116,11 @@ export async function POST(request: Request) {
             .select('email, phone')
             .eq('company_id', company_id);
 
-        const existingEmails = new Set(existingContacts?.map(c => c.email) || []);
-        const existingPhones = new Set(existingContacts?.map(c => c.phone) || []);
+        const existingEmails = new Set(existingContacts?.map((c: any) => c.email) || []);
+        const existingPhones = new Set(existingContacts?.map((c: any) => c.phone) || []);
 
         // Filter out already existing contacts
-        const newContacts = contactsToInsert.filter(c =>
+        const newContacts = contactsToInsert.filter((c: any) =>
             !existingEmails.has(c.email) && !existingPhones.has(c.phone)
         );
 

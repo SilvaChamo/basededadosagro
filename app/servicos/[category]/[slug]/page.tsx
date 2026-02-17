@@ -69,7 +69,7 @@ export default function ServiceSubCategoryPage() {
                     .ilike('category', `%${slug}%`);
 
                 if (productData && productData.length > 0) {
-                    const companyIds = Array.from(new Set(productData.map(p => p.company_id).filter(id => id)));
+                    const companyIds = Array.from(new Set(productData.map((p: any) => p.company_id).filter((id: any) => id)));
 
                     if (companyIds.length > 0) {
                         const { data: companyData, error: companyError } = await supabase

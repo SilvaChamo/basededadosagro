@@ -132,7 +132,7 @@ export default function AdminNoticiasPage() {
         const previousArticles = [...articles];
         try {
             // Optimistic update
-            setArticles(prev => prev.filter(a => !selectedIds.includes(a.id)));
+            setArticles(prev => prev.filter((a: any) => !selectedIds.includes(a.id)));
 
             const { error } = await supabase
                 .from('articles')
@@ -166,7 +166,7 @@ export default function AdminNoticiasPage() {
         setEditingArticle(null);
     };
 
-    const filteredArticles = articles.filter(a => {
+    const filteredArticles = articles.filter((a: any) => {
         const matchesSearch = a.title.toLowerCase().includes(search.toLowerCase()) ||
             a.type?.toLowerCase().includes(search.toLowerCase());
         const matchesType = activeTab === 'Todas'
@@ -314,7 +314,7 @@ export default function AdminNoticiasPage() {
                 ) : viewMode === 'grid' ? (
                     // Grid View
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredArticles.map((article) => (
+                        {filteredArticles.map((article: any) => (
                             <NewsCard
                                 key={article.id}
                                 title={article.title}
@@ -343,11 +343,11 @@ export default function AdminNoticiasPage() {
                         selectedIds={selectedIds}
                         onSelectRow={(id: string, selected: boolean) => {
                             if (selected) setSelectedIds(prev => [...prev, id]);
-                            else setSelectedIds(prev => prev.filter(i => i !== id));
+                            else setSelectedIds(prev => prev.filter((i: any) => i !== id));
                         }}
                         onSelectAll={(all: boolean) => {
                             if (all) {
-                                setSelectedIds(filteredArticles.map(r => r.id));
+                                setSelectedIds(filteredArticles.map((r: any) => r.id));
                             } else {
                                 setSelectedIds([]);
                             }

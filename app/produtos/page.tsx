@@ -82,14 +82,14 @@ function ProductsContent() {
 
                 if (data) {
                     allItems = data
-                        .filter(p => {
+                        .filter((p: any) => {
                             const cat = (p.category || "").toLowerCase();
                             // Strict filtering: no services in products page
                             return !cat.includes('serviço') &&
                                 !cat.includes('consultoria') &&
                                 !cat.includes('logística');
                         })
-                        .map(p => ({
+                        .map((p: any) => ({
                             ...p,
                             nome: p.name || p.nome,
                             preco: p.price || p.preco || "Sob Consulta",
@@ -114,7 +114,7 @@ function ProductsContent() {
         setCurrentPage(1);
     }, [searchQuery]);
 
-    const filteredProducts = products.filter(p => {
+    const filteredProducts = products.filter((p: any) => {
         const query = searchQuery.toLowerCase();
         // Strict category filtering for main navigation links
         if (query === 'insumo' || query === 'insumos') {

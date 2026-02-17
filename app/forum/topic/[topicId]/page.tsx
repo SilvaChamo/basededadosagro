@@ -24,7 +24,7 @@ export default function TopicPage() {
     const supabase = createClient();
 
     useEffect(() => {
-        supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+        supabase.auth.getUser().then(({ data: { user } }: { data: { user: any } }) => setUser(user));
 
         async function loadTopicData() {
             // Load topic with category info

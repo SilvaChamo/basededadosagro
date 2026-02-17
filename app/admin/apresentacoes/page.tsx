@@ -51,7 +51,7 @@ export default function AdminApresentacoesPage() {
                 .order('deleted_at', { ascending: false });
 
             if (isMounted) {
-                const normalized = (activeData || []).map(item => ({
+                const normalized = (activeData || []).map((item: any) => ({
                     ...item,
                     status: item.status || 'active'
                 }));
