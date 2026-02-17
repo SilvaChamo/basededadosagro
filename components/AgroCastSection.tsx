@@ -15,6 +15,7 @@ interface PodcastEpisode {
     thumbnail_url: string;
     video_url: string;
     description?: string;
+    is_active: boolean;
 }
 
 interface AgroCastSectionProps {
@@ -39,7 +40,7 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                 .limit(3);
 
             if (error) {
-                console.error('Error fetching podcasts:', error);
+                console.error('Error fetching podcasts full error:', JSON.stringify(error, null, 2));
             } else if (data && data.length > 0) {
                 setEpisodes(data);
                 setActiveEpisode(data[0]);

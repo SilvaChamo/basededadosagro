@@ -151,55 +151,515 @@ export const servicesData: Record<string, CategoryData> = {
         id: "lojas",
         title: "Lojas e insumos",
         subCategories: {
+            // 1. Insumos Biológicos
             "sementes": {
                 slug: "sementes",
                 title: "Sementes Certificadas",
                 description: "Alta produtividade para sua colheita com sementes verificadas.",
                 icon: Zap,
-                fullDescription: "O sucesso da sua campanha inicia-se invariavelmente na semente, por isso facilitamos o acesso a insumos fornecidos por parceiros certificados e rigorosamente monitorados. Em estreita coordenação com o IIAM (Instituto de Investigação Agrária de Moçambique) e sob as normas do MADR, disponibilizamos sementes testadas para a realidade agro-ecológica nacional, garantindo altas taxas de germinação e resistência.\n\nA nossa rede de parceiros assegura que cada semente distribuída cumpra os requisitos técnicos de produtividade e segurança, fundamentais para uma colheita recorde e sustentável. Este compromisso com a excelência genética permite que o projecto agrícola se desenvolva com vigor, assegurando que o investimento inicial se traduza numa produção abundante e em conformidade com os mais elevados padrões de qualidade vigentes.\n\nInvestir em sementes certificadas é a garantia de que o seu trabalho no campo não será em vão devido a falhas biológicas evitáveis. Proporcionamos uma ponte directa com os produtores de semente de elite em Moçambique, garantindo que a base da sua produção seja sólida, resiliente às pragas locais e adaptada às variações climáticas peculiares de cada província do nosso país.",
+                fullDescription: "O sucesso da sua campanha inicia-se invariavelmente na semente. Facilitamos o acesso a insumos fornecidos por parceiros certificados e rigorosamente monitorados, garantindo altas taxas de germinação e resistência às pragas locais.",
                 subServices: [
-                    { title: "Sementes de Cereais", description: "Milho, arroz e trigo com alto rendimento por hectare." },
-                    { title: "Oleaginosas", description: "Soja e girassol de qualidade premium para produção de óleo." },
-                    { title: "Hortícolas", description: "Variedades seleccionadas para o mercado de consumo fresco." }
+                    { title: "Sementes de Cereais", description: "Milho, arroz e trigo com alto rendimento." },
+                    { title: "Oleaginosas", description: "Soja e girassol de qualidade premium." }
                 ],
-                features: ["Certificação Oficial", "Adaptabilidade Climática", "Suporte Pós-Venda"]
+                features: ["Certificação Oficial", "Adaptabilidade Climática", "Rigor Genético"]
             },
-            "fertilizantes": {
-                slug: "fertilizantes",
-                title: "Fertilizantes e Adubos",
-                description: "Nutrição vegetal completa para diversos tipos de culturas.",
+            "mudas": {
+                slug: "mudas",
+                title: "Mudas e Propagação",
+                description: "Material vegetal de alta qualidade para plantio direto.",
                 icon: Zap,
-                fullDescription: "Potencie a produtividade e a saúde do seu solo através de fertilizantes e adubos de superior qualidade, comercializados por parceiros institucionais especializados. Monitoramos a conformidade destes insumos em parceria com o MADR, garantindo fórmulas balanceadas que maximizam a nutrição vegetal de forma a assegurar o vigor de cada cultura e a sustentabilidade a longo prazo de todo o projecto agrícola.\n\nA nossa rede de fornecedores credíveis foca na entrega de soluções que respeitam os padrões de qualidade agronómica mais exigentes, visando resultados visíveis no campo e a preservação da fertilidade. Através desta acção coordenada, garantimos que a nutrição do solo seja tratada como um factor crítico de sucesso, proporcionando as bases necessárias para que a terra moçambicana alcance o seu potencial máximo de produção.\n\nCom a aplicação correcta de adubos seleccionados, o produtor consegue não só aumentar o volume da colheita, mas também a sua qualidade nutricional e comercial. Facilitamos a aquisição de fórmulas NPK e correctivos de solo que são fundamentais para reverter a degradação e assegurar que cada hectare plantado ofereça o retorno financeiro esperado em toda a transacção do agronegócio moçambicano.",
+                fullDescription: "Disponibilizamos mudas de fruteiras, hortícolas e espécies florestais produzidas em viveiros certificados, garantindo um arranque vigoroso e saudável para a sua plantação em qualquer província.",
                 subServices: [
-                    { title: "NPK Especializados", description: "Fórmulas balanceadas para cada fase da cultura." },
-                    { title: "Correctivos de Solo", description: "Soluções para equilibrar o pH e a estrutura da terra." },
-                    { title: "Fertilizantes Orgânicos", description: "Opções sustentáveis para uma agricultura biológica." }
+                    { title: "Fruteiras", description: "Citrinos, mangueiras e outras espécies tropicais." },
+                    { title: "Florestais", description: "Eucalipto, pinheiro e espécies nativas." }
                 ],
-                features: ["Alta Solubilidade", "Nutrição de Precisão", "Resultados Visíveis"]
+                features: ["Vigor Híbrido", "Isenção de Pragas", "Prontas para Plantio"]
             },
-            "maquinaria": {
-                slug: "maquinaria",
-                title: "Maquinaria Agrícola",
-                description: "Tratores e equipamentos modernos para mecanização do campo.",
-                icon: Truck,
-                fullDescription: "A mecanização agrária é a chave para a escala e a eficiência competitiva no campo moçambicano moderno. Através de parcerias com os principais concessionários de maquinaria, facilitamos o acesso a tractores, alfaias e sistemas de rega que transformam a penosidade do trabalho rural em brio produtivo e resultados de excelência inabalável.\n\nAs nossas soluções abrangem desde a venda de equipamentos novos até programas de aluguer flexíveis para campanhas sazonais de aragem e colheita. Garantimos que cada máquina seja acompanhada de suporte técnico especializado e formação para operadores, assegurando que o investimento tecnológico se traduza em longevidade do activo e redução drástica de custos operacionais por hectare.\n\nAo modernizar a sua frota agrícola, a sua empresa posiciona-se na vanguarda do sector, preparada para enfrentar os desafios de um mercado que exige rapidez e precisão. O nosso compromisso é ser o parceiro que viabiliza a transição da agricultura de subsistência para o agronegócio industrial e rentável, dotando o produtor das ferramentas necessárias para o sucesso comercial.",
+            "matrizes-reprodutores": {
+                slug: "matrizes-reprodutores",
+                title: "Matrizes e Reprodutores",
+                description: "Excelência genética para o seu efetivo pecuário.",
+                icon: Zap,
+                fullDescription: "Melhore a produtividade do seu gado com matrizes e reprodutores de linhagens selecionadas, adaptadas às condições tropicais e com alto potencial de ganho de peso e produção leiteira.",
                 subServices: [
-                    { title: "Venda de Tractores", description: "Modelos robustos adaptados para todo o tipo de terreno." },
-                    { title: "Aluguer de Equipamento", description: "Soluções flexíveis para necessidades sazonais." },
-                    { title: "Manutenção de Máquinas", description: "Oficina especializada e peças de reposição originais." }
+                    { title: "Bovinos de Corte", description: "Raças focadas em produção de carne de qualidade." },
+                    { title: "Bovinos de Leite", description: "Genética focada em alta produtividade leiteira." }
                 ],
-                features: ["Operação Simplificada", "Durabilidade Testada", "Menor Consumo"]
+                features: ["Genética Provada", "Certificado Sanitário", "Adaptação Local"]
+            },
+            "material-genetico": {
+                slug: "material-genetico",
+                title: "Material Genético",
+                description: "Inseminação artificial e biotecnologia animal.",
+                icon: Zap,
+                fullDescription: "Acesse as melhores linhagens globais através de sémen e embriões certificados, permitindo a evolução rápida do seu rebanho com biotecnologia de ponta e baixo risco sanitário.",
+                subServices: [
+                    { title: "Sémen Congelado", description: "Vasta gama de raças para inseminação artificial." },
+                    { title: "Embriões", description: "Transferência de embriões de alto valor genético." }
+                ],
+                features: ["Linhagens de Elite", "Segurança Biológica", "Progresso Rápido"]
+            },
+            "microrganismos": {
+                slug: "microrganismos",
+                title: "Microrganismos Benéficos",
+                description: "Controle biológico e saúde do solo.",
+                icon: ShieldCheck,
+                fullDescription: "Implemente soluções de bioproteção utilizando microrganismos que combatem pragas e doenças de forma natural, reduzindo a dependência de químicos e preservando o ecossistema da sua quinta.",
+                subServices: [
+                    { title: "Controle Biológico", description: "Fungos e bactérias para controle de pragas." },
+                    { title: "Saúde Radicular", description: "Microrganismos que protegem as raízes." }
+                ],
+                features: ["Resíduo Zero", "Sustentabilidade", "Eficácia Biológica"]
+            },
+            "inoculantes": {
+                slug: "inoculantes",
+                title: "Inoculantes",
+                description: "Potenciadores de fixação de nitrogênio e nutrientes.",
+                icon: Zap,
+                fullDescription: "Aumente a eficiência da sua adubação com inoculantes de alta concentração que promovem a fixação biológica de nitrogênio, especialmente em culturas de leguminosas como a soja.",
+                subServices: [
+                    { title: "Fixadores de Nitrogênio", description: "Bactérias específicas para leguminosas." },
+                    { title: "Promotores de Crescimento", description: "Bioestimulantes para desenvolvimento inicial." }
+                ],
+                features: ["Economia de Adubo", "Raízes Fortes", "Maior Produtividade"]
+            },
+            // 2. Químicos
+            "fertilizantes-minerais": {
+                slug: "fertilizantes-minerais",
+                title: "Fertilizantes Minerais",
+                description: "Nutrição mineral precisa para alta produtividade.",
+                icon: Zap,
+                fullDescription: "Fornecemos fertilizantes NPK e macronutrientes essenciais formulados para suprir as carências específicas de cada solo moçambicano, garantindo o vigor e a qualidade da sua colheita.",
+                subServices: [
+                    { title: "NPK Base", description: "Fórmulas para fundação e crescimento inicial." },
+                    { title: "Adubos de Cobertura", description: "Ureia e outros nitrogenados para fases críticas." }
+                ],
+                features: ["Pureza Garantida", "Solubilidade Rápida", "Nutrição Balanceada"]
+            },
+            "corretivos-solo": {
+                slug: "corretivos-solo",
+                title: "Corretivos de Solo",
+                description: "Ajuste de acidez e estrutura do solo.",
+                icon: Zap,
+                fullDescription: "Corrija o pH do seu solo com calcário e gesso agrícola de alta qualidade, essenciais para neutralizar o alumínio tóxico e melhorar a absorção de nutrientes pelas plantas.",
+                subServices: [
+                    { title: "Calcário Agrícola", description: "Correção de acidez e fornecimento de cálcio/magnésio." },
+                    { title: "Gesso Agrícola", description: "Melhoria da estrutura do solo em profundidade." }
+                ],
+                features: ["Neutralização Eficaz", "Melhoria da Estrutura", "Maior Enraizamento"]
+            },
+            "herbicidas": {
+                slug: "herbicidas",
+                title: "Herbicidas",
+                description: "Controle eficaz de infestantes e ervas daninhas.",
+                icon: ShieldCheck,
+                fullDescription: "Elimine a competição por nutrientes e luz com herbicidas seletivos e não-seletivos, garantindo que a sua cultura se desenvolva limpa e com o máximo de produtividade potencial.",
+                subServices: [
+                    { title: "Pré-emergentes", description: "Prevenção do nascimento de infestantes." },
+                    { title: "Pós-emergentes", description: "Eliminação de ervas já estabelecidas." }
+                ],
+                features: ["Ação Rápida", "Seletividade", "Controle Duradouro"]
+            },
+            "inseticidas": {
+                slug: "inseticidas",
+                title: "Inseticidas",
+                description: "Proteção contra pragas e insetos mastigadores.",
+                icon: ShieldCheck,
+                fullDescription: "Proteja a sua plantação contra o ataque de lagartas, percevejos e outras pragas com inseticidas de última geração que atuam por contacto e sistemicamente.",
+                subServices: [
+                    { title: "Ação de Choque", description: "Eliminação imediata de pragas visíveis." },
+                    { title: "Proteção Sistêmica", description: "Proteção prolongada de dentro para fora da planta." }
+                ],
+                features: ["Amplo Espectro", "Baixa Toxicidade Residual", "Eficácia Provada"]
+            },
+            "fungicidas": {
+                slug: "fungicidas",
+                title: "Fungicidas",
+                description: "Prevenção e cura de doenças fúngicas.",
+                icon: ShieldCheck,
+                fullDescription: "Combata o aparecimento de manchas, oídios e podridões com fungicidas preventivos e curativos, assegurando a integridade foliar e a qualidade final dos seus produtos.",
+                subServices: [
+                    { title: "Fungicidas Preventivos", description: "Barreira protetora contra esporos." },
+                    { title: "Fungicidas Curativos", description: "Ação direta contra fungos já instalados." }
+                ],
+                features: ["Saúde Foliar", "Proteção de Frutos", "Resistência a Lavagem"]
+            },
+            // 3. Orgânicos
+            "esterco": {
+                slug: "esterco",
+                title: "Esterco curtido",
+                description: "Matéria orgânica de origem animal para enriquecimento do solo.",
+                icon: Zap,
+                fullDescription: "Melhore a estrutura e a fertilidade do seu solo com esterco curtido de alta qualidade, essencial para aumentar a retenção de água e a atividade microbiana benéfica na sua propriedade.",
+                subServices: [
+                    { title: "Esterco Bovino", description: "Enriquecido com nutrientes para diversas culturas." },
+                    { title: "Esterco de Aves", description: "Alto teor de nitrogênio para desenvolvimento rápido." }
+                ],
+                features: ["Totalmente Curtido", "Sem Odor Forte", "Melhoria Estrutural"]
+            },
+            "compostagem": {
+                slug: "compostagem",
+                title: "Compostagem",
+                description: "Adubo orgânico estabilizado e rico em húmus.",
+                icon: Zap,
+                fullDescription: "Utilize o poder da decomposição controlada para nutrir as suas plantas. O nosso composto orgânico é rico em microrganismos e nutrientes de liberação lenta, ideais para hortas e pomares.",
+                subServices: [
+                    { title: "Composto Vegetal", description: "Produzido a partir de resíduos de colheita." },
+                    { title: "Composto Enriquecido", description: "Com adição de minerais naturais." }
+                ],
+                features: ["Rico em Húmus", "Regulador de pH", "Livre de Patógenos"]
+            },
+            "biofertilizantes": {
+                slug: "biofertilizantes",
+                title: "Biofertilizantes",
+                description: "Nutrição líquida biológica de rápida absorção.",
+                icon: Zap,
+                fullDescription: "Potencie a saúde das suas plantas com biofertilizantes líquidos produzidos por fermentação biológica, fornecendo micronutrientes e substâncias promotoras de crescimento de forma sustentável.",
+                subServices: [
+                    { title: "Biofertilizante Foliar", description: "Aplicação direta nas folhas para resposta rápida." },
+                    { title: "Biofertilizante via Solo", description: "Estimula a vida microbiana radicular." }
+                ],
+                features: ["Absorção Rápida", "Origem Natural", "Ação Estimulante"]
+            },
+            "adubacao-verde": {
+                slug: "adubacao-verde",
+                title: "Adubação Verde",
+                description: "Sementes para cobertura e proteção do solo.",
+                icon: Zap,
+                fullDescription: "Proteja e recupere o seu solo com sementes para adubação verde. Leguminosas e gramíneas que fixam nitrogênio e aumentam a matéria orgânica, preparando a terra para a próxima campanha.",
+                subServices: [
+                    { title: "Leguminosas", description: "Crotalária e feijão-guandu para fixação de N." },
+                    { title: "Cobertura Morta", description: "Espécies para produção de biomassa protetora." }
+                ],
+                features: ["Proteção contra Erosão", "Reciclagem de Nutrientes", "Solo Vivo"]
+            },
+            "humus": {
+                slug: "humus",
+                title: "Húmus de Minhoca",
+                description: "O mais completo adubo orgânico para suas plantas.",
+                icon: Zap,
+                fullDescription: "O húmus de minhoca é o 'ouro negro' da agricultura. Rico em ácidos fúlvicos e húmicos, promove um enraizamento extraordinário e uma saúde vigorosa para todas as suas culturas.",
+                subServices: [
+                    { title: "Húmus Puro", description: "Extraído de minhocários controlados." },
+                    { title: "Substrato com Húmus", description: "Mistura pronta para vasos e sementeiras." }
+                ],
+                features: ["Alta Concentração", "Efeito Prolongado", "Saúde Vegetal"]
+            },
+            // 4. Pecuários
+            "racoes": {
+                slug: "racoes",
+                title: "Rações Balanceadas",
+                description: "Nutrição completa para todas as espécies animais.",
+                icon: Zap,
+                fullDescription: "Assegure o crescimento e a produtividade do seu efetivo com rações formuladas por especialistas, cobrindo as necessidades nutricionais de aves, suínos e bovinos em cada fase de desenvolvimento.",
+                subServices: [
+                    { title: "Ração Inicial", description: "Para um arranque vigoroso de pintos e leitões." },
+                    { title: "Ração de Engorda", description: "Fórmulas focadas em ganho de peso eficiente." }
+                ],
+                features: ["Fórmulas Balanceadas", "Ingredientes de Qualidade", "Melhor Conversão"]
+            },
+            "suplementos-minerais": {
+                slug: "suplementos-minerais",
+                title: "Suplementos Minerais",
+                description: "Correção de deficiências minerais no pasto.",
+                icon: Zap,
+                fullDescription: "Garanta que os seus animais recebam todos os minerais essenciais através de suplementos específicos, fundamentais para a fertilidade, saúde óssea e imunidade de todo o rebanho.",
+                subServices: [
+                    { title: "Blocos Minerais", description: "Acesso livre para animais no pasto." },
+                    { title: "Aditivos para Ração", description: "Mistura mineral para dietas confinadas." }
+                ],
+                features: ["Previne Deficiências", "Melhora Imunidade", "Aumenta Fertilidade"]
+            },
+            "vacinas": {
+                slug: "vacinas",
+                title: "Vacinas Veterinárias",
+                description: "Prevenção das principais doenças animais.",
+                icon: ShieldCheck,
+                fullDescription: "Proteja o seu investimento pecuário com vacinas certificadas contra a febre aftosa, peste suína, Newcastle e outras doenças críticas que afetam a produtividade em Moçambique.",
+                subServices: [
+                    { title: "Plano de Vacinação", description: "Calendário sanitário completo para a sua quinta." },
+                    { title: "Vacinas Inativadas", description: "Segurança e eficácia na imunização coletiva." }
+                ],
+                features: ["Segurança Sanitária", "Cadeia de Frio Garantida", "Prevenção de Perdas"]
+            },
+            "medicamentos-veterinarios": {
+                slug: "medicamentos-veterinarios",
+                title: "Medicamentos Veterinários",
+                description: "Tratamento e cura para diversas patologias animais.",
+                icon: ShieldCheck,
+                fullDescription: "Acesse uma gama completa de antibióticos, antiparasitários e anti-inflamatórios das melhores marcas, garantindo um tratamento rápido e eficaz para os seus animais sob orientação técnica.",
+                subServices: [
+                    { title: "Desparasitantes", description: "Controle de parasitas internos e externos." },
+                    { title: "Antibióticos", description: "Combate a infecções bacterianas graves." }
+                ],
+                features: ["Ação Comprovada", "Marcas de Confiança", "Saúde Animal"]
+            },
+            "sal-mineral": {
+                slug: "sal-mineral",
+                title: "Sal Mineral",
+                description: "Essencial para o equilíbrio eletrolítico do rebanho.",
+                icon: Zap,
+                fullDescription: "O sal mineral é fundamental para a saúde diária do seu gado. Fornecemos misturas prontas para consumo que garantem o aporte necessário de iodo, cálcio e fósforo em regimes de pastoreio.",
+                subServices: [
+                    { title: "Sal de Cozinha Agrário", description: "Base mineral para misturas caseiras." },
+                    { title: "Sal Vitaminado", description: "Enriquecido com vitaminas lipossolúveis." }
+                ],
+                features: ["Essencial Diário", "Fácil Consumo", "Equilíbrio Metabólico"]
+            },
+            // 5. Mecânicos
+            "tratores": {
+                slug: "tratores",
+                title: "Tratores Agrícolas",
+                description: "Potência e versatilidade para todas as operações no campo.",
+                icon: Truck,
+                fullDescription: "Encontre tratores de diversas potências adaptados aos solos moçambicanos. Desde modelos compactos para horticultura até grandes máquinas para cereais, garantimos eficiência e baixo consumo.",
+                subServices: [
+                    { title: "Tratores Utilitários", description: "Para trabalhos gerais e transporte." },
+                    { title: "Tratores de Alta Potência", description: "Preparados para aragem pesada e colheita." }
+                ],
+                features: ["Baixo Consumo", "Manutenção Facilitada", "Conforto Operacional"]
+            },
+            "arados": {
+                slug: "arados",
+                title: "Arados e Cultivadores",
+                description: "Preparação primária do solo com máxima eficiência.",
+                icon: Truck,
+                fullDescription: "Alfaias robustas para o revolvimento e aeração do solo. Os nossos arados de discos e aivecas são projetados para durar e garantir uma base perfeita para a sua sementeira.",
+                subServices: [
+                    { title: "Arados de Discos", description: "Ideal para solos com raízes e pedras." },
+                    { title: "Subsoladores", description: "Para quebra de camadas compactadas." }
+                ],
+                features: ["Aço de Alta Resistência", "Ajuste de Profundidade", "Durabilidade"]
+            },
+            "grades": {
+                slug: "grades",
+                title: "Grades Agrícolas",
+                description: "Destorroamento e nivelamento para um leito de semeadura ideal.",
+                icon: Truck,
+                fullDescription: "Grades de discos leves e pesadas para o acabamento do terreno. Garanta um solo nivelado e sem torrões, facilitando o trabalho das semeadoras e a emergência das plantas.",
+                subServices: [
+                    { title: "Grades Niveladoras", description: "Para acabamento fino e fecho de sulcos." },
+                    { title: "Grades de Discos", description: "Para incorporação de resíduos." }
+                ],
+                features: ["Nivelamento Perfeito", "Robusteza", "Fácil Acoplamento"]
+            },
+            "colheitadeiras": {
+                slug: "colheitadeiras",
+                title: "Colheitadeiras",
+                description: "Tecnologia de ponta para minimizar perdas na colheita.",
+                icon: Truck,
+                fullDescription: "Maximize o seu rendimento com colheitadeiras modernas para cereais e oleaginosas. Máquinas com alta capacidade de processamento e sistemas de limpeza eficientes.",
+                subServices: [
+                    { title: "Colheita de Milho", description: "Plataformas específicas para alto rendimento." },
+                    { title: "Colheita Multicereais", description: "Versatilidade para soja, trigo e arroz." }
+                ],
+                features: ["Mínima Perda", "Grãos Limpos", "Alta Capacidade"]
+            },
+            "semeadoras": {
+                slug: "semeadoras",
+                title: "Semeadoras e Plantadoras",
+                description: "Distribuição precisa de sementes e adubo.",
+                icon: Truck,
+                fullDescription: "A precisão na semeadura é o segredo de uma boa população de plantas. As nossas semeadoras garantem a profundidade e o espaçamento corretos para cada cultura.",
+                subServices: [
+                    { title: "Semeadura de Precisão", description: "Distribuição grão a grão com GPS." },
+                    { title: "Plantadoras de Adubo", description: "Aplicação simultânea de fertilizante." }
+                ],
+                features: ["Espaçamento Uniforme", "Profundidade Ajustável", "Alta Performance"]
+            },
+            // 6. Tecnológicos
+            "sistemas-irrigacao": {
+                slug: "sistemas-irrigacao",
+                title: "Sistemas de Irrigação",
+                description: "Gestão inteligente da água para produção todo o ano.",
+                icon: Zap,
+                fullDescription: "Não dependa apenas da chuva. Implementamos sistemas de rega por gota-a-gota, aspersão e pivôs centrais que maximizam a eficiência hídrica e garantem a colheita em qualquer época.",
+                subServices: [
+                    { title: "Gota-a-Gota", description: "Economia máxima de água e fertilizantes." },
+                    { title: "Aspersão Convencional", description: "Cobertura total para pastagens e hortícolas." }
+                ],
+                features: ["Economia de Água", "Automação", "Aumento de Produtividade"]
+            },
+            "sensores-agricolas": {
+                slug: "sensores-agricolas",
+                title: "Sensores Agrícolas",
+                description: "Monitoramento em tempo real do solo e clima.",
+                icon: Zap,
+                fullDescription: "Tome decisões baseadas em dados. Sensores de humidade, temperatura e nutrientes que informam exatamente quando regar ou adubar, otimizando os seus recursos e tempo.",
+                subServices: [
+                    { title: "Sondas de Solo", description: "Leitura de humidade em várias profundidades." },
+                    { title: "Estações Meteorológicas", description: "Dados locais de vento, chuva e radiação." }
+                ],
+                features: ["Dados Precisos", "Acesso Via Mobile", "Economia de Recursos"]
+            },
+            "drones": {
+                slug: "drones",
+                title: "Drones Agrícolas",
+                description: "Mapeamento e pulverização aérea de precisão.",
+                icon: Zap,
+                fullDescription: "O futuro chegou ao campo. Utilize drones para identificar falhas na plantação, focos de pragas ou para realizar pulverizações localizadas com rapidez e segurança.",
+                subServices: [
+                    { title: "Mapeamento NDVI", description: "Índice de saúde vegetal visto de cima." },
+                    { title: "Drones de Pulverização", description: "Aplicação rápida de defensivos e biofertilizantes." }
+                ],
+                features: ["Alta Rapidez", "Precisão Centimétrica", "Redução de Custos"]
+            },
+            "gps-agricola": {
+                slug: "gps-agricola",
+                title: "GPS Agrícola",
+                description: "Guiamento e barras de luz para operações retas.",
+                icon: Zap,
+                fullDescription: "Elimine o transpasse e as falhas nas operações de campo. Sistemas de GPS que orientam o tratorista para uma cobertura perfeita, economizando combustível e insumos.",
+                subServices: [
+                    { title: "Barra de Luz", description: "Orientação visual simples e eficaz." },
+                    { title: "Piloto Automático", description: "Precisão máxima com condução autônoma." }
+                ],
+                features: ["Elimina Falhas", "Economia de Combustível", "Menor Fadiga"]
+            },
+            "softwares-gestao": {
+                slug: "softwares-gestao",
+                title: "Softwares de Gestão Rural",
+                description: "Controle total das finanças e estoque da sua quinta.",
+                icon: Zap,
+                fullDescription: "Gerir uma quinta é gerir uma empresa. Softwares integrados para controle de custos, estoque de insumos, histórico de parcelas e gestão de mão-de-obra, tudo num só lugar.",
+                subServices: [
+                    { title: "Gestão Financeira", description: "Fluxo de caixa e controle de lucratividade." },
+                    { title: "Caderno de Campo Digital", description: "Registro de todas as atividades agrárias." }
+                ],
+                features: ["Visão do Negócio", "Controle de Custos", "Relatórios Automáticos"]
+            },
+            // 7. Estruturais
+            "cercas": {
+                slug: "cercas",
+                title: "Cercas e Vedações",
+                description: "Segurança e delimitação para a sua propriedade rural.",
+                icon: ShieldCheck,
+                fullDescription: "Proteja as suas culturas e o seu gado com sistemas de vedação duráveis. Fornecemos redes, arame farpado e liso, além de acessórios para uma instalação rápida e resistente.",
+                subServices: [
+                    { title: "Cerca Convencional", description: "Arame farpado e postes de madeira/betão." },
+                    { title: "Cerca Elétrica", description: "Segurança reforçada para contenção animal." }
+                ],
+                features: ["Alta Durabilidade", "Proteção de Perímetro", "Baixa Manutenção"]
+            },
+            "postes": {
+                slug: "postes",
+                title: "Postes e Esteios",
+                description: "Suporte robusto para cercas e estruturas.",
+                icon: ShieldCheck,
+                fullDescription: "Oferecemos postes de madeira tratada, betão e metal para garantir a estabilidade das suas cercas e estruturas de suporte para culturas trepadeiras como o maracujá.",
+                subServices: [
+                    { title: "Postes de Madeira Tratada", description: "Resistentes a cupins e intempéries." },
+                    { title: "Postes de Betão", description: "Máxima longevidade e resistência ao fogo." }
+                ],
+                features: ["Resistência Testada", "Várias Dimensões", "Pronto a Instalar"]
+            },
+            "galpoes": {
+                slug: "galpoes",
+                title: "Galpões e Armazéns",
+                description: "Estruturas para armazenamento de colheita e maquinaria.",
+                icon: ShieldCheck,
+                fullDescription: "Soluções modulares e personalizadas para o armazenamento seguro da sua produção. Galpões metálicos ou de alvenaria com ventilação adequada para preservar a qualidade dos grãos.",
+                subServices: [
+                    { title: "Armazéns de Grãos", description: "Proteção contra pragas e humidade." },
+                    { title: "Garagens de Maquinaria", description: "Espaço coberto para prolongar a vida útil das máquinas." }
+                ],
+                features: ["Amplo Espaço", "Segurança de Stock", "Estrutura Metálica"]
+            },
+            "estufas": {
+                slug: "estufas",
+                title: "Estufas e Túneis",
+                description: "Produção protegida para hortícolas de alto valor.",
+                icon: Zap,
+                fullDescription: "Controle o microclima da sua plantação com estufas hidropônicas ou convencionais. Ideal para a produção de tomate, pimento e flores fora de época com qualidade superior.",
+                subServices: [
+                    { title: "Estufas Metálicas", description: "Estruturas profissionais com filme plástico UV." },
+                    { title: "Sombras e Telados", description: "Proteção contra sol excessivo e granizo." }
+                ],
+                features: ["Controle Climático", "Maior Qualidade", "Produção Sazonal"]
+            },
+            "currais": {
+                slug: "currais",
+                title: "Currais e Manejo Animal",
+                description: "Infraestrutura eficiente para o trato do gado.",
+                icon: ShieldCheck,
+                fullDescription: "Projetamos e fornecemos componentes para currais de manejo, balanças e troncos de contenção que facilitam o trabalho veterinário e reduzem o estresse animal.",
+                subServices: [
+                    { title: "Currais de Madeira", description: "Tradição e robustez no manejo bovino." },
+                    { title: "Troncos de Contenção", description: "Segurança para vacinação e exames." }
+                ],
+                features: ["Bem-estar Animal", "Segurança de Manejo", "Facilidade de Limpeza"]
+            },
+            // 8. Financeiros
+            "credito-agricola": {
+                slug: "credito-agricola",
+                title: "Crédito Agrícola",
+                description: "Financiamento para a sua campanha e investimentos.",
+                icon: Zap,
+                fullDescription: "Facilitamos a ligação com instituições financeiras que oferecem linhas de crédito específicas para o campo, com taxas bonificadas e prazos ajustados ao ciclo das culturas.",
+                subServices: [
+                    { title: "Crédito de Campanha", description: "Para compra de sementes, adubos e mão-de-obra." },
+                    { title: "Financiamento de Ativos", description: "Compra de tratores e equipamentos a longo prazo." }
+                ],
+                features: ["Taxas Acessíveis", "Prazos Flexíveis", "Apoio ao Investimento"]
+            },
+            "seguro-rural": {
+                slug: "seguro-rural",
+                title: "Seguro Rural",
+                description: "Proteção financeira contra riscos climáticos.",
+                icon: ShieldCheck,
+                fullDescription: "Não deixe o seu esforço à mercê do clima. Soluções de seguro agrário que cobrem perdas por seca, inundações ou pragas, garantindo a continuidade do seu negócio em anos difíceis.",
+                subServices: [
+                    { title: "Seguro Paramétrico", description: "Pagamento rápido baseado em índices de chuva." },
+                    { title: "Seguro Multirrisco", description: "Cobertura abrangente para toda a propriedade." }
+                ],
+                features: ["Garantia de Renda", "Proteção contra Perdas", "Tranquilidade"]
+            },
+            "investimentos": {
+                slug: "investimentos",
+                title: "Investimentos no Agronegócio",
+                description: "Oportunidades de expansão e modernização.",
+                icon: Zap,
+                fullDescription: "Acesse fundos de investimento e parceiros estratégicos que procuram projetos rentáveis em Moçambique. Apoio na elaboração de planos de negócio e viabilidade financeira.",
+                subServices: [
+                    { title: "Equity Agrário", description: "Parcerias para expansão de grandes propriedades." },
+                    { title: "Fomento à Agroindústria", description: "Criação de valor através do processamento local." }
+                ],
+                features: ["Expansão de Negócio", "Parcerias Estratégicas", "Apoio Técnico"]
+            },
+            "subsidios": {
+                slug: "subsidios",
+                title: "Subsídios e Apoio Estatal",
+                description: "Informações sobre programas de incentivo ao produtor.",
+                icon: Zap,
+                fullDescription: "Mantenha-se informado sobre os subsídios governamentais e programas de doadores internacionais disponíveis na sua região para a aquisição de insumos e equipamentos.",
+                subServices: [
+                    { title: "Programas de Fomento", description: "Acesso a insumos a preços bonificados." },
+                    { title: "Apoio a Pequenos Produtores", description: "Incentivos para a mecanização e treinamento." }
+                ],
+                features: ["Acesso a Incentivos", "Custo Reduzido", "Desenvolvimento Rural"]
+            },
+            "linhas-financiamento": {
+                slug: "linhas-financiamento",
+                title: "Linhas de Financiamento",
+                description: "Opções diversificadas de capital para o seu negócio.",
+                icon: Zap,
+                fullDescription: "Explore linhas de financiamento de bancos comerciais e agências de desenvolvimento focadas na exportação e no fortalecimento da cadeia de valor agrária em Moçambique.",
+                subServices: [
+                    { title: "Leasing de Maquinaria", description: "Uso de equipamentos com opção de compra no final." },
+                    { title: "Linhas de Exportação", description: "Crédito para produtores focados no mercado externo." }
+                ],
+                features: ["Variedade de Opções", "Baixa Burocracia", "Crescimento Sustentável"]
             },
             "registo": {
                 slug: "registo",
                 title: "Registe a sua loja",
                 description: "Aumente a visibilidade do seu negócio e alcance mais produtores.",
                 icon: Store,
-                fullDescription: "Coloque o seu inventário e o seu negócio na linha da frente de um mercado que não detém o seu crescimento através do nosso directório comercial de elite. Ao registar a sua loja na nossa plataforma dedicada, ganha visibilidade instantânea perante milhares de produtores, cooperativas e investidores que procuram insumos agrários de qualidade em todo o território nacional, elevando o prestígio da sua marca.\n\nOferecemos ferramentas de gestão de perfil que permitem destacar promoções, comunicar o stock em tempo real e receber leads de vendas directas de forma eficaz. Esta acção de digitalização robusta transforma a sua presença no portal num canal de facturação estratégico, garantindo que o seu catálogo de produtos seja consultado pelos principais actores do sector, resultando numa expansão comercial sólida e duradoura.\n\nAproveite a oportunidade de integrar um ecossistema digital que facilita o fecho de negócios e a fidelização de clientes recorrentes através de interfaces intuitivas e seguras. O nosso registo de lojas é o primeiro passo para a liderança no mercado de insumos agrários moçambicanos, permitindo que a sua empresa ostente um perfil de excelência técnica e comercial perante toda a nossa rede de parceiros e compradores.",
+                fullDescription: "Coloque o seu inventário e o seu negócio na linha da frente de um mercado que não detém o seu crescimento através do nosso directório comercial de elite. Ao registar a sua loja na nossa plataforma dedicada, ganha visibilidade instantânea perante milhares de produtores, cooperativas e investidores que procuram insumos agrários de qualidade em todo o território nacional.",
                 subServices: [
                     { title: "Perfil de Empresa", description: "Página dedicada com catálogo de produtos e contactos." },
-                    { title: "Painel de Gestão", description: "Controle as suas ofertas e interaja com potenciais clientes." },
-                    { title: "Publicidade Destacada", description: "Apareça nos primeiros resultados de pesquisa do portal." }
+                    { title: "Painel de Gestão", description: "Controle as suas ofertas e interaja com potenciais clientes." }
                 ],
                 features: ["Visibilidade Online", "Geração de Leads", "Marketplace Integrado"]
             }

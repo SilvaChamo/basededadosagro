@@ -249,7 +249,7 @@ export function StatsDashboard({ slug }: StatsDashboardProps) {
                                 <select
                                     value={activeProvince}
                                     onChange={(e) => setActiveProvince(e.target.value)}
-                                    className="w-full md:w-48 p-2 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-[#22c55e] outline-none"
+                                    className="w-full md:w-48 p-2 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-[#22c55e] bg-white text-gray-900 outline-none"
                                 >
                                     {provinces.map(p => (
                                         <option key={p} value={p}>{p}</option>

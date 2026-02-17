@@ -18,6 +18,13 @@ interface ServiceCategory {
     title: string;
     icon: React.ElementType;
     description: string;
+    groups?: {
+        name: string;
+        items: {
+            title: string;
+            slug: string;
+        }[];
+    }[];
     items: {
         title: string;
         link: string;
@@ -43,7 +50,90 @@ const serviceCategories: ServiceCategory[] = [
         id: "lojas",
         title: "Lojas e insumos",
         icon: Store,
-        description: "Acesso direto à rede nacional de fornecedores de sementes certificadas, fertilizantes de alta performance e maquinaria de última geração, integrando tudo o que o produtor precisa para uma colheita rentável.",
+        description: "Acesso direto à rede nacional de fornecedores de sementes certificadas, fertilizantes de alta performance e maquinaria de última geração.",
+        groups: [
+            {
+                name: "1. Insumos Biológicos",
+                items: [
+                    { title: "Sementes", slug: "sementes" },
+                    { title: "Mudas", slug: "mudas" },
+                    { title: "Matrizes e reprodutores", slug: "matrizes-reprodutores" },
+                    { title: "Material genético", slug: "material-genetico" },
+                    { title: "Microrganismos", slug: "microrganismos" },
+                    { title: "Inoculantes", slug: "inoculantes" }
+                ]
+            },
+            {
+                name: "2. Químicos",
+                items: [
+                    { title: "Fertilizantes minerais", slug: "fertilizantes-minerais" },
+                    { title: "Corretivos de solo", slug: "corretivos-solo" },
+                    { title: "Herbicidas", slug: "herbicidas" },
+                    { title: "Inseticidas", slug: "inseticidas" },
+                    { title: "Fungicidas", slug: "fungicidas" }
+                ]
+            },
+            {
+                name: "3. Orgânicos",
+                items: [
+                    { title: "Esterco", slug: "esterco" },
+                    { title: "Compostagem", slug: "compostagem" },
+                    { title: "Biofertilizantes", slug: "biofertilizantes" },
+                    { title: "Adubação verde", slug: "adubacao-verde" },
+                    { title: "Húmus", slug: "humus" }
+                ]
+            },
+            {
+                name: "4. Pecuários",
+                items: [
+                    { title: "Rações", slug: "racoes" },
+                    { title: "Suplementos minerais", slug: "suplementos-minerais" },
+                    { title: "Vacinas", slug: "vacinas" },
+                    { title: "Medicamentos veterinários", slug: "medicamentos-veterinarios" },
+                    { title: "Sal mineral", slug: "sal-mineral" }
+                ]
+            },
+            {
+                name: "5. Mecânicos",
+                items: [
+                    { title: "Tratores", slug: "tratores" },
+                    { title: "Arados", slug: "arados" },
+                    { title: "Grades", slug: "grades" },
+                    { title: "Colheitadeiras", slug: "colheitadeiras" },
+                    { title: "Semeadoras", slug: "semeadoras" }
+                ]
+            },
+            {
+                name: "6. Tecnológicos",
+                items: [
+                    { title: "Sistemas de irrigação", slug: "sistemas-irrigacao" },
+                    { title: "Sensores agrícolas", slug: "sensores-agricolas" },
+                    { title: "Drones", slug: "drones" },
+                    { title: "GPS agrícola", slug: "gps-agricola" },
+                    { title: "Softwares de gestão", slug: "softwares-gestao" }
+                ]
+            },
+            {
+                name: "7. Estruturais",
+                items: [
+                    { title: "Cercas", slug: "cercas" },
+                    { title: "Postes", slug: "postes" },
+                    { title: "Galpões", slug: "galpoes" },
+                    { title: "Estufas", slug: "estufas" },
+                    { title: "Currais", slug: "currais" }
+                ]
+            },
+            {
+                name: "8. Financeiros",
+                items: [
+                    { title: "Crédito agrícola", slug: "credito-agricola" },
+                    { title: "Seguro rural", slug: "seguro-rural" },
+                    { title: "Investimentos", slug: "investimentos" },
+                    { title: "Subsídios", slug: "subsidios" },
+                    { title: "Linhas de financiamento", slug: "linhas-financiamento" }
+                ]
+            }
+        ],
         items: [
             { title: "Sementes Certificadas", link: "/servicos/insumos", slug: "sementes", description: "Alta produtividade para sua colheita com sementes verificadas.", icon: Zap },
             { title: "Fertilizantes e Adubos", link: "/servicos/insumos", slug: "fertilizantes", description: "Nutrição vegetal completa para diversos tipos de culturas.", icon: Zap },
@@ -248,29 +338,52 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
                                 </p>
                             </div>
 
-                            {/* Sub-categories Grid - 2 Rows / 3 Columns */}
+                            {/* Sub-categories Grid - Redesigned for Groups if they exist */}
                             <div className="pt-10 px-12">
-                                <div className="grid grid-cols-3 gap-x-12 gap-y-8">
-                                    {activeItems.slice(0, 9).map((item, idx) => (
-                                        <Link
-                                            key={idx}
-                                            href={`/servicos/${activeTab}/${item.slug}`}
-                                            onClick={onClose}
-                                            className="group/item flex flex-col gap-1.5"
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                {typeof item.icon === 'string' ? null : <item.icon className="w-4 h-4 text-slate-300 group-hover/item:text-[#f97316] transition-colors" />}
-                                                <span className="text-[15px] font-bold text-slate-800 group-hover/item:text-[#f97316] transition-colors">
-                                                    {item.title}
-                                                </span>
+                                {activeCategory.groups ? (
+                                    <div className="grid grid-cols-4 gap-x-8 gap-y-10">
+                                        {activeCategory.groups.map((group: any, gidx: number) => (
+                                            <div key={gidx} className="space-y-4">
+                                                <h4 className="text-[12px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">
+                                                    {group.name}
+                                                </h4>
+                                                <div className="flex flex-col gap-2.5">
+                                                    {group.items.map((item: any, idx: number) => (
+                                                        <Link
+                                                            key={idx}
+                                                            href={`/servicos/${activeTab}/${item.slug}`}
+                                                            onClick={onClose}
+                                                            className="text-[14px] font-bold text-slate-700 hover:text-[#f97316] transition-colors leading-tight"
+                                                        >
+                                                            {item.title}
+                                                        </Link>
+                                                    ))}
+                                                </div>
                                             </div>
-                                            <span className="text-[12px] text-slate-400 font-medium leading-tight line-clamp-2 group-hover/item:text-slate-500 transition-colors">
-                                                {item.description}
-                                            </span>
-                                        </Link>
-                                    ))}
-                                </div>
-
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-3 gap-x-12 gap-y-8">
+                                        {activeItems.slice(0, 9).map((item: any, idx: number) => (
+                                            <Link
+                                                key={idx}
+                                                href={`/servicos/${activeTab}/${item.slug}`}
+                                                onClick={onClose}
+                                                className="group/item flex flex-col gap-1.5"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    {typeof item.icon === 'string' ? null : <item.icon className="w-4 h-4 text-slate-300 group-hover/item:text-[#f97316] transition-colors" />}
+                                                    <span className="text-[15px] font-bold text-slate-800 group-hover/item:text-[#f97316] transition-colors">
+                                                        {item.title}
+                                                    </span>
+                                                </div>
+                                                <span className="text-[12px] text-slate-400 font-medium leading-tight line-clamp-2 group-hover/item:text-slate-500 transition-colors">
+                                                    {item.description}
+                                                </span>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
 

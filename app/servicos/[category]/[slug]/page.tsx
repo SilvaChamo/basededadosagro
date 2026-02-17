@@ -7,7 +7,9 @@ import {
     CheckCircle2,
     ArrowRight,
     Star,
-    Briefcase
+    Briefcase,
+    Building2,
+    MapPin as MapPinIcon
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -50,6 +52,44 @@ export default function ServiceSubCategoryPage() {
 
         fetchService();
     }, [slug, supabase]);
+
+    const [stores, setStores] = useState<any[]>([]);
+    const [loadingStores, setLoadingStores] = useState(false);
+
+    useEffect(() => {
+        async function fetchStores() {
+            if (!slug || categoryId !== 'lojas') return;
+            setLoadingStores(true);
+            try {
+                // Find companies that have products in this category
+                // Note: We search by name match (case-insensitive) for better compatibility
+                const { data: productData, error: productError } = await supabase
+                    .from('products')
+                    .select('company_id')
+                    .ilike('category', `%${slug}%`);
+
+                if (productData && productData.length > 0) {
+                    const companyIds = Array.from(new Set(productData.map(p => p.company_id).filter(id => id)));
+
+                    if (companyIds.length > 0) {
+                        const { data: companyData, error: companyError } = await supabase
+                            .from('companies')
+                            .select('*')
+                            .in('id', companyIds)
+                            .limit(5);
+
+                        if (companyData) setStores(companyData);
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching stores for category:", err);
+            } finally {
+                setLoadingStores(false);
+            }
+        }
+
+        fetchStores();
+    }, [slug, categoryId, supabase]);
 
     // Decide which data to use
     const service = dynamicService || staticService;
@@ -155,6 +195,37 @@ export default function ServiceSubCategoryPage() {
 
                     {/* Sidebar / Features */}
                     <div className="lg:col-span-4 space-y-5">
+                        {/* Stores Section */}
+                        {categoryId === 'lojas' && stores.length > 0 && (
+                            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                                <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                                    <Building2 className="w-5 h-5 text-emerald-600" />
+                                    Lojas que Disponibilizam
+                                </h3>
+                                <div className="space-y-3">
+                                    {stores.map((store, i) => (
+                                        <Link
+                                            key={i}
+                                            href={`/empresas/${store.slug || store.id}`}
+                                            className="block p-3 rounded-lg bg-slate-50 border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50 transition-all group"
+                                        >
+                                            <h4 className="font-bold text-slate-800 text-sm group-hover:text-emerald-700">{store.name}</h4>
+                                            <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1">
+                                                <MapPinIcon className="w-3 h-3" />
+                                                <span>{store.province || "Moçambique"}</span>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                                <Link
+                                    href="/servicos/insumos"
+                                    className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 mt-2"
+                                >
+                                    Ver todas as lojas <ArrowRight className="w-3 h-3" />
+                                </Link>
+                            </div>
+                        )}
+
                         {/* Benefits Card */}
                         {features.length > 0 && (
                             <div className="bg-slate-900 p-8 rounded-xl text-white shadow-xl relative overflow-hidden">

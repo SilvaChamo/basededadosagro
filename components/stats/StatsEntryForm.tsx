@@ -104,7 +104,7 @@ export function StatsEntryForm() {
                             required
                             value={formData.category}
                             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                            className="p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#22c55e] outline-none"
+                            className="p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#22c55e] bg-white text-gray-900 outline-none"
                         >
                             {categories.map(cat => (
                                 <option key={cat.id} value={cat.id}>{cat.label}</option>
@@ -119,7 +119,7 @@ export function StatsEntryForm() {
                             required
                             value={formData.province}
                             onChange={(e) => setFormData({ ...formData, province: e.target.value })}
-                            className="p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#22c55e] outline-none"
+                            className="p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#22c55e] bg-white text-gray-900 outline-none"
                         >
                             {provinces.map(p => (
                                 <option key={p} value={p}>{p}</option>
@@ -136,24 +136,23 @@ export function StatsEntryForm() {
                             value={formData.year}
                             onChange={(e) => setFormData({ ...formData, year: e.target.value })}
                             placeholder="Ex: 2025"
-                            className="p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#22c55e] outline-none"
+                            className="p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#22c55e] bg-white text-gray-900 outline-none"
                         />
                     </div>
 
                     {/* Etiqueta / Produto */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-semibold text-gray-700">Etiqueta / Produto / Mês</label>
+                        <label className="text-sm font-semibold text-gray-700">Etiq/Prod/Mês</label>
                         <input
                             type="text"
                             required
                             value={formData.label}
                             onChange={(e) => setFormData({ ...formData, label: e.target.value })}
                             placeholder="Ex: Milho, Jan, Setor A"
-                            className="p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#22c55e] outline-none"
+                            className="p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#22c55e] bg-white text-gray-900 outline-none"
                         />
                     </div>
 
-                    {/* Valor */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-sm font-semibold text-gray-700">Valor Numérico</label>
                         <input
@@ -163,11 +162,10 @@ export function StatsEntryForm() {
                             value={formData.value}
                             onChange={(e) => setFormData({ ...formData, value: e.target.value })}
                             placeholder="Ex: 4500"
-                            className="p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#22c55e] outline-none"
+                            className="p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#22c55e] bg-white text-gray-900 outline-none"
                         />
                     </div>
 
-                    {/* Variação */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-sm font-semibold text-gray-700">Variação (%)</label>
                         <input
@@ -176,7 +174,7 @@ export function StatsEntryForm() {
                             value={formData.variation}
                             onChange={(e) => setFormData({ ...formData, variation: e.target.value })}
                             placeholder="Ex: 5.2 ou -1.5"
-                            className="p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#22c55e] outline-none"
+                            className="p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#22c55e] bg-white text-gray-900 outline-none"
                         />
                     </div>
                 </div>

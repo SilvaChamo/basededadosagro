@@ -25,6 +25,7 @@ const formSchema = z.object({
     description: z.string().default("").optional(),
     thumbnail_url: z.string().default("").optional(),
     is_featured: z.boolean(),
+    is_active: z.boolean(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -49,6 +50,7 @@ export function PodcastForm({ initialData, isEditing = false }: PodcastFormProps
             description: initialData?.description || "",
             thumbnail_url: initialData?.thumbnail_url || "",
             is_featured: initialData?.is_featured ?? false,
+            is_active: initialData?.is_active ?? true,
         },
     });
 
@@ -277,6 +279,31 @@ export function PodcastForm({ initialData, isEditing = false }: PodcastFormProps
                                                 checked={field.value}
                                                 onChange={field.onChange}
                                                 className="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-600"
+                                            />
+                                        </div>
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="is_active"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm bg-emerald-50 border-emerald-100">
+                                    <div className="space-y-0.5">
+                                        <FormLabel className="text-base text-emerald-900">Episódio Activo</FormLabel>
+                                        <p className="text-sm text-emerald-700/80">
+                                            Se desmarcado, o episódio não será exibido no site.
+                                        </p>
+                                    </div>
+                                    <FormControl>
+                                        <div className="flex items-center space-x-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={field.value}
+                                                onChange={field.onChange}
+                                                className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-600"
                                             />
                                         </div>
                                     </FormControl>

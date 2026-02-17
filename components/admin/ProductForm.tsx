@@ -22,7 +22,16 @@ export function ProductForm({ onClose, onSuccess, initialData }: ProductFormProp
         empresa_id: initialData?.empresa_id || ""
     });
 
-    const categories = ["Sementes", "Fertilizantes", "Ferramentas", "Maquinaria", "Pesticidas", "Sistemas de Rega"];
+    const categories = [
+        "Sementes", "Mudas", "Matrizes e reprodutores", "Material genético", "Microrganismos", "Inoculantes",
+        "Fertilizantes minerais", "Corretivos de solo", "Herbicidas", "Inseticidas", "Fungicidas",
+        "Esterco", "Compostagem", "Biofertilizantes", "Adubação verde", "Húmus",
+        "Rações", "Suplementos minerais", "Vacinas", "Medicamentos veterinários", "Sal mineral",
+        "Tratores", "Arados", "Grades", "Colheitadeiras", "Semeadoras",
+        "Sistemas de irrigação", "Sensores agrícolas", "Drones", "GPS agrícola", "Softwares de gestão",
+        "Cercas", "Postes", "Galpões", "Estufas", "Currais",
+        "Crédito agrícola", "Seguro rural", "Investimentos", "Subsídios", "Linhas de financiamento"
+    ];
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

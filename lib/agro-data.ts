@@ -51,16 +51,23 @@ export const SECTOR_CATEGORIES: Record<string, string[]> = {
         "Tecnologia agrícola"
     ],
     "Logística & Comércio": [
+        "Insumos Biológicos",
+        "Insumos Químicos",
+        "Insumos Orgânicos",
+        "Insumos Pecuários",
+        "Insumos Mecânicos",
+        "Insumos Tecnológicos",
+        "Infraestruturas e Construção",
         "Armazenagem",
         "Exportação",
-        "Insumos agrícolas",
-        "Máquinas/equipamento",
         "Transporte agrícola"
     ],
     "Finanças & Investimento": [
         "Crédito agrícola",
-        "Financiamento",
-        "Investimento agrícola"
+        "Seguro rural",
+        "Investimentos",
+        "Subsídios e Apoios",
+        "Linhas de financiamento"
     ],
     "Organizações & Gestão": [
         "Agronegócio",
