@@ -300,7 +300,7 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
     const activeItems = getItemsForCategory(activeTab);
 
     return (
-        <div className={`absolute left-0 w-full top-full transition-all duration-300 z-50 ${isOpen ? 'opacity-100 visible pointer-events-auto' : 'opacity-0 invisible pointer-events-none'}`}>
+        <div className="relative w-full">
             <div className="absolute top-[-25px] left-0 w-full h-[25px] bg-transparent" />
             <div className="bg-white border-y border-slate-200 shadow-[0_40px_80px_rgba(0,0,0,0.12)] overflow-hidden">
                 <div className="container-site flex min-h-[500px]">
