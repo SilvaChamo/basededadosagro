@@ -236,7 +236,10 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                                         <span className="bg-[#f97316] text-white text-[10px] font-black uppercase px-2 py-0.5">PRÓXIMO VÍDEO</span>
                                         <span className="text-white/80 text-[10px] font-bold uppercase tracking-widest">{nextEpisode.category}</span>
                                     </div>
-                                    <h3 className="text-[18px] font-black text-white leading-tight mt-[15px] m-0 transition-colors line-clamp-3">
+                                    <h3
+                                        className="text-[18px] font-black text-white leading-tight m-0 transition-colors line-clamp-3"
+                                        style={{ marginTop: '15px' }}
+                                    >
                                         {nextEpisode.title}
                                     </h3>
                                     {nextEpisode.description && nextEpisode.description.trim() !== '' && (
