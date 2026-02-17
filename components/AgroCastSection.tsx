@@ -237,8 +237,7 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                                         <span className="text-white/80 text-[10px] font-bold uppercase tracking-widest">{nextEpisode.category}</span>
                                     </div>
                                     <h3
-                                        className="text-[18px] font-black text-white leading-tight m-0 transition-colors line-clamp-3"
-                                        style={{ marginTop: '15px' }}
+                                        className="text-[18px] font-black text-white leading-tight mt-[15px] m-0 transition-colors line-clamp-3"
                                     >
                                         {nextEpisode.title}
                                     </h3>
