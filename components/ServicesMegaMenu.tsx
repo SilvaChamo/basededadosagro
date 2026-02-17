@@ -346,8 +346,8 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
                                     <button
                                         onClick={() => setLojasInnerTab("insumos")}
                                         className={`px-6 py-2.5 text-[13px] font-black uppercase tracking-wider transition-all border-b-2 ${lojasInnerTab === "insumos"
-                                                ? "text-[#f97316] border-[#f97316]"
-                                                : "text-slate-400 border-transparent hover:text-slate-600"
+                                            ? "text-[#f97316] border-[#f97316]"
+                                            : "text-slate-400 border-transparent hover:text-slate-600"
                                             }`}
                                     >
                                         Insumos
@@ -355,8 +355,8 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
                                     <button
                                         onClick={() => setLojasInnerTab("lojas")}
                                         className={`px-6 py-2.5 text-[13px] font-black uppercase tracking-wider transition-all border-b-2 ${lojasInnerTab === "lojas"
-                                                ? "text-[#f97316] border-[#f97316]"
-                                                : "text-slate-400 border-transparent hover:text-slate-600"
+                                            ? "text-[#f97316] border-[#f97316]"
+                                            : "text-slate-400 border-transparent hover:text-slate-600"
                                             }`}
                                     >
                                         Lojas
@@ -392,17 +392,17 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
                                                                 key={idx}
                                                                 href={`/servicos/${activeTab}/${item.slug}`}
                                                                 onClick={onClose}
-                                                                className="group/icon flex flex-col items-center gap-2 w-[80px]"
+                                                                className="group/icon flex flex-col items-center gap-2 w-[100px]"
                                                             >
-                                                                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-100 group-hover/icon:border-[#f97316] transition-colors bg-slate-50 flex items-center justify-center">
+                                                                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-slate-100 group-hover/icon:border-[#f97316] transition-colors bg-slate-50 flex items-center justify-center p-0">
                                                                     {group.image ? (
                                                                         <img
                                                                             src={group.image}
                                                                             alt={item.title}
-                                                                            className="w-full h-full object-cover"
+                                                                            className="w-full h-full object-cover m-0"
                                                                         />
                                                                     ) : (
-                                                                        <Store className="w-5 h-5 text-slate-400" />
+                                                                        <Store className="w-10 h-10 text-slate-400" />
                                                                     )}
                                                                 </div>
                                                                 <span className="text-[11px] font-semibold text-slate-600 group-hover/icon:text-[#f97316] transition-colors text-center leading-tight">

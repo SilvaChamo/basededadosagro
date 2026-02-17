@@ -190,7 +190,7 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                                         </div>
 
                                         <div className="space-y-1">
-                                            <h3 className="text-xl md:text-[26px] font-black text-white leading-tight max-w-2xl m-0 drop-shadow-lg">
+                                            <h3 className="text-xl md:text-[30px] font-black text-white leading-tight max-w-2xl m-0 drop-shadow-lg">
                                                 {renderTitleWithGreenEnd(activeEpisode.title)}
                                             </h3>
                                             {activeEpisode.description && activeEpisode.description.trim() !== '' && (
