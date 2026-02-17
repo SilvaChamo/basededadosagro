@@ -174,7 +174,7 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                                     </div>
 
                                     {/* THEME LABEL & CONTENT Overlay */}
-                                    <div className="absolute bottom-0 left-0 w-full pl-8 py-8 pr-[50px] z-20 flex flex-col items-start gap-4">
+                                    <div className="absolute bottom-0 left-0 w-full pl-8 py-8 pr-[50px] z-20 flex flex-col items-start gap-2">
                                         <div className="flex items-center gap-3">
                                             <span className="bg-emerald-600 text-white text-[11px] font-black uppercase px-3 py-0.5 rounded-[50px] shadow-sm">
                                                 {activeEpisode.category}
@@ -194,7 +194,7 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                                                 {renderTitleWithGreenEnd(activeEpisode.title)}
                                             </h3>
                                             {activeEpisode.description && activeEpisode.description.trim() !== '' && (
-                                                <p className="text-white/80 text-[11px] md:text-[13px] font-medium leading-relaxed max-w-xl mt-2 line-clamp-2">
+                                                <p className="text-white/80 text-[11px] md:text-[13px] font-medium leading-relaxed max-w-xl mt-0 line-clamp-2">
                                                     {activeEpisode.description}
                                                 </p>
                                             )}
@@ -231,7 +231,7 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                                 )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent opacity-90" />
 
-                                <div className="absolute inset-0 flex flex-col justify-end p-6 space-y-3">
+                                <div className="absolute inset-0 flex flex-col justify-end p-6 space-y-1">
                                     <div className="flex items-center gap-2">
                                         <span className="bg-[#f97316] text-white text-[10px] font-black uppercase px-2 py-0.5">PRÓXIMO VÍDEO</span>
                                         <span className="text-white/80 text-[10px] font-bold uppercase tracking-widest">{nextEpisode.category}</span>
@@ -240,7 +240,7 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                                         {nextEpisode.title}
                                     </h3>
                                     {nextEpisode.description && nextEpisode.description.trim() !== '' && (
-                                        <p className="text-white/70 text-[10px] leading-snug mt-1 line-clamp-2">
+                                        <p className="text-white/70 text-[10px] leading-snug mt-0 line-clamp-2">
                                             {nextEpisode.description}
                                         </p>
                                     )}
