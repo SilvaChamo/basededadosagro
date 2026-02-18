@@ -122,26 +122,9 @@ export default function AdminLojasPage() {
 
     return (
         <div className="space-y-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-                        <Store className="w-6 h-6 text-orange-500" />
-                        Lojas
-                    </h1>
-                    <p className="text-slate-500 mt-1">Gerencie os parceiros e estabelecimentos cadastrados.</p>
-                </div>
-                <Link
-                    href="/admin/lojas/novo"
-                    className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-orange-500/20"
-                >
-                    <Plus className="w-5 h-5" />
-                    Nova Loja
-                </Link>
-            </div>
-
-            {/* Filter Bar */}
-            <div className="bg-white p-2 rounded-lg shadow-sm border border-slate-200 flex flex-col md:flex-row gap-2">
-                <div className="flex-1 relative">
+            {/* Top Bar: Search, Filter and Actions */}
+            <div className="bg-white p-2 rounded-lg shadow-sm border border-slate-200 flex flex-col md:flex-row gap-2 items-center">
+                <div className="flex-1 relative w-full">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
                         type="text"
@@ -152,7 +135,7 @@ export default function AdminLojasPage() {
                     />
                 </div>
 
-                <div className="relative min-w-[200px]">
+                <div className="relative min-w-[200px] w-full md:w-auto">
                     <select
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
@@ -166,10 +149,18 @@ export default function AdminLojasPage() {
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 </div>
 
-                <button className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:text-orange-500 hover:border-orange-200 transition-all flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider">
+                <button className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:text-orange-500 hover:border-orange-200 transition-all flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider w-full md:w-auto">
                     <Filter className="w-4 h-4" />
                     <span>Filtros</span>
                 </button>
+
+                <Link
+                    href="/admin/lojas/novo"
+                    className="flex items-center justify-center gap-2 px-6 py-2 bg-emerald-600 hover:bg-orange-500 text-white font-bold rounded-lg transition-all shadow-lg shadow-emerald-500/10 w-full md:w-auto whitespace-nowrap"
+                >
+                    <Plus className="w-4 h-4" />
+                    Nova Loja
+                </Link>
             </div>
 
             {/* Content */}
