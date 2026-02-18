@@ -38,7 +38,7 @@ export default function AdminEmpresasPage() {
             setLoading(true);
             let query = supabase.from('companies').select('*');
             const { data: result, error } = await query
-                .or('type.neq.Loja,type.is.null') // Include everything except 'Loja'
+                .neq('type', 'Loja')
                 .order('is_featured', { ascending: false })
                 .order('created_at', { ascending: false });
 
