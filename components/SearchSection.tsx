@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Building2, ShoppingBag, Users, FileText, LandPlot, ChevronDown, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/utils/supabase/client";
 import {
     Popover,
     PopoverContent,
@@ -17,6 +17,7 @@ interface SearchSectionProps {
 }
 
 export function SearchSection({ isOpen, withBottomBorder = false }: SearchSectionProps) {
+    const supabase = createClient();
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState<string>("all");
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);

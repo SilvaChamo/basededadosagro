@@ -6,17 +6,20 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Building2, Globe, Mail, MapPin, Phone, Target, Eye, Heart, List, X, Loader2, FileText, Star, ShoppingBag, Plus, Trash2, ChevronDown, Check, Pencil } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { RichTextEditor } from "../RichTextEditor";
-import { MOZ_DATA, SECTORS, SECTOR_CATEGORIES, VALUE_CHAINS, COMPANY_DESIGNATIONS, COMPANY_SIZES, ALL_CATEGORIES } from "@/lib/agro-data";
+import { MOZ_DATA, SECTORS, SECTOR_CATEGORIES, VALUE_CHAINS, COMPANY_DESIGNATIONS, COMPANY_SIZES, ALL_CATEGORIES, STORE_CATEGORIES } from "@/lib/agro-data";
 import { useRouter } from "next/navigation";
 import { ImageUpload } from "./ImageUpload";
 import { toSentenceCase } from "@/lib/utils";
 
+
+
 interface CompanyEditorProps {
     initialData?: any;
     isNew?: boolean;
+    defaultType?: "Empresa" | "Loja";
 }
 
-export function CompanyEditor({ initialData, isNew = false }: CompanyEditorProps) {
+export function CompanyEditor({ initialData, isNew = false, defaultType }: CompanyEditorProps) {
     const supabase = createClient();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
@@ -57,7 +60,14 @@ export function CompanyEditor({ initialData, isNew = false }: CompanyEditorProps
         type: initialData?.type || "",
         sub_category: initialData?.sub_category || "",
         size: initialData?.size || "",
+        location: initialData?.location || "",
+        image_url: initialData?.image_url || "",
+        is_active: initialData?.is_active ?? true,
     });
+
+    const [registrationType, setRegistrationType] = useState<"Empresa" | "Loja">(
+        initialData?.type === "Loja" ? "Loja" : (defaultType || "Empresa")
+    );
 
     // Products State
     const [products, setProducts] = useState<any[]>([]);
@@ -158,6 +168,7 @@ export function CompanyEditor({ initialData, isNew = false }: CompanyEditorProps
             // Base data without user_id
             const baseData = {
                 ...formData,
+                type: registrationType === "Loja" ? "Loja" : formData.type,
                 services: formData.services.filter(s => s.trim() !== "")
             };
 
@@ -182,10 +193,10 @@ export function CompanyEditor({ initialData, isNew = false }: CompanyEditorProps
             }
 
             if (error) throw error;
-            router.push('/admin/empresas');
+            router.push(registrationType === "Loja" ? '/admin/lojas' : '/admin/empresas');
             router.refresh();
         } catch (error: any) {
-            alert("Erro ao salvar empresa: " + error.message);
+            alert("Erro ao salvar: " + error.message);
         } finally {
             setLoading(false);
         }
@@ -551,13 +562,25 @@ export function CompanyEditor({ initialData, isNew = false }: CompanyEditorProps
                     <div className="flex flex-col gap-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <select
-                                value={formData.type}
-                                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                className="py-3 px-3 bg-slate-100 border border-slate-200 rounded-agro-btn text-sm font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none w-full transition-all"
+                                value={registrationType}
+                                onChange={(e) => setRegistrationType(e.target.value as any)}
+                                className="py-3 px-3 bg-slate-100 border border-slate-200 rounded-agro-btn text-sm font-bold text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none w-full transition-all"
                             >
-                                <option value="">Designação...</option>
-                                {COMPANY_DESIGNATIONS.map((d: string) => <option key={d} value={d}>{d}</option>)}
+                                <option value="Empresa">🏢 Empresa de Serviços</option>
+                                <option value="Loja">🛒 Loja (Venda de Insumos)</option>
                             </select>
+
+                            {registrationType === "Empresa" && (
+                                <select
+                                    value={formData.type}
+                                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                                    className="py-3 px-3 bg-slate-100 border border-slate-200 rounded-agro-btn text-sm font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none w-full transition-all"
+                                >
+                                    <option value="">Designação...</option>
+                                    {COMPANY_DESIGNATIONS.map((d: string) => <option key={d} value={d}>{d}</option>)}
+                                </select>
+                            )}
+
                             <select
                                 value={formData.value_chain}
                                 onChange={(e) => setFormData({ ...formData, value_chain: e.target.value })}
@@ -579,10 +602,48 @@ export function CompanyEditor({ initialData, isNew = false }: CompanyEditorProps
                                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                 className="py-3 px-3 bg-slate-100 border border-slate-200 rounded-agro-btn text-sm font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none w-full transition-all"
                             >
-                                <option value="">Sector de Actividade...</option>
-                                {ALL_CATEGORIES.map((s: string) => <option key={s} value={s}>{s}</option>)}
+                                <option value="">{registrationType === "Loja" ? "Categoria da Loja..." : "Sector de Actividade..."}</option>
+                                {(registrationType === "Loja" ? STORE_CATEGORIES : ALL_CATEGORIES).map((s: string) => (
+                                    <option key={s} value={s}>{s}</option>
+                                ))}
                             </select>
                         </div>
+
+                        {registrationType === "Loja" && (
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="md:col-span-2">
+                                        <input
+                                            type="text"
+                                            value={formData.location}
+                                            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                            placeholder="Localização Física (Ex: Av. Eduardo Mondlane, Maputo)"
+                                            className="py-3 px-3 bg-slate-100 border border-slate-200 rounded-agro-btn text-sm font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none w-full transition-all"
+                                        />
+                                    </div>
+                                    <select
+                                        value={formData.is_active ? "Aberto" : "Fechado"}
+                                        onChange={(e) => setFormData({ ...formData, is_active: e.target.value === "Aberto" })}
+                                        className="py-3 px-3 bg-slate-100 border border-slate-200 rounded-agro-btn text-sm font-bold text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none w-full transition-all"
+                                    >
+                                        <option value="Aberto">✅ Aberto</option>
+                                        <option value="Fechado">❌ Fechado</option>
+                                    </select>
+                                </div>
+                                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                                    <label className="text-xs font-black uppercase text-slate-500 tracking-widest mb-3 block">Imagem da Loja (Fachada ou Interior)</label>
+                                    <ImageUpload
+                                        value={formData.image_url}
+                                        onChange={(url) => setFormData({ ...formData, image_url: url })}
+                                        label="Imagem da Loja"
+                                        maxSizeMB={1}
+                                        bucket="Baseagrodata files"
+                                        folder="lojas"
+                                        description="Esta imagem será exibida como capa da loja nos resultados de pesquisa."
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 

@@ -15,11 +15,13 @@ import {
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/utils/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ServicesMegaMenu } from "./ServicesMegaMenu";
+import { MarketMegaMenu } from "./MarketMegaMenu";
 
 export function Navbar() {
+    const supabase = createClient();
     const pathname = usePathname();
     const { language, toggleLanguage, t } = useLanguage();
     const [view, setView] = useState<"menu" | "auth">("menu");
@@ -214,6 +216,28 @@ export function Navbar() {
                                     </div>
                                     <div className={`absolute left-0 w-full top-full transition-all duration-300 z-50 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
                                         <ServicesMegaMenu isOpen={isOpen} onClose={closeAllMenus} />
+                                    </div>
+                                </div>
+                            );
+                        }
+
+                        if (item.link === '/mercado') {
+                            const isOpen = activeMenu === 'mercado';
+                            return (
+                                <div
+                                    key={i}
+                                    className="py-0.5"
+                                    onMouseEnter={() => setActiveMenu('mercado')}
+                                    onMouseLeave={closeAllMenus}
+                                >
+                                    <div
+                                        className={`flex items-center gap-1.5 text-[13px] lg:text-[15px] font-medium transition-colors whitespace-nowrap tracking-tight font-sans cursor-pointer ${isActive || isOpen ? "text-[#f97316]" : "text-gray-600 hover:text-[#f97316]"}`}
+                                    >
+                                        <span className="leading-none">{item.label}</span>
+                                        <ChevronDown className={`w-3.5 h-3.5 opacity-70 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                                    </div>
+                                    <div className={`absolute left-0 w-full top-full transition-all duration-300 z-50 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
+                                        <MarketMegaMenu isOpen={isOpen} onClose={closeAllMenus} />
                                     </div>
                                 </div>
                             );

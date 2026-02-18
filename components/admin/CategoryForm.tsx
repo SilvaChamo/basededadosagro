@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2, X, Grid2X2, Type, Link as LinkIcon, Palette } from "lucide-react";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ interface CategoryFormProps {
 }
 
 export function CategoryForm({ onClose, onSuccess, initialData }: CategoryFormProps) {
+    const supabase = createClient();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         title: initialData?.title || "",

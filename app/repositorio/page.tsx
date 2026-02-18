@@ -9,10 +9,11 @@ import {
     User, LandPlot, ShoppingBag, ArrowRight,
     FileText, BookOpen
 } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/utils/supabase/client";
 import { ContactCTA } from "@/components/ContactCTA";
 
 export default function RepositorioPage() {
+    const supabase = createClient();
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState("Todos os resultados");
     const [sortOption, setSortOption] = useState("Ordem Alfabética");

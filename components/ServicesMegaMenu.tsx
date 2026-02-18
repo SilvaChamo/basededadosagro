@@ -48,111 +48,6 @@ const serviceCategories: ServiceCategory[] = [
         ]
     },
     {
-        id: "lojas",
-        title: "Lojas e insumos",
-        icon: Store,
-        description: "Acesso direto à rede nacional de fornecedores de sementes certificadas, fertilizantes de alta performance e maquinaria de última geração.",
-        groups: [
-            {
-                name: "Insumos Biológicos",
-                image: "/images/insumos/biologicos.png",
-                items: [
-                    { title: "Sementes", slug: "sementes" },
-                    { title: "Mudas", slug: "mudas" },
-                    { title: "Matrizes e reprodutores", slug: "matrizes-reprodutores" },
-                    { title: "Material genético", slug: "material-genetico" },
-                    { title: "Microrganismos", slug: "microrganismos" },
-                    { title: "Inoculantes", slug: "inoculantes" }
-                ]
-            },
-            {
-                name: "Químicos",
-                image: "/images/insumos/quimicos.png",
-                items: [
-                    { title: "Fertilizantes minerais", slug: "fertilizantes-minerais" },
-                    { title: "Corretivos de solo", slug: "corretivos-solo" },
-                    { title: "Herbicidas", slug: "herbicidas" },
-                    { title: "Inseticidas", slug: "inseticidas" },
-                    { title: "Fungicidas", slug: "fungicidas" }
-                ]
-            },
-            {
-                name: "Orgânicos",
-                image: "/images/insumos/organicos.png",
-                items: [
-                    { title: "Esterco", slug: "esterco" },
-                    { title: "Compostagem", slug: "compostagem" },
-                    { title: "Biofertilizantes", slug: "biofertilizantes" },
-                    { title: "Adubação verde", slug: "adubacao-verde" },
-                    { title: "Húmus", slug: "humus" }
-                ]
-            },
-            {
-                name: "Pecuários",
-                image: "/images/insumos/pecuarios.png",
-                items: [
-                    { title: "Rações", slug: "racoes" },
-                    { title: "Suplementos minerais", slug: "suplementos-minerais" },
-                    { title: "Vacinas", slug: "vacinas" },
-                    { title: "Medicamentos veterinários", slug: "medicamentos-veterinarios" },
-                    { title: "Sal mineral", slug: "sal-mineral" }
-                ]
-            },
-            {
-                name: "Mecânicos",
-                image: "/images/insumos/mecanicos.png",
-                items: [
-                    { title: "Tratores", slug: "tratores" },
-                    { title: "Arados", slug: "arados" },
-                    { title: "Grades", slug: "grades" },
-                    { title: "Colheitadeiras", slug: "colheitadeiras" },
-                    { title: "Semeadoras", slug: "semeadoras" }
-                ]
-            },
-            {
-                name: "Tecnológicos",
-                image: "/images/insumos/tecnologicos.png",
-                items: [
-                    { title: "Sistemas de irrigação", slug: "sistemas-irrigacao" },
-                    { title: "Sensores agrícolas", slug: "sensores-agricolas" },
-                    { title: "Drones", slug: "drones" },
-                    { title: "GPS agrícola", slug: "gps-agricola" },
-                    { title: "Softwares de gestão", slug: "softwares-gestao" }
-                ]
-            },
-            {
-                name: "Estruturais",
-                image: "/images/insumos/estruturais.png",
-                items: [
-                    { title: "Cercas", slug: "cercas" },
-                    { title: "Postes", slug: "postes" },
-                    { title: "Galpões", slug: "galpoes" },
-                    { title: "Estufas", slug: "estufas" },
-                    { title: "Currais", slug: "currais" }
-                ]
-            },
-            {
-                name: "Financeiros",
-                image: "/images/insumos/financeiros.png",
-                items: [
-                    { title: "Crédito agrícola", slug: "credito-agricola" },
-                    { title: "Seguro rural", slug: "seguro-rural" },
-                    { title: "Investimentos", slug: "investimentos" },
-                    { title: "Subsídios", slug: "subsidios" },
-                    { title: "Linhas de financiamento", slug: "linhas-financiamento" }
-                ]
-            }
-        ],
-        items: [
-            { title: "Sementes Certificadas", link: "/servicos/insumos", slug: "sementes", description: "Alta produtividade para sua colheita com sementes verificadas.", icon: Zap },
-            { title: "Fertilizantes e Adubos", link: "/servicos/insumos", slug: "fertilizantes", description: "Nutrição vegetal completa para diversos tipos de culturas.", icon: Zap },
-            { title: "Maquinaria Agrícola", link: "/servicos/insumos", slug: "maquinaria", description: "Tratores e equipamentos modernos para mecanização do campo.", icon: Truck },
-            { title: "Sistemas de Rega", link: "/servicos/insumos", slug: "rega", description: "Tecnologia de irrigação para optimização do uso da água.", icon: Zap },
-            { title: "Protecção de Culturas", link: "/servicos/insumos", slug: "proteccao", description: "Soluções integradas para o controlo de pragas e doenças.", icon: ShieldCheck },
-            { title: "Registe a sua loja", link: "/registar", slug: "registo", description: "Aumente a visibilidade do seu negócio e alcance mais produtores.", icon: Store }
-        ]
-    },
-    {
         id: "compra-venda",
         title: "Compra e venda",
         icon: ShoppingCart,
@@ -300,12 +195,12 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
     const activeItems = getItemsForCategory(activeTab);
 
     return (
-        <div className="relative w-full">
+        <div className={`absolute left-0 w-full top-full transition-all duration-300 z-50 ${isOpen ? 'opacity-100 visible pointer-events-auto' : 'opacity-0 invisible pointer-events-none'}`}>
             <div className="absolute top-[-25px] left-0 w-full h-[25px] bg-transparent" />
             <div className="bg-white border-y border-slate-200 shadow-[0_40px_80px_rgba(0,0,0,0.12)] overflow-hidden">
-                <div className="container-site flex min-h-[500px]">
+                <div className="container-site flex">
                     {/* Left Sidebar - Categories (Hover Activated) */}
-                    <div className="w-[300px] bg-slate-50/50 border-r border-slate-100 py-6">
+                    <div className="w-[300px] bg-slate-50/50 border-r border-slate-100 py-2">
                         <div className="space-y-0.5">
                             {serviceCategories.map((cat) => {
                                 const Icon = cat.icon;
@@ -316,7 +211,7 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
                                         onClick={() => {
                                             setActiveTab(cat.id);
                                         }}
-                                        className={`w-full flex items-center justify-between px-5 py-2 text-left transition-all relative group/tab ${isActive
+                                        className={`w-full flex items-center justify-between px-4 py-1 text-left transition-all relative group/tab ${isActive
                                             ? "bg-white text-[#f97316] font-bold shadow-sm"
                                             : "text-slate-500 hover:bg-white/60 hover:text-[#f97316]"
                                             }`}
@@ -336,111 +231,45 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
                     </div>
 
                     {/* Right Content Area */}
-                    <div className="flex-1 bg-white py-10 px-0 relative overflow-hidden">
+                    <div className="flex-1 bg-white py-0 px-0 relative overflow-hidden text-black">
 
                         <div className="relative z-10">
-                            {/* Header: Title + Description OR Tabs for Lojas */}
-                            {activeCategory.groups ? (
-                                /* Lojas e Insumos: Show tabs instead of title/description */
-                                <div className="flex items-center gap-0 px-12 pb-6 border-b border-slate-200">
-                                    <button
-                                        onClick={() => setLojasInnerTab("insumos")}
-                                        className={`px-6 py-2.5 text-[13px] font-black uppercase tracking-wider transition-all border-b-2 ${lojasInnerTab === "insumos"
-                                            ? "text-[#f97316] border-[#f97316]"
-                                            : "text-slate-400 border-transparent hover:text-slate-600"
-                                            }`}
-                                    >
-                                        Insumos
-                                    </button>
-                                    <button
-                                        onClick={() => setLojasInnerTab("lojas")}
-                                        className={`px-6 py-2.5 text-[13px] font-black uppercase tracking-wider transition-all border-b-2 ${lojasInnerTab === "lojas"
-                                            ? "text-[#f97316] border-[#f97316]"
-                                            : "text-slate-400 border-transparent hover:text-slate-600"
-                                            }`}
-                                    >
-                                        Lojas
-                                    </button>
-                                </div>
-                            ) : (
-                                /* Other categories: Show normal title + description */
-                                <div className="flex flex-col gap-1 pt-0 pb-8 px-12 border-b border-slate-200">
-                                    <h3 className="text-2xl font-black text-slate-900/90 tracking-tighter">
-                                        {activeCategory.title}
-                                    </h3>
-                                    <p className="text-[14px] text-slate-500 font-medium leading-relaxed line-clamp-3 max-w-[800px]">
-                                        {activeCategory.description}
-                                    </p>
-                                </div>
-                            )}
+                            {/* Header: Removed */}
 
                             {/* Content Area */}
-                            <div className="pt-8 px-12 overflow-y-auto max-h-[380px]">
-                                {activeCategory.groups ? (
-                                    /* Lojas e Insumos content */
-                                    lojasInnerTab === "insumos" ? (
-                                        /* INSUMOS TAB: Groups with circular image icons */
-                                        <div className="space-y-8">
-                                            {activeCategory.groups.map((group: any, gidx: number) => (
-                                                <div key={gidx}>
-                                                    <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">
-                                                        {group.name}
-                                                    </h4>
-                                                    <div className="flex flex-wrap gap-6">
-                                                        {group.items.map((item: any, idx: number) => (
-                                                            <Link
-                                                                key={idx}
-                                                                href={`/servicos/${activeTab}/${item.slug}`}
-                                                                onClick={onClose}
-                                                                className="group/icon flex flex-col items-center gap-2 w-[100px]"
-                                                            >
-                                                                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-slate-100 group-hover/icon:border-[#f97316] transition-colors bg-slate-50 flex items-center justify-center p-0">
-                                                                    {group.image ? (
-                                                                        <img
-                                                                            src={group.image}
-                                                                            alt={item.title}
-                                                                            className="w-full h-full object-cover m-0"
-                                                                        />
-                                                                    ) : (
-                                                                        <Store className="w-10 h-10 text-slate-400" />
-                                                                    )}
-                                                                </div>
-                                                                <span className="text-[11px] font-semibold text-slate-600 group-hover/icon:text-[#f97316] transition-colors text-center leading-tight">
-                                                                    {item.title}
-                                                                </span>
-                                                            </Link>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        /* LOJAS TAB: Show store items */
-                                        <div className="grid grid-cols-3 gap-x-12 gap-y-8">
-                                            {activeItems.slice(0, 9).map((item: any, idx: number) => (
+                            <div className="pt-2 px-12 overflow-y-auto max-h-[380px]">
+                                <div className="grid grid-cols-5 gap-x-6 gap-y-4">
+                                    {activeCategory.groups ? (
+                                        /* Flattened groups for Insumos */
+                                        (activeCategory.groups || []).flatMap((group: any) => group.items).map((item: any, idx: number) => {
+                                            const group = (activeCategory.groups || []).find((g: any) => g.items.includes(item));
+                                            return (
                                                 <Link
                                                     key={idx}
                                                     href={`/servicos/${activeTab}/${item.slug}`}
                                                     onClick={onClose}
-                                                    className="group/item flex flex-col gap-1.5"
+                                                    className="group/icon flex flex-col items-center gap-2 w-full"
                                                 >
-                                                    <div className="flex items-center gap-2">
-                                                        {typeof item.icon === 'string' ? null : <item.icon className="w-4 h-4 text-slate-300 group-hover/item:text-[#f97316] transition-colors" />}
-                                                        <span className="text-[15px] font-bold text-slate-800 group-hover/item:text-[#f97316] transition-colors">
-                                                            {item.title}
-                                                        </span>
+                                                    <div className="w-16 h-16 rounded-full overflow-hidden border border-slate-100 group-hover/icon:border-[#f97316] transition-colors bg-slate-50 flex items-center justify-center p-0">
+                                                        {group?.image ? (
+                                                            <img
+                                                                src={group.image}
+                                                                alt={item.title}
+                                                                className="w-full h-full object-cover m-0"
+                                                            />
+                                                        ) : (
+                                                            <Store className="w-8 h-8 text-slate-400" />
+                                                        )}
                                                     </div>
-                                                    <span className="text-[12px] text-slate-400 font-medium leading-tight line-clamp-2 group-hover/item:text-slate-500 transition-colors">
-                                                        {item.description}
+                                                    <span className="text-[10px] font-bold text-slate-600 group-hover/icon:text-[#f97316] transition-colors text-center leading-tight">
+                                                        {item.title}
                                                     </span>
                                                 </Link>
-                                            ))}
-                                        </div>
-                                    )
-                                ) : (
-                                    /* Other categories: Normal grid */
-                                    <div className="grid grid-cols-3 gap-x-12 gap-y-8">
-                                        {activeItems.slice(0, 9).map((item: any, idx: number) => (
+                                            );
+                                        })
+                                    ) : (
+                                        /* Normal grid (Lojas and others) - also in 5 columns */
+                                        activeItems.map((item: any, idx: number) => (
                                             <Link
                                                 key={idx}
                                                 href={`/servicos/${activeTab}/${item.slug}`}
@@ -448,44 +277,22 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
                                                 className="group/item flex flex-col gap-1.5"
                                             >
                                                 <div className="flex items-center gap-2">
-                                                    {typeof item.icon === 'string' ? null : <item.icon className="w-4 h-4 text-slate-300 group-hover/item:text-[#f97316] transition-colors" />}
-                                                    <span className="text-[15px] font-bold text-slate-800 group-hover/item:text-[#f97316] transition-colors">
+                                                    {typeof item.icon === 'string' ? null : <item.icon className="w-3.5 h-3.5 text-slate-300 group-hover/item:text-[#f97316] transition-colors" />}
+                                                    <span className="text-[13px] font-bold text-slate-800 group-hover/item:text-[#f97316] transition-colors line-clamp-1">
                                                         {item.title}
                                                     </span>
                                                 </div>
-                                                <span className="text-[12px] text-slate-400 font-medium leading-tight line-clamp-2 group-hover/item:text-slate-500 transition-colors">
+                                                <span className="text-[10px] text-slate-400 font-medium leading-tight line-clamp-2 group-hover/item:text-slate-500 transition-colors">
                                                     {item.description}
                                                 </span>
                                             </Link>
-                                        ))}
-                                    </div>
-                                )}
+                                        ))
+                                    )}
+                                </div>
                             </div>
                         </div>
 
-                        {/* Bottom Footer Info */}
-                        <div className="absolute bottom-10 left-12 right-12 pt-6 border-t border-slate-100 flex items-center justify-between">
-                            <div className="flex items-center gap-8 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                    <span>Sistema Operacional</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Users className="w-4 h-4 text-orange-500/50" />
-                                    <span>+500 Parceiros</span>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-6">
-                                <span className="text-[11px] font-bold text-slate-400">Dúvidas?</span>
-                                <Link
-                                    href="/contactos"
-                                    onClick={onClose}
-                                    className="flex items-center gap-2 text-[11px] font-black text-[#f97316] uppercase tracking-widest hover:text-emerald-600 transition-colors"
-                                >
-                                    Suporte Especializado <ArrowRight className="w-4 h-4" />
-                                </Link>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
             </div>

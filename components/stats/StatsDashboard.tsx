@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Charts } from "./Charts";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/utils/supabase/client";
 import { Tractor, TrendingUp, Building2, Users, BarChart3, Loader2 } from "lucide-react";
 
 
@@ -26,6 +26,7 @@ interface SidebarIndicator {
 }
 
 export function StatsDashboard({ slug }: StatsDashboardProps) {
+    const supabase = createClient();
     const [activeProvince, setActiveProvince] = useState("Todas");
     const [period, setPeriod] = useState("2025");
     const [data, setData] = useState<StatItem[]>([]);

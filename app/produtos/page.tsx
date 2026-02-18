@@ -6,11 +6,12 @@ import { StandardBlogTemplate } from "@/components/StandardBlogTemplate";
 import { ShoppingBag, Search, ArrowRight, Building2, Sprout, Truck, Droplets, Zap } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/utils/supabase/client";
 import { MarketPriceTable } from "@/components/MarketPriceTable";
 
 
 function ProductsContent() {
+    const supabase = createClient();
     const searchParams = useSearchParams();
     const router = useRouter();
     const empresaId = searchParams.get("empresa_id");

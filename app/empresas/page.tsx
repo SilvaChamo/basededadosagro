@@ -5,11 +5,12 @@ import { StandardBlogTemplate } from "@/components/StandardBlogTemplate";
 import { Building2, MapPin, CheckCircle2, ArrowRight, Search, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/utils/supabase/client";
 import { SECTORS, SECTOR_CATEGORIES, COMPANY_SIZES, MOZ_DATA } from "@/lib/agro-data";
 import { CompanyCard } from "@/components/CompanyCard";
 
 export default function EmpresasPage() {
+    const supabase = createClient();
     const [companies, setCompanies] = useState<any[]>([]);
     const [filteredCompanies, setFilteredCompanies] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);

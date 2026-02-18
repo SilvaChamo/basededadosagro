@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/utils/supabase/client";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Button } from "@/components/ui/button";
 import { MapPin, LayoutGrid, List, Pencil, Trash2, Plus, Ruler, Coins, Archive, RotateCcw, MoreVertical, Layers } from "lucide-react";
@@ -11,6 +11,7 @@ import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export default function AdminPropertiesPage() {
+    const supabase = createClient();
     const router = useRouter();
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
     const [filter, setFilter] = useState('Todas');

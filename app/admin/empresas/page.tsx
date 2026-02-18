@@ -1,15 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/utils/supabase/client";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Button } from "@/components/ui/button";
-import { Building2, Globe, Phone, CheckCircle2, LayoutGrid, List, Pencil, Trash2, Plus, MapPin, Calendar, Archive, ArchiveRestore } from "lucide-react";
+import {
+    Building2, Eye, Loader2, ChevronDown, LayoutGrid, List,
+    Plus, Search, Filter, MoreHorizontal,
+    Edit, Trash2, MapPin, Globe, Phone, Calendar,
+    Archive, ArchiveRestore, Pencil, CheckCircle2
+} from "lucide-react";
+import { SECTORS } from "@/lib/agro-data";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
 export default function AdminEmpresasPage() {
+    const supabase = createClient();
     const router = useRouter();
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [filter, setFilter] = useState('Todas');
@@ -17,6 +24,7 @@ export default function AdminEmpresasPage() {
     const [loading, setLoading] = useState(true);
 
     const [searchTerm, setSearchTerm] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState("Todas");
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 9;
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -26,15 +34,25 @@ export default function AdminEmpresasPage() {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
     async function fetchData() {
-        setLoading(true);
-        let query = supabase.from('companies').select('*');
-        const { data: result, error } = await query
-            .order('is_featured', { ascending: false })
-            .order('created_at', { ascending: false });
+        try {
+            setLoading(true);
+            let query = supabase.from('companies').select('*');
+            const { data: result, error } = await query
+                .neq('type', 'Loja') // Exclude stores
+                .order('is_featured', { ascending: false })
+                .order('created_at', { ascending: false });
 
-        if (error) console.error(error);
-        else setData(result || []);
-        setLoading(false);
+            if (error) {
+                console.error(error);
+                toast.error("Erro ao carregar dados.");
+            } else {
+                setData(result || []);
+            }
+        } catch (err) {
+            console.error("fetchData error:", err);
+        } finally {
+            setLoading(false);
+        }
     }
 
     useEffect(() => {
@@ -43,22 +61,35 @@ export default function AdminEmpresasPage() {
 
     // Filter Logic
     const filteredData = data.filter(item => {
-        // Status Filter
-        let matchesFilter = true;
-        if (filter === 'Públicas') matchesFilter = (item.type === 'Empresa Pública' || item.sector?.includes('Public')) && !item.is_archived;
-        else if (filter === 'Privadas') matchesFilter = (item.type === 'Empresa Privada' || !item.type) && !item.is_archived;
-        else if (filter === 'Internacionais') matchesFilter = (item.type === 'ONG Internacional' || item.name.includes('International')) && !item.is_archived;
-        else if (filter === 'Associações') matchesFilter = (item.type === 'Associação' || item.type === 'Cooperativa Agrícola' || item.name.includes('Associação')) && !item.is_archived;
-        else if (filter === 'Destacadas') matchesFilter = item.is_featured === true && !item.is_archived;
-        else if (filter === 'Arquivadas') matchesFilter = item.is_archived === true;
-        else if (filter === 'Todas') matchesFilter = !item.is_archived;
+        try {
+            // Status Filter
+            let matchesFilter = true;
+            const itemType = item.type || "";
+            const itemSector = item.sector || "";
+            const itemName = item.name || "";
 
-        // Search Filter
-        const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.nuit?.includes(searchTerm) ||
-            item.email?.toLowerCase().includes(searchTerm.toLowerCase());
+            if (filter === 'Públicas') matchesFilter = (itemType === 'Empresa Pública' || itemSector.includes('Public')) && !item.is_archived;
+            else if (filter === 'Privadas') matchesFilter = (itemType === 'Empresa Privada' || !item.type) && !item.is_archived;
+            else if (filter === 'Internacionais') matchesFilter = (itemType === 'ONG Internacional' || itemName.includes('International')) && !item.is_archived;
+            else if (filter === 'Associações') matchesFilter = (itemType === 'Associação' || itemType === 'Cooperativa Agrícola' || itemName.includes('Associação')) && !item.is_archived;
+            else if (filter === 'Destacadas') matchesFilter = item.is_featured === true && !item.is_archived;
+            else if (filter === 'Arquivadas') matchesFilter = item.is_archived === true;
+            else if (filter === 'Todas') matchesFilter = !item.is_archived;
 
-        return matchesFilter && matchesSearch;
+            // Category Filter
+            const matchesCategory = selectedCategory === "Todas" || (item.category === selectedCategory || item.sector === selectedCategory);
+
+            // Search Filter
+            const search = searchTerm.toLowerCase();
+            const matchesSearch = itemName.toLowerCase().includes(search) ||
+                (item.nuit || "").includes(searchTerm) ||
+                (item.email?.toLowerCase() || "").includes(search);
+
+            return matchesFilter && matchesCategory && matchesSearch;
+        } catch (e) {
+            console.error("Filter error in Empresas:", e);
+            return false;
+        }
     });
 
     // Pagination Logic
@@ -283,21 +314,39 @@ export default function AdminEmpresasPage() {
                         />
                     </div>
 
-                    {/* Filter Dropdown */}
-                    <div className="flex items-center gap-3 w-full md:w-auto">
-                        <select
-                            value={filter}
-                            onChange={(e) => { setFilter(e.target.value); setCurrentPage(1); }}
-                            className="bg-white border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wide rounded-lg px-4 py-2 outline-none focus:border-emerald-500 h-10"
-                        >
-                            <option value="Todas">Todas</option>
-                            <option value="Públicas">Públicas</option>
-                            <option value="Privadas">Privadas</option>
-                            <option value="Internacionais">Internacionais</option>
-                            <option value="Associações">Associações</option>
-                            <option value="Destacadas">Destacadas</option>
-                            <option value="Arquivadas">Arquivadas</option>
-                        </select>
+                    {/* Filter Dropdown (Role/Type) */}
+                    <div className="flex items-center gap-2 w-full md:w-auto">
+                        <div className="relative flex-1 md:flex-none">
+                            <select
+                                value={filter}
+                                onChange={(e) => { setFilter(e.target.value); setCurrentPage(1); }}
+                                className="w-full bg-white border border-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wide rounded-lg pl-4 pr-10 py-2 outline-none focus:border-emerald-500 h-10 appearance-none cursor-pointer"
+                            >
+                                <option value="Todas">Todos Tipos</option>
+                                <option value="Públicas">Públicas</option>
+                                <option value="Privadas">Privadas</option>
+                                <option value="Internacionais">Internacionais</option>
+                                <option value="Associações">Associações</option>
+                                <option value="Destacadas">Destacadas</option>
+                                <option value="Arquivadas">Arquivadas</option>
+                            </select>
+                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        </div>
+
+                        {/* Category/Sector Dropdown */}
+                        <div className="relative flex-1 md:flex-none">
+                            <select
+                                value={selectedCategory}
+                                onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}
+                                className="w-full bg-white border border-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wide rounded-lg pl-4 pr-10 py-2 outline-none focus:border-emerald-500 h-10 appearance-none cursor-pointer min-w-[150px]"
+                            >
+                                <option value="Todas">Todos Sectores</option>
+                                {SECTORS.map(sec => (
+                                    <option key={sec} value={sec}>{sec}</option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        </div>
 
                         {/* Grid/List Toggle */}
                         <div className="flex items-center bg-white p-1 rounded-lg border border-slate-200 shadow-sm shrink-0">
@@ -402,10 +451,10 @@ export default function AdminEmpresasPage() {
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
                     </div>
                 ) : filteredData.length === 0 ? (
-                    <div className="text-center py-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                    <div className="text-center py-20 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
                         <p className="text-slate-400 font-medium">Nenhuma empresa encontrada com estes filtros.</p>
                         <button
-                            onClick={() => { setSearchTerm(""); setFilter("Todas"); }}
+                            onClick={() => { setSearchTerm(""); setFilter("Todas"); setSelectedCategory("Todas"); }}
                             className="mt-2 text-emerald-600 text-sm font-bold hover:underline"
                         >
                             Limpar filtros
@@ -415,7 +464,7 @@ export default function AdminEmpresasPage() {
                     <>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {paginatedData.map((item) => (
-                                <div key={item.id} className="bg-white rounded-2xl border border-slate-100 hover:shadow-lg transition-all group relative overflow-hidden flex flex-col">
+                                <div key={item.id} className="bg-white rounded-lg border border-slate-100 hover:shadow-lg transition-all group relative overflow-hidden flex flex-col">
 
                                     {/* CARD COVER IMAGE */}
                                     <div
@@ -566,7 +615,7 @@ export default function AdminEmpresasPage() {
                             {currentPage === 1 && (
                                 <button
                                     onClick={() => router.push('/admin/empresas/novo')}
-                                    className="bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center p-6 hover:border-emerald-500 hover:bg-emerald-50/50 transition-all group min-h-[200px]"
+                                    className="bg-slate-50 rounded-lg border-2 border-dashed border-slate-200 flex flex-col items-center justify-center p-6 hover:border-emerald-500 hover:bg-emerald-50/50 transition-all group min-h-[200px]"
                                 >
                                     <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                         <Plus className="w-6 h-6 text-emerald-500" />

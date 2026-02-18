@@ -10,7 +10,7 @@ import {
     ChevronLeft, ChevronRight, Calendar, User, Bookmark,
     Newspaper, Tag, MessageCircle, ExternalLink
 } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/utils/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
 import { WeatherSidebar } from "@/components/WeatherSidebar";
 import { NewsletterCard } from "@/components/NewsletterCard";
@@ -50,6 +50,7 @@ const FALLBACK_ARTICLES_DATA = [
 ];
 
 export default function ArticleReadingPage() {
+    const supabase = createClient();
     const params = useParams();
     const slug = params?.slug as string;
 

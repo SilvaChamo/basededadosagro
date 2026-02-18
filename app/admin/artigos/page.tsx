@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/utils/supabase/client";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Button } from "@/components/ui/button";
 import { Plus, LayoutGrid, List, Pencil, Trash2, Calendar, Link as LinkIcon, Search, GraduationCap, FileText, BookOpen, Layers, Archive, RotateCcw, MoreVertical } from "lucide-react";
@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useRouter } from "next/navigation";
 
 export default function AdminArtigosCientificosPage() {
+    const supabase = createClient();
     const router = useRouter();
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [activeTab, setActiveTab] = useState('Dissertações');

@@ -31,6 +31,7 @@ import {
     Presentation,
     Share2,
     ChevronRight,
+    Store,
 } from "lucide-react";
 
 interface AdminShellProps {
@@ -114,13 +115,16 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
         return (
             <Link
                 href={href}
-                className={`flex items-center gap-3 px-4 py-2 text-sm font-semibold rounded-xl transition-all group whitespace-nowrap ${active
-                    ? "text-orange-500"
-                    : "text-slate-400 hover:text-orange-500"
+                className={`relative flex items-center gap-3 px-6 py-1.5 text-[13px] font-medium transition-all group whitespace-nowrap ${active
+                    ? "text-orange-600 bg-orange-50"
+                    : "text-slate-700 hover:text-slate-900 hover:bg-slate-100"
                     } ${isCollapsed ? "justify-center px-2" : ""}`}
                 title={isCollapsed ? label : undefined}
             >
-                <Icon className={`w-5 h-5 min-w-[20px] transition-colors ${active ? "text-orange-500" : "text-slate-500 group-hover:text-orange-500"
+                {active && (
+                    <div className="absolute right-0 top-0 bottom-0 w-[3px] bg-orange-500" />
+                )}
+                <Icon className={`w-4 h-4 min-w-[16px] transition-colors ${active ? "text-orange-600" : "text-slate-500 group-hover:text-orange-600"
                     }`} />
                 {!isCollapsed && <span>{label}</span>}
             </Link>
@@ -131,14 +135,14 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
     return (
         <div className="flex min-h-screen bg-slate-100 font-sans">
             {/* Mobile Header */}
-            <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-emerald-950 border-b border-white/5 z-[60] flex items-center justify-between px-4">
+            <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-[60] flex items-center justify-between px-4">
                 <Link href="/" className="flex items-center gap-3 overflow-hidden">
                     <img src="/admin-icon.png" alt="Logo" className="w-8 h-8 object-contain" />
-                    <span className="font-black text-lg tracking-wider text-white">PAINEL</span>
+                    <span className="font-black text-lg tracking-wider text-slate-900">PAINEL</span>
                 </Link>
                 <button
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className="p-2 text-slate-400 hover:text-white"
+                    className="p-2 text-slate-600 hover:text-orange-500"
                 >
                     <Menu className="w-6 h-6" />
                 </button>
@@ -153,54 +157,57 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
             )}
 
             <aside
-                className={`fixed inset-y-0 left-0 z-[80] bg-gradient-to-b from-emerald-950 to-slate-950 text-white transition-all duration-300 transform shadow-xl 
-                    ${isCollapsed ? "w-20" : "w-64"} 
+                className={`fixed inset-y-0 left-0 z-[80] bg-white text-slate-800 transition-all duration-300 transform shadow-xl border-r border-slate-200
+                    ${isCollapsed ? "w-24" : "w-72"} 
                     ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
             >
-                <div className="flex flex-col h-full border-r border-slate-800">
+                <div className="flex flex-col h-full">
                     {/* Header */}
-                    <div className={`h-16 flex items-center px-4 border-b border-white/5 bg-transparent transition-all ${isCollapsed ? "justify-center" : "justify-between"}`}>
+                    <div className={`h-20 flex items-center px-6 border-b border-slate-100 bg-white transition-all ${isCollapsed ? "justify-center" : "justify-between"}`}>
                         {!isCollapsed && (
                             <Link href="/" className="flex items-center gap-3 overflow-hidden hover:opacity-80 transition-opacity">
-                                <img src="/admin-icon.png" alt="Logo" className="w-8 h-8 object-contain" />
+                                <img src="/admin-icon.png" alt="Logo" className="w-10 h-10 object-contain" />
                                 <div>
-                                    <span className="font-black text-lg tracking-wider text-white block truncate">PAINEL</span>
-                                    <span className="text-[9px] text-slate-500 uppercase tracking-widest block truncate">Administrativo</span>
+                                    <span className="font-black text-xl tracking-wider text-slate-900 block truncate">PAINEL</span>
+                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block truncate">Administrativo</span>
                                 </div>
                             </Link>
                         )}
                         {/* Collapse Toggle */}
                         <button
                             onClick={() => setIsCollapsed(!isCollapsed)}
-                            className={`text-slate-500 hover:text-white transition-colors p-1 rounded-md hover:bg-slate-800 ${isCollapsed ? "w-full flex justify-center" : ""}`}
+                            className={`text-slate-400 hover:text-orange-500 transition-colors p-2 rounded-lg hover:bg-slate-50 ${isCollapsed ? "w-full flex justify-center" : ""}`}
                             title={isCollapsed ? "Expandir" : "Colapsar"}
                         >
-                            {isCollapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+                            {isCollapsed ? <PanelLeftOpen className="w-6 h-6" /> : <PanelLeftClose className="w-6 h-6" />}
                         </button>
                     </div>
 
                     {/* Nav */}
-                    <nav className="flex-1 px-2 py-2 flex flex-col gap-0 overflow-y-auto">
+                    <nav className="flex-1 py-2 flex flex-col gap-0 overflow-y-auto">
 
                         {/* Section 1: Dashboard */}
-                        <LinkItem href="/admin" icon={LayoutDashboard} label="Dashboard" />
+                        <div className="pt-2">
+                            <LinkItem href="/admin" icon={LayoutDashboard} label="Dashboard" />
+                        </div>
 
-                        <div className={`my-2 border-b border-slate-700 ${isCollapsed ? "mx-2" : "mx-4"}`}></div>
+                        <div className={`my-2 border-b border-slate-100 ${isCollapsed ? "mx-2" : "mx-6"}`}></div>
 
                         {/* GROUP: GESTÃO */}
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-0.5">
                             {!isCollapsed && (
                                 <button
                                     onClick={() => toggleSubmenu('gestao')}
-                                    className="flex items-center justify-between px-4 py-3 text-[10px] uppercase font-bold text-slate-500 hover:text-white transition-colors group w-full text-left"
+                                    className="flex items-center justify-between px-6 py-1.5 text-xs font-bold uppercase text-slate-800 hover:text-black transition-colors group w-full text-left tracking-wider"
                                 >
                                     <span>Gestão</span>
-                                    <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('gestao') ? 'rotate-90' : ''}`} />
+                                    <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('gestao') ? 'rotate-90' : ''}`} />
                                 </button>
                             )}
                             {openSubmenus.includes('gestao') && (
-                                <div className="flex flex-col gap-0 animate-in slide-in-from-top-1 duration-200">
+                                <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200">
                                     <LinkItem href="/admin/empresas" icon={Building2} label="Empresas" />
+                                    <LinkItem href="/admin/lojas" icon={Store} label="Lojas" />
                                     <LinkItem href="/admin/produtos" icon={ShoppingCart} label="Produtos" />
                                     <LinkItem href="/admin/propriedades" icon={LandPlot} label="Propriedades" />
                                     <LinkItem href="/admin/profissionais" icon={Users} label="Profissionais" />
@@ -213,75 +220,77 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                             )}
                         </div>
 
-                        <div className={`my-2 border-b border-slate-700/50 ${isCollapsed ? "mx-2" : "mx-4"}`}></div>
+                        <div className={`my-2 border-b border-slate-100 ${isCollapsed ? "mx-2" : "mx-6"}`}></div>
 
                         {/* GROUP: INTERAÇÕES */}
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-0.5">
                             {!isCollapsed && (
                                 <button
                                     onClick={() => toggleSubmenu('interactions')}
-                                    className="flex items-center justify-between px-4 py-3 text-[10px] uppercase font-bold text-slate-500 hover:text-white transition-colors group w-full text-left"
+                                    className="flex items-center justify-between px-6 py-1.5 text-xs font-bold uppercase text-slate-800 hover:text-black transition-colors group w-full text-left tracking-wider"
                                 >
                                     <span>Interações</span>
-                                    <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('interactions') ? 'rotate-90' : ''}`} />
+                                    <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('interactions') ? 'rotate-90' : ''}`} />
                                 </button>
                             )}
                             {openSubmenus.includes('interactions') && (
-                                <div className="flex flex-col gap-0 animate-in slide-in-from-top-1 duration-200">
+                                <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200">
                                     <LinkItem href="/admin/estatisticas" icon={BarChart3} label="Estatísticas" />
                                     <LinkItem href="/admin/indicadores" icon={Target} label="Indicadores" />
 
                                     {/* Mensagem Dropdown (nested in interactions) */}
-                                    <div className="flex flex-col gap-1">
+                                    <div className="flex flex-col gap-0.5">
                                         <button
                                             onClick={() => { }} // Nested submenus can stay for now or be flattend
-                                            className={`flex items-center gap-3 px-4 py-2 text-sm font-semibold rounded-xl transition-all group whitespace-nowrap w-full text-left
-                                                ${pathname.startsWith('/admin/mensagens') ? "text-orange-500" : "text-slate-400 hover:text-orange-500"} 
+                                            className={`flex items-center gap-3 px-6 py-1.5 text-[13px] font-medium transition-all group whitespace-nowrap w-full text-left relative
+                                                ${pathname.startsWith('/admin/mensagens') ? "text-orange-600 bg-orange-50" : "text-slate-700 hover:text-slate-900 hover:bg-slate-100"} 
                                                 ${isCollapsed ? "justify-center px-2" : ""}
                                             `}
                                             title="Mensagem"
                                         >
-                                            <MessageSquare className={`w-5 h-5 min-w-[20px] transition-colors ${pathname.startsWith('/admin/mensagens') ? "text-orange-500" : "text-slate-500 group-hover:text-orange-500"}`} />
+                                            {pathname.startsWith('/admin/mensagens') && (
+                                                <div className="absolute right-0 top-0 bottom-0 w-[3px] bg-orange-500" />
+                                            )}
+                                            <MessageSquare className={`w-4 h-4 min-w-[16px] transition-colors ${pathname.startsWith('/admin/mensagens') ? "text-orange-600" : "text-slate-500 group-hover:text-orange-600"}`} />
                                             {!isCollapsed && (
                                                 <>
                                                     <span className="flex-1">Mensagem</span>
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-700"></div>
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
                                                 </>
                                             )}
                                         </button>
 
                                         {!isCollapsed && (
-                                            <div className="flex flex-col gap-1 pl-12 pr-2">
-                                                <Link href="/admin/mensagens" className={`text-xs py-1.5 hover:text-orange-500 transition-colors ${pathname === '/admin/mensagens' ? "text-orange-500 font-bold" : "text-slate-500"}`}>
+                                            <div className="flex flex-col gap-0.5 pl-12 pr-2">
+                                                <Link href="/admin/mensagens" className={`text-xs pl-8 pr-2 py-1.5 block font-medium hover:text-orange-500 transition-colors ${pathname === '/admin/mensagens' ? "text-orange-500" : "text-slate-500"}`}>
                                                     Email
                                                 </Link>
-                                                <Link href="/admin/mensagens/newsletter" className={`text-xs py-1.5 hover:text-orange-500 transition-colors ${pathname === '/admin/mensagens/newsletter' ? "text-orange-500 font-bold" : "text-slate-500"}`}>
+                                                <Link href="/admin/mensagens/newsletter" className={`text-xs pl-8 pr-2 py-1.5 block font-medium hover:text-orange-500 transition-colors ${pathname === '/admin/mensagens/newsletter' ? "text-orange-500" : "text-slate-500"}`}>
                                                     Newsletter
                                                 </Link>
                                             </div>
                                         )}
                                     </div>
-
                                     <LinkItem href="/admin/contactos" icon={Contact} label="Contactos" />
                                 </div>
                             )}
                         </div>
 
-                        <div className={`my-2 border-b border-slate-700/50 ${isCollapsed ? "mx-2" : "mx-4"}`}></div>
+                        <div className={`my-2 border-b border-slate-100 ${isCollapsed ? "mx-2" : "mx-6"}`}></div>
 
                         {/* GROUP: MÓDULOS ESPECIAIS */}
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-0.5">
                             {!isCollapsed && (
                                 <button
                                     onClick={() => toggleSubmenu('modules')}
-                                    className="flex items-center justify-between px-4 py-3 text-[10px] uppercase font-bold text-slate-500 hover:text-white transition-colors group w-full text-left"
+                                    className="flex items-center justify-between px-6 py-1.5 text-xs font-bold uppercase text-slate-800 hover:text-black transition-colors group w-full text-left tracking-wider"
                                 >
                                     <span>Módulos</span>
-                                    <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('modules') ? 'rotate-90' : ''}`} />
+                                    <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('modules') ? 'rotate-90' : ''}`} />
                                 </button>
                             )}
                             {openSubmenus.includes('modules') && (
-                                <div className="flex flex-col gap-0 animate-in slide-in-from-top-1 duration-200">
+                                <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200">
                                     <LinkItem href="/admin/podcast" icon={Wifi} label="Podcast" />
                                     <LinkItem href="/admin/actividades" icon={LayoutDashboard} label="Actividades" />
                                     <LinkItem href="/admin/servicos" icon={Grid2X2} label="Serviços" />
@@ -289,21 +298,21 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                             )}
                         </div>
 
-                        <div className={`my-2 border-b border-slate-700/50 ${isCollapsed ? "mx-2" : "mx-4"}`}></div>
+                        <div className={`my-2 border-b border-slate-100 ${isCollapsed ? "mx-2" : "mx-6"}`}></div>
 
                         {/* GROUP: OPÇÕES */}
-                        <div className="flex flex-col gap-1 pb-4">
+                        <div className="flex flex-col gap-0.5 pb-6">
                             {!isCollapsed && (
                                 <button
                                     onClick={() => toggleSubmenu('options')}
-                                    className="flex items-center justify-between px-4 py-3 text-[10px] uppercase font-bold text-slate-500 hover:text-white transition-colors group w-full text-left"
+                                    className="flex items-center justify-between px-6 py-1.5 text-xs font-bold uppercase text-slate-800 hover:text-black transition-colors group w-full text-left tracking-wider"
                                 >
                                     <span>Opções</span>
-                                    <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('options') ? 'rotate-90' : ''}`} />
+                                    <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('options') ? 'rotate-90' : ''}`} />
                                 </button>
                             )}
                             {openSubmenus.includes('options') && (
-                                <div className="flex flex-col gap-0 animate-in slide-in-from-top-1 duration-200">
+                                <div className="flex flex-col gap-1 animate-in slide-in-from-top-1 duration-200">
                                     <LinkItem href="/admin/utilizadores" icon={Users} label="Utilizadores" />
                                     <LinkItem href="/admin/configuracoes" icon={Target} label="Configurações" />
                                     <LinkItem href="/admin/integracoes" icon={Share2} label="Integrações" />
@@ -313,15 +322,15 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                     </nav>
 
                     {/* Footer */}
-                    <div className="p-4 border-t border-white/5 bg-transparent">
+                    <div className="p-4 border-t border-slate-100 bg-slate-50/50">
                         {!isCollapsed && (
                             <div className="flex items-center gap-3 px-2 py-2 mb-2 overflow-hidden">
-                                <div className="w-8 h-8 min-w-[32px] rounded-full bg-emerald-600 flex items-center justify-center text-xs font-bold ring-2 ring-emerald-500/30">
+                                <div className="w-10 h-10 min-w-[40px] rounded-full bg-slate-200 flex items-center justify-center text-sm font-bold text-slate-600 ring-2 ring-white shadow-sm">
                                     AD
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-white truncate">Administrador</p>
-                                    <p className="text-[10px] text-slate-500 truncate">{userEmail}</p>
+                                    <p className="text-sm font-bold text-slate-900 truncate">Administrador</p>
+                                    <p className="text-[11px] text-slate-500 truncate font-medium">{userEmail}</p>
                                 </div>
                             </div>
                         )}
@@ -330,14 +339,14 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                         <button
                             onClick={handleSignOut}
                             disabled={isSigningOut}
-                            className={`w-full flex items-center gap-2 py-2.5 text-xs font-bold text-slate-400 hover:text-orange-500 hover:bg-orange-500/5 px-2 rounded-xl transition-all cursor-pointer group ${isCollapsed ? "justify-center" : "justify-start"
+                            className={`w-full flex items-center gap-2 py-3 text-xs font-bold text-slate-500 hover:text-red-600 hover:bg-red-50 px-3 rounded-xl transition-all cursor-pointer group ${isCollapsed ? "justify-center" : "justify-start"
                                 }`}
                             title="Terminar Sessão"
                         >
                             {isSigningOut ? (
-                                <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
+                                <Loader2 className="w-5 h-5 animate-spin text-red-500" />
                             ) : (
-                                <LogOut className="w-4 h-4 min-w-[16px] transition-transform group-hover:translate-x-0.5" />
+                                <LogOut className="w-5 h-5 min-w-[20px] transition-transform group-hover:translate-x-0.5" />
                             )}
                             {!isCollapsed && <span>{isSigningOut ? "A sair..." : "Terminar Sessão"}</span>}
                         </button>
@@ -346,7 +355,7 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
             </aside>
 
             {/* Main Content */}
-            <main className={`flex-1 bg-slate-100 min-h-screen transition-all duration-300 mt-16 lg:mt-0 ${isCollapsed ? "lg:ml-20" : "lg:ml-64"}`}>
+            <main className={`flex-1 bg-slate-50 min-h-screen transition-all duration-300 mt-16 lg:mt-0 ${isCollapsed ? "lg:ml-24" : "lg:ml-72"}`}>
                 <div className={`mx-auto ${pathname.startsWith('/admin/mensagens/newsletter') || pathname.startsWith('/admin/apresentacoes/editor') ? "p-0 max-w-full" : "p-8 max-w-7xl"}`}>
                     {children}
                 </div>

@@ -6,10 +6,10 @@ import { StandardBlogTemplate } from "@/components/StandardBlogTemplate";
 import { LandPlot, Search, MapPin, ArrowRight, Maximize2, Tag, Building2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { supabase } from "@/lib/supabaseClient";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/client";
 
 function PropertiesContent() {
+    const supabase = createClient();
     const searchParams = useSearchParams();
     const empresaId = searchParams.get("empresa_id");
     const initialQuery = searchParams.get("q") || "";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ImageUpload } from "./ImageUpload";
 import { Loader2, MapPin, Tag, Ruler, Coins, ArrowLeft } from "lucide-react";
@@ -13,6 +13,7 @@ interface PropertyEditorProps {
 }
 
 export function PropertyEditor({ initialData, isNew = false }: PropertyEditorProps) {
+    const supabase = createClient();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({

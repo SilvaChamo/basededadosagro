@@ -147,9 +147,9 @@ export const servicesData: Record<string, CategoryData> = {
             }
         }
     },
-    "lojas": {
-        id: "lojas",
-        title: "Lojas e insumos",
+    "insumos": {
+        id: "insumos",
+        title: "Insumos",
         subCategories: {
             // 1. Insumos Biológicos
             "sementes": {
@@ -651,6 +651,12 @@ export const servicesData: Record<string, CategoryData> = {
                 ],
                 features: ["Variedade de Opções", "Baixa Burocracia", "Crescimento Sustentável"]
             },
+        }
+    },
+    "lojas": {
+        id: "lojas",
+        title: "Lojas",
+        subCategories: {
             "registo": {
                 slug: "registo",
                 title: "Registe a sua loja",

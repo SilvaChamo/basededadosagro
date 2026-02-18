@@ -5,8 +5,7 @@ import { StandardBlogTemplate } from "@/components/StandardBlogTemplate";
 import { BookOpen, Search, ArrowRight, Calendar, User, ChevronDown, Info, Zap, Brain } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { supabase } from "@/lib/supabaseClient";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/client";
 import { NewsCard } from "@/components/NewsCard";
 
 // DEMO FALLBACK DATA
@@ -50,6 +49,7 @@ const FALLBACK_ARTICLES = [
 ];
 
 export default function ArticlesArchivePage() {
+    const supabase = createClient();
     const [articles, setArticles] = useState<any[]>([]);
     const [localArticles, setLocalArticles] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);

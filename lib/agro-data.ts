@@ -106,3 +106,14 @@ export const ALL_CATEGORIES = Array.from(
         Object.values(SECTOR_CATEGORIES).flat()
     )
 ).sort((a, b) => a.localeCompare(b));
+
+export const STORE_CATEGORIES = [
+    "Insumos Gerais",
+    "Sementes",
+    "Fertilizantes",
+    "Maquinaria",
+    "Peças e Manutenção",
+    "Serviços Veterinários",
+    "Restauração",
+    "Diversos"
+];
