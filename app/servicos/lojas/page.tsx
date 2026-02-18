@@ -152,7 +152,7 @@ export default function LojasPage() {
                         <Loader2 className="w-10 h-10 animate-spin text-orange-500" />
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                         {filteredStores.map((store, i) => {
                             const Icon = store.icon || getIcon(store.category);
                             return (
@@ -177,8 +177,8 @@ export default function LojasPage() {
 
                                         <div className="absolute top-4 right-4 z-20">
                                             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-md shadow-sm ${store.status === 'Aberto'
-                                                    ? 'bg-emerald-500/90 text-white'
-                                                    : 'bg-slate-800/90 text-white'
+                                                ? 'bg-emerald-500/90 text-white'
+                                                : 'bg-slate-800/90 text-white'
                                                 }`}>
                                                 {store.status}
                                             </span>

@@ -6,7 +6,8 @@ import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import {
     Store, Plus, Search, Filter, MoreHorizontal,
-    Edit, Trash2, MapPin, Eye, Loader2, ChevronDown
+    Edit, Trash2, MapPin, Eye, Loader2, ChevronDown,
+    Archive, ArchiveRestore
 } from "lucide-react";
 import { STORE_CATEGORIES } from "@/lib/agro-data";
 
@@ -64,6 +65,23 @@ export default function AdminLojasPage() {
         } else {
             toast.success("Loja excluída com sucesso.");
             fetchStores();
+        }
+    };
+
+    const toggleArchive = async (row: any) => {
+        try {
+            const { error } = await supabase
+                .from('companies')
+                .update({ is_archived: !row.is_archived })
+                .eq('id', row.id);
+
+            if (error) throw error;
+
+            toast.success(row.is_archived ? "Loja reposta com sucesso!" : "Loja arquivada com sucesso!");
+            fetchStores();
+        } catch (err: any) {
+            console.error('Error toggling archive:', err);
+            toast.error("Erro ao alterar estado de arquivamento.");
         }
     };
 
@@ -219,6 +237,15 @@ export default function AdminLojasPage() {
                                                 >
                                                     <Edit className="w-4 h-4" />
                                                 </Link>
+                                                <button
+                                                    onClick={() => toggleArchive(store)}
+                                                    className={`p-2 rounded-lg transition-all ${store.is_archived
+                                                        ? 'text-orange-600 hover:bg-orange-50'
+                                                        : 'text-slate-400 hover:text-orange-500 hover:bg-orange-50'}`}
+                                                    title={store.is_archived ? "Repor" : "Arquivar"}
+                                                >
+                                                    {store.is_archived ? <ArchiveRestore className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
+                                                </button>
                                                 <button
                                                     onClick={() => handleDelete(store.id)}
                                                     className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
