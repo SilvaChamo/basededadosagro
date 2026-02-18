@@ -85,6 +85,23 @@ export default function AdminLojasPage() {
         }
     };
 
+    const toggleStatus = async (row: any) => {
+        try {
+            const { error } = await supabase
+                .from('companies')
+                .update({ is_active: !row.is_active })
+                .eq('id', row.id);
+
+            if (error) throw error;
+
+            toast.success(row.is_active ? "Loja fechada com sucesso!" : "Loja aberta com sucesso!");
+            fetchStores();
+        } catch (err: any) {
+            console.error('Error toggling status:', err);
+            toast.error("Erro ao alterar estado da loja.");
+        }
+    };
+
     const filteredStores = stores.filter(store => {
         try {
             const search = searchTerm.toLowerCase();
@@ -220,13 +237,16 @@ export default function AdminLojasPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${store.is_active
-                                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                                                : 'bg-red-50 text-red-600 border-red-100'
-                                                }`}>
+                                            <button
+                                                onClick={() => toggleStatus(store)}
+                                                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-all hover:scale-105 ${store.is_active
+                                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                                    : 'bg-red-50 text-red-600 border-red-100'
+                                                    }`}
+                                            >
                                                 <span className={`w-1.5 h-1.5 rounded-full ${store.is_active ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
                                                 {store.is_active ? 'Aberto' : 'Fechado'}
-                                            </span>
+                                            </button>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">

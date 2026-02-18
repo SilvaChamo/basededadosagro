@@ -80,17 +80,29 @@ export default function LojasPage() {
     useEffect(() => {
         const fetchStores = async () => {
             setIsLoading(true);
-            const { data, error } = await supabase
-                .from('stores')
-                .select('*')
-                .order('created_at', { ascending: false });
+            try {
+                const { data, error } = await supabase
+                    .from('companies')
+                    .select('*')
+                    .eq('type', 'Loja')
+                    .eq('is_archived', false)
+                    .order('is_featured', { ascending: false })
+                    .order('created_at', { ascending: false });
 
-            if (data && data.length > 0) {
-                setStores(data);
-            } else {
+                if (data && data.length > 0) {
+                    setStores(data.map((store: any) => ({
+                        ...store,
+                        status: store.is_active ? 'Aberto' : 'Fechado'
+                    })));
+                } else if (!error) {
+                    setStores(fallbackStores);
+                }
+            } catch (err) {
+                console.error("Error fetching stores from companies:", err);
                 setStores(fallbackStores);
+            } finally {
+                setIsLoading(false);
             }
-            setIsLoading(false);
         };
 
         fetchStores();
@@ -160,11 +172,11 @@ export default function LojasPage() {
 
                                     {/* Background Image Header */}
                                     <div className="h-32 bg-slate-100 relative overflow-hidden">
-                                        {store.image_url ? (
+                                        {(store.banner_url || store.image_url) ? (
                                             <>
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
                                                 <img
-                                                    src={store.image_url}
+                                                    src={store.banner_url || store.image_url}
                                                     alt={store.name}
                                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                                 />
@@ -186,10 +198,14 @@ export default function LojasPage() {
                                     </div>
 
                                     <div className="p-6 pt-0 flex flex-col flex-1 relative z-20">
-                                        <div className="-mt-8 mb-3 w-16 h-16 rounded-2xl bg-white p-1 shadow-md flex items-center justify-center relative z-20">
-                                            <div className={`w-full h-full rounded-xl flex items-center justify-center ${store.iconBg || 'bg-orange-50'} ${store.iconColor || 'text-orange-600'}`}>
-                                                <Icon className="w-8 h-8" />
-                                            </div>
+                                        <div className="-mt-8 mb-3 w-16 h-16 rounded-2xl bg-white p-1 shadow-md flex items-center justify-center relative z-20 overflow-hidden">
+                                            {store.logo_url ? (
+                                                <img src={store.logo_url} alt="" className="w-full h-full object-contain p-1" />
+                                            ) : (
+                                                <div className={`w-full h-full rounded-xl flex items-center justify-center ${store.iconBg || 'bg-orange-50'} ${store.iconColor || 'text-orange-600'}`}>
+                                                    <Icon className="w-8 h-8" />
+                                                </div>
+                                            )}
                                         </div>
 
                                         <h3 className="text-lg font-bold text-slate-900 group-hover:text-orange-600 transition-colors mb-1">
@@ -207,7 +223,7 @@ export default function LojasPage() {
                                                 <button className="text-slate-400 hover:text-slate-600 transition-colors">
                                                     <Phone className="w-5 h-5" />
                                                 </button>
-                                                <Link href="#" className="flex items-center gap-2 text-sm font-bold text-orange-500 hover:text-orange-600 transition-colors group/link">
+                                                <Link href={`/empresas/${store.slug || store.id}`} className="flex items-center gap-2 text-sm font-bold text-orange-500 hover:text-orange-600 transition-colors group/link">
                                                     Ver Loja <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
                                                 </Link>
                                             </div>
