@@ -20,7 +20,6 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  outputFileTracingRoot: process.cwd(),
   transpilePackages: ['recharts'],
   webpack: (config) => {
     return config;
