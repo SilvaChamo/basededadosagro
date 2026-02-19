@@ -787,8 +787,8 @@ export const servicesData: Record<string, CategoryData> = {
             }
         }
     },
-    "gestao-conteudo": {
-        id: "gestao-conteudo",
+    "conteudo": {
+        id: "conteudo",
         title: "Gestão de conteúdo",
         subCategories: {
             "escrita": {
@@ -846,8 +846,8 @@ export const servicesData: Record<string, CategoryData> = {
             }
         }
     },
-    "vagas": {
-        id: "vagas",
+    "emprego": {
+        id: "emprego",
         title: "Vagas de emprego",
         subCategories: {
             "talento": {
@@ -962,8 +962,8 @@ export const servicesData: Record<string, CategoryData> = {
             }
         }
     },
-    "formacoes": {
-        id: "formacoes",
+    "formacao": {
+        id: "formacao",
         title: "Formações e capacitações",
         subCategories: {
             "academia": {

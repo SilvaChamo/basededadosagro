@@ -84,7 +84,7 @@ const serviceCategories: ServiceCategory[] = [
         ]
     },
     {
-        id: "gestao-conteudo",
+        id: "conteudo",
         title: "Gestão de conteúdo",
         icon: FileText,
         description: "Estratégia de comunicação digital e produção de media exclusiva para o setor agro, incluindo gestão de redes sociais, vídeo marketing e newsletters técnicas para fortalecer a presença digital das empresas.",
@@ -95,7 +95,7 @@ const serviceCategories: ServiceCategory[] = [
         ]
     },
     {
-        id: "vagas",
+        id: "emprego",
         title: "Vagas de emprego",
         icon: Briefcase,
         description: "Hub de talentos e oportunidades de carreira focado exclusivamente no setor agrário, conectando profissionais qualificados às melhores vagas nas maiores empresas de agronegócio de Moçambique.",
@@ -119,7 +119,7 @@ const serviceCategories: ServiceCategory[] = [
         ]
     },
     {
-        id: "formacoes",
+        id: "formacao",
         title: "Formações e capacitações",
         icon: GraduationCap,
         description: "Programas educativos e workshops práticos voltados para a capacitação técnica em novas tecnologias agrícolas, gestão de negócios rurais e certificações de qualidade reconhecidas internacionalmente.",
@@ -145,28 +145,45 @@ const serviceCategories: ServiceCategory[] = [
 export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     const supabase = createClient();
     const [services, setServices] = useState<any[]>([]);
+    const [trainings, setTrainings] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState(serviceCategories[0].id);
     const [lojasInnerTab, setLojasInnerTab] = useState<"insumos" | "lojas">("insumos");
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchServices = async () => {
-            const { data, error } = await supabase
-                .from('services')
-                .select('*')
-                .eq('is_active', true)
-                .order('title', { ascending: true });
+        const fetchAllData = async () => {
+            setLoading(true);
+            try {
+                // Fetch Services
+                const { data: servicesData, error: servicesError } = await supabase
+                    .from('services')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('title', { ascending: true });
 
-            if (error) {
-                console.error('Error fetching services:', error);
-            } else {
-                setServices(data || []);
+                if (servicesError) console.error('Error fetching services:', servicesError);
+                else setServices(servicesData || []);
+
+                // Fetch Trainings
+                const { data: trainingsData, error: trainingsError } = await supabase
+                    .from('trainings')
+                    .select('*')
+                    .is('deleted_at', null)
+                    .order('created_at', { ascending: false })
+                    .limit(6);
+
+                if (trainingsError) console.error('Error fetching trainings:', trainingsError);
+                else setTrainings(trainingsData || []);
+
+            } catch (err) {
+                console.error('Error fetching mega menu data:', err);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
 
         if (isOpen) {
-            fetchServices();
+            fetchAllData();
         }
     }, [isOpen]);
 
@@ -174,6 +191,17 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
     const getItemsForCategory = (catId: string) => {
         const targetCategory = serviceCategories.find(c => c.id === catId);
         if (!targetCategory) return [];
+
+        // Special handling for trainings
+        if (catId === 'formacao' && trainings.length > 0) {
+            return trainings.map(t => ({
+                title: t.title,
+                slug: t.id,
+                description: `${t.date} | ${t.location}`,
+                icon: GraduationCap,
+                isTraining: true
+            }));
+        }
 
         const dynamicItems = services.filter(s => s.category === targetCategory.title);
 
@@ -248,7 +276,7 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
                                             return (
                                                 <Link
                                                     key={idx}
-                                                    href={`/ servicos / ${activeTab} / ${item.slug}`}
+                                                    href={`/servicos/${activeTab}/${item.slug}`}
                                                     onClick={onClose}
                                                     className="group/icon flex flex-col items-center gap-3 w-full p-2 rounded-2xl transition-all hover:bg-slate-50/50"
                                                 >
@@ -276,7 +304,12 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
                                         /* Alternating card styles per category */
                                         activeItems.map((item: any, idx: number) => {
                                             const ItemIcon = typeof item.icon === 'string' ? Briefcase : item.icon;
-                                            const href = activeTab === 'inovacao' ? `/ inovacao / ${item.slug}` : ` / servicos / ${activeTab} / ${item.slug}`;
+                                            let href = activeTab === 'inovacao' ? `/inovacao/${item.slug}` : `/servicos/${activeTab}/${item.slug}`;
+
+                                            // Special route for trainings
+                                            if (item.isTraining) {
+                                                href = `/servicos/formacao/${item.slug}`;
+                                            }
 
                                             /* Style A — Card with left border accent */
                                             if (styleVariant === 0) return (
@@ -393,6 +426,19 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
                                         })
                                     )}
                                 </div>
+
+                                {activeTab === 'formacao' && (
+                                    <div className="mt-8 pt-8 border-t border-slate-100 flex justify-center">
+                                        <Link
+                                            href="/servicos/formacao"
+                                            onClick={onClose}
+                                            className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 hover:bg-[#f97316] text-white rounded-xl font-bold text-sm transition-all shadow-lg hover:shadow-orange-200/50"
+                                        >
+                                            Ver todas as formações
+                                            <ArrowRight className="w-4 h-4" />
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
