@@ -1,4 +1,4 @@
-"use client";
+"use client"; // Triggering rebuild to verify stability after cache clear
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";

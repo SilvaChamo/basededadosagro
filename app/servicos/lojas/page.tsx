@@ -181,7 +181,7 @@ export default function LojasPage() {
                         {filteredStores.map((store, i) => {
                             const Icon = store.icon || getIcon(store.category);
                             return (
-                                <div key={i} className="group bg-white rounded-2xl border border-slate-100 hover:border-orange-100 shadow-sm hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-300 flex flex-col h-full overflow-hidden relative">
+                                <div key={i} className="group bg-white rounded-xl border border-slate-100 hover:border-orange-100 shadow-sm hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-300 flex flex-col h-full overflow-hidden relative">
 
                                     {/* Background Image Header */}
                                     <div className="h-32 bg-slate-100 relative overflow-hidden">
@@ -210,34 +210,35 @@ export default function LojasPage() {
                                         </div>
                                     </div>
 
-                                    <div className="p-6 pt-0 flex flex-col flex-1 relative z-20">
-                                        <div className="-mt-8 mb-3 w-16 h-16 rounded-2xl bg-white p-1 shadow-md flex items-center justify-center relative z-20 overflow-hidden">
-                                            {store.logo_url ? (
-                                                <img src={store.logo_url} alt="" className="w-full h-full object-contain p-1" />
-                                            ) : (
-                                                <div className={`w-full h-full rounded-xl flex items-center justify-center ${store.iconBg || 'bg-orange-50'} ${store.iconColor || 'text-orange-600'}`}>
-                                                    <Icon className="w-8 h-8" />
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <h3 className="text-lg font-bold text-slate-900 group-hover:text-orange-600 transition-colors mb-1">
-                                            {store.name}
-                                        </h3>
-                                        <p className="text-sm font-medium text-slate-400 mb-4">{store.category}</p>
-
-                                        <div className="mt-auto space-y-4">
-                                            <div className="flex items-center gap-2 text-sm text-slate-500">
-                                                <MapPin className="w-4 h-4 text-orange-400" />
+                                    <div className="p-4 pt-0 flex flex-col flex-1 relative z-20">
+                                        <div className="flex justify-between items-end -mt-8 mb-2">
+                                            <div className="w-14 h-14 rounded-lg bg-white p-1 shadow-md flex items-center justify-center relative z-20 overflow-hidden">
+                                                {store.logo_url ? (
+                                                    <img src={store.logo_url} alt="" className="w-full h-full object-contain p-1" />
+                                                ) : (
+                                                    <div className={`w-full h-full rounded-md flex items-center justify-center ${store.iconBg || 'bg-orange-50'} ${store.iconColor || 'text-orange-600'}`}>
+                                                        <Icon className="w-7 h-7" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 mb-1">
+                                                <MapPin className="w-3 h-3 text-orange-400" />
                                                 {store.location}
                                             </div>
+                                        </div>
 
-                                            <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
+                                        <h3 className="text-base font-bold text-slate-900 group-hover:text-orange-600 transition-colors mb-0.5">
+                                            {store.name}
+                                        </h3>
+                                        <p className="text-xs font-medium text-slate-400 mb-2">{store.category}</p>
+
+                                        <div className="mt-auto">
+                                            <div className="pt-2 border-t border-slate-50 flex items-center justify-between">
                                                 <button className="text-slate-400 hover:text-slate-600 transition-colors">
-                                                    <Phone className="w-5 h-5" />
+                                                    <Phone className="w-4 h-4" />
                                                 </button>
-                                                <Link href={`/empresas/${store.slug || store.id}`} className="flex items-center gap-2 text-sm font-bold text-orange-500 hover:text-orange-600 transition-colors group/link">
-                                                    Ver Loja <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
+                                                <Link href={`/empresas/${store.slug || store.id}`} className="flex items-center gap-2 text-xs font-bold text-orange-500 hover:text-orange-600 transition-colors group/link">
+                                                    Ver Loja <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
                                                 </Link>
                                             </div>
                                         </div>
