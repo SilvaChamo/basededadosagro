@@ -51,14 +51,14 @@ export function MarketMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose: 
                             <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
                                 <Star className="w-6 h-6 fill-current" />
                             </div>
-                            <span className="text-xl font-bold text-slate-800 tracking-tight">Mercado Confiável</span>
+                            <span className="text-xl font-[800] text-slate-800 tracking-tight">Mercado Confiável</span>
                         </div>
 
-                        <h2 className="text-[32px] md:text-[40px] font-bold text-slate-900 leading-[1.1] tracking-tight">
-                            Desfrute de proteção total desde o negócio até a entrega
-                        </h2>
+                        <p className="text-sm font-medium text-slate-500 leading-relaxed">
+                            A BaseAgroData oferece um ecossistema completo para o agronegócio nacional. Explore no nosso menu de mercado serviços essenciais como Alertas e Notificações, Garantia de Negócio segura, acesso a Insumos e Fornecedores, bem como a nossa Rede de Lojas Físicas. Clique no botão abaixo para aceder à página de mercado e descobrir como estas soluções elevam a integridade e o brio da sua operação agro-industrial.
+                        </p>
 
-                        <Link href="/mercado" onClick={onClose} className="inline-flex items-center justify-center px-8 py-3.5 bg-[#f97316] hover:bg-[#ea580c] text-white font-bold rounded-full transition-all shadow-lg shadow-orange-500/30 hover:shadow-orange-500/40 transform hover:-translate-y-0.5 active:scale-95">
+                        <Link href="/mercado" onClick={onClose} className="inline-flex items-center justify-center px-8 py-3 bg-emerald-600 hover:bg-[#f97316] text-white font-bold rounded-[8px] transition-all shadow-lg shadow-emerald-500/20 hover:shadow-orange-500/30 transform hover:-translate-y-0.5 active:scale-95 text-sm">
                             Saiba mais
                         </Link>
                     </div>

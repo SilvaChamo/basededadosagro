@@ -81,13 +81,26 @@ export default function LojasPage() {
         const fetchStores = async () => {
             setIsLoading(true);
             try {
-                const { data, error } = await supabase
+                let query = supabase
                     .from('companies')
                     .select('*')
                     .eq('type', 'Loja')
-                    .eq('is_archived', false)
+                    .eq('is_archived', false);
+
+                // Try to add is_deleted filter
+                let { data, error } = await query
+                    .or('is_deleted.eq.false,is_deleted.is.null')
                     .order('is_featured', { ascending: false })
                     .order('created_at', { ascending: false });
+
+                // If column doesn't exist, retry without it
+                if (error && error.code === '42703') {
+                    const retry = await query
+                        .order('is_featured', { ascending: false })
+                        .order('created_at', { ascending: false });
+                    data = retry.data;
+                    error = retry.error;
+                }
 
                 if (data && data.length > 0) {
                     setStores(data.map((store: any) => ({

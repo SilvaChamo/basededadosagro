@@ -25,8 +25,14 @@ export default async function Home() {
     statsResult = results[0];
     companiesResult = results[1];
 
-    if (statsResult.error) console.error("❌ Error fetching stats:", statsResult.error);
-    if (companiesResult.error) console.error("❌ Error fetching companies:", companiesResult.error);
+    if (statsResult.error) {
+      console.error("❌ Error fetching stats:", JSON.stringify(statsResult.error, null, 2));
+      console.error("Error Code:", statsResult.error.code);
+      console.error("Error Message:", statsResult.error.message);
+    }
+    if (companiesResult.error) {
+      console.error("❌ Error fetching companies:", JSON.stringify(companiesResult.error, null, 2));
+    }
   } catch (err) {
     console.error("💥 Critical error during homepage data fetch:", err);
   }

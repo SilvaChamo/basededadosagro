@@ -52,12 +52,12 @@ export function Hero({ onToggleSearch, isSearchOpen, stats }: HeroProps) {
 
                     <div className="flex flex-wrap gap-4">
                         <Link href="/parceria#secao-parceria">
-                            <Button className="bg-emerald-700 hover:bg-[#f97316] text-white px-8 py-6 rounded-[7px] text-base font-medium uppercase tracking-wider shadow-md transition-colors duration-300">
+                            <Button className="bg-emerald-700 hover:bg-[#f97316] text-white px-8 py-6 rounded-[7px] text-sm font-medium uppercase tracking-wider shadow-md transition-colors duration-300">
                                 SEJA NOSSO PARCEIRO
                             </Button>
                         </Link>
                         <Link href="/sobre-nos">
-                            <Button variant="outline" className="bg-[#5c3a1e]/80 border-[#f97316] text-white hover:bg-[#f97316] hover:border-[#f97316] hover:text-white px-8 py-6 rounded-[7px] text-base font-medium uppercase tracking-wider backdrop-blur-sm transition-all duration-300">
+                            <Button variant="outline" className="bg-[#5c3a1e]/80 border-[#f97316] text-white hover:bg-[#f97316] hover:border-[#f97316] hover:text-white px-8 py-6 rounded-[7px] text-sm font-medium uppercase tracking-wider backdrop-blur-sm transition-all duration-300">
                                 SAIBA MAIS
                             </Button>
                         </Link>

@@ -157,7 +157,7 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
             )}
 
             <aside
-                className={`fixed inset-y-0 left-0 z-[80] bg-white text-slate-800 transition-all duration-300 transform shadow-xl border-r border-slate-200
+                className={`fixed inset-y-0 left-0 z-[80] bg-white text-slate-800 transition-all duration-300 transform shadow-xl
                     ${isCollapsed ? "w-24" : "w-72"} 
                     ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
             >

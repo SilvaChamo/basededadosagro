@@ -192,7 +192,9 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
     };
 
     const activeCategory = serviceCategories.find(c => c.id === activeTab) || serviceCategories[0];
+    const activeCategoryIndex = serviceCategories.findIndex(c => c.id === activeTab);
     const activeItems = getItemsForCategory(activeTab);
+    const styleVariant = activeCategoryIndex % 5;
 
     return (
         <div className={`absolute left-0 w-full top-full transition-all duration-300 z-50 ${isOpen ? 'opacity-100 visible pointer-events-auto' : 'opacity-0 invisible pointer-events-none'}`}>
@@ -201,7 +203,7 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
                 <div className="container-site flex">
                     {/* Left Sidebar - Categories (Hover Activated) */}
                     <div className="w-[300px] bg-slate-50/50 border-r border-slate-100 py-2">
-                        <div className="space-y-0.5">
+                        <div className="space-y-1">
                             {serviceCategories.map((cat) => {
                                 const Icon = cat.icon;
                                 const isActive = activeTab === cat.id;
@@ -211,7 +213,7 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
                                         onClick={() => {
                                             setActiveTab(cat.id);
                                         }}
-                                        className={`w-full flex items-center justify-between px-4 py-1 text-left transition-all relative group/tab ${isActive
+                                        className={`w-full flex items-center justify-between px-4 py-2 text-left transition-all relative group/tab ${isActive
                                             ? "bg-white text-[#f97316] font-bold shadow-sm"
                                             : "text-slate-500 hover:bg-white/60 hover:text-[#f97316]"
                                             }`}
@@ -237,8 +239,8 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
                             {/* Header: Removed */}
 
                             {/* Content Area */}
-                            <div className="pt-2 px-12 overflow-y-auto max-h-[380px]">
-                                <div className="grid grid-cols-5 gap-x-6 gap-y-4">
+                            <div className="p-[40px] overflow-y-auto max-h-[500px]">
+                                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                                     {activeCategory.groups ? (
                                         /* Flattened groups for Insumos */
                                         (activeCategory.groups || []).flatMap((group: any) => group.items).map((item: any, idx: number) => {
@@ -246,11 +248,11 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
                                             return (
                                                 <Link
                                                     key={idx}
-                                                    href={`/servicos/${activeTab}/${item.slug}`}
+                                                    href={`/ servicos / ${activeTab} / ${item.slug}`}
                                                     onClick={onClose}
-                                                    className="group/icon flex flex-col items-center gap-2 w-full"
+                                                    className="group/icon flex flex-col items-center gap-3 w-full p-2 rounded-2xl transition-all hover:bg-slate-50/50"
                                                 >
-                                                    <div className="w-16 h-16 rounded-full overflow-hidden border border-slate-100 group-hover/icon:border-[#f97316] transition-colors bg-slate-50 flex items-center justify-center p-0">
+                                                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-slate-100 group-hover/icon:border-[#f97316] group-hover/icon:scale-110 group-hover/icon:rotate-2 shadow-sm group-hover/icon:shadow-md transition-all duration-300 relative flex items-center justify-center p-0 bg-white">
                                                         {group?.image ? (
                                                             <img
                                                                 src={group.image}
@@ -258,35 +260,137 @@ export function ServicesMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose
                                                                 className="w-full h-full object-cover m-0"
                                                             />
                                                         ) : (
-                                                            <Store className="w-8 h-8 text-slate-400" />
+                                                            <Store className="w-10 h-10 text-slate-300 group-hover/icon:text-[#f97316] transition-colors" />
                                                         )}
+                                                        <div className="absolute inset-0 bg-black/0 group-hover/icon:bg-black/5 flex items-center justify-center transition-all opacity-0 group-hover/icon:opacity-100">
+                                                            <ArrowRight className="w-6 h-6 text-white drop-shadow-md transform translate-x-[-10px] group-hover/icon:translate-x-0 transition-all duration-300" />
+                                                        </div>
                                                     </div>
-                                                    <span className="text-[10px] font-bold text-slate-600 group-hover/icon:text-[#f97316] transition-colors text-center leading-tight">
+                                                    <span className="text-[11px] font-extrabold text-slate-700 group-hover/icon:text-[#f97316] transition-colors text-center leading-tight">
                                                         {item.title}
                                                     </span>
                                                 </Link>
                                             );
                                         })
                                     ) : (
-                                        /* Normal grid (Lojas and others) - also in 5 columns */
-                                        activeItems.map((item: any, idx: number) => (
-                                            <Link
-                                                key={idx}
-                                                href={`/servicos/${activeTab}/${item.slug}`}
-                                                onClick={onClose}
-                                                className="group/item flex flex-col gap-1.5"
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    {typeof item.icon === 'string' ? null : <item.icon className="w-3.5 h-3.5 text-slate-300 group-hover/item:text-[#f97316] transition-colors" />}
-                                                    <span className="text-[13px] font-bold text-slate-800 group-hover/item:text-[#f97316] transition-colors line-clamp-1">
+                                        /* Alternating card styles per category */
+                                        activeItems.map((item: any, idx: number) => {
+                                            const ItemIcon = typeof item.icon === 'string' ? Briefcase : item.icon;
+                                            const href = activeTab === 'inovacao' ? `/ inovacao / ${item.slug}` : ` / servicos / ${activeTab} / ${item.slug}`;
+
+                                            /* Style A — Card with left border accent */
+                                            if (styleVariant === 0) return (
+                                                <Link
+                                                    key={idx}
+                                                    href={href}
+                                                    onClick={onClose}
+                                                    className="group/item flex flex-col gap-1.5 p-5 rounded-xl border-l-[3px] border-l-orange-400 bg-orange-50/50 border border-orange-100 hover:bg-orange-50 hover:shadow-md transition-all duration-300 relative overflow-hidden"
+                                                >
+                                                    <div className="absolute top-0 right-0 w-16 h-16 bg-orange-100/30 rounded-full -translate-y-1/2 translate-x-1/2 group-hover/item:scale-150 transition-transform duration-500" />
+                                                    <div className="flex items-center gap-2.5 relative z-10">
+                                                        <ItemIcon className="w-4.5 h-4.5 text-orange-500 group-hover/item:text-orange-600 transition-colors" />
+                                                        <span className="text-[15px] font-bold text-slate-800 group-hover/item:text-orange-600 transition-colors">
+                                                            {item.title}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-[13px] text-slate-500 font-medium leading-relaxed line-clamp-2 relative z-10 pl-7">
+                                                        {item.description}
+                                                    </span>
+                                                </Link>
+                                            );
+
+                                            /* Style B — Large circular icon, centered layout */
+                                            if (styleVariant === 1) return (
+                                                <Link
+                                                    key={idx}
+                                                    href={href}
+                                                    onClick={onClose}
+                                                    className="group/item flex flex-col items-center gap-3 p-5 rounded-2xl bg-emerald-50/40 border border-emerald-100/60 hover:bg-emerald-50/70 hover:shadow-md transition-all duration-300"
+                                                >
+                                                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center group-hover/item:from-orange-100 group-hover/item:to-orange-50 group-hover/item:shadow-lg group-hover/item:shadow-orange-200/40 group-hover/item:scale-110 transition-all duration-300">
+                                                        <ItemIcon className="w-6 h-6 text-emerald-600 group-hover/item:text-orange-500 transition-colors duration-300" />
+                                                    </div>
+                                                    <span className="text-[15px] font-bold text-slate-700 group-hover/item:text-orange-600 transition-colors text-center leading-tight">
                                                         {item.title}
                                                     </span>
-                                                </div>
-                                                <span className="text-[10px] text-slate-400 font-medium leading-tight line-clamp-2 group-hover/item:text-slate-500 transition-colors">
-                                                    {item.description}
-                                                </span>
-                                            </Link>
-                                        ))
+                                                    <span className="text-[13px] text-slate-400 font-medium leading-snug line-clamp-2 text-center">
+                                                        {item.description}
+                                                    </span>
+                                                </Link>
+                                            );
+
+                                            /* Style C — Horizontal card with colored tag */
+                                            if (styleVariant === 2) return (
+                                                <Link
+                                                    key={idx}
+                                                    href={href}
+                                                    onClick={onClose}
+                                                    className="group/item flex items-start gap-3 p-5 rounded-xl bg-blue-50/30 border border-blue-100 hover:border-blue-200 hover:bg-blue-50/50 hover:shadow-[0_4px_20px_rgba(59,130,246,0.08)] transition-all duration-300"
+                                                >
+                                                    <div className="p-2 rounded-lg bg-blue-50 group-hover/item:bg-blue-100 transition-colors shrink-0 mt-0.5">
+                                                        <ItemIcon className="w-4 h-4 text-blue-500 group-hover/item:text-blue-600 transition-colors" />
+                                                    </div>
+                                                    <div className="flex flex-col gap-1 flex-1 min-w-0">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[15px] font-bold text-slate-800 group-hover/item:text-blue-600 transition-colors">
+                                                                {item.title}
+                                                            </span>
+                                                            <ArrowRight className="w-3.5 h-3.5 text-blue-400 opacity-0 group-hover/item:opacity-100 transform -translate-x-1 group-hover/item:translate-x-0 transition-all duration-300 shrink-0" />
+                                                        </div>
+                                                        <span className="text-[13px] text-slate-400 font-medium leading-relaxed line-clamp-2">
+                                                            {item.description}
+                                                        </span>
+                                                    </div>
+                                                </Link>
+                                            );
+
+                                            /* Style D — Minimalist with underline animation */
+                                            if (styleVariant === 3) return (
+                                                <Link
+                                                    key={idx}
+                                                    href={href}
+                                                    onClick={onClose}
+                                                    className="group/item flex flex-col gap-2 p-5 rounded-lg border border-amber-100/80 bg-amber-50/30 transition-all duration-300 hover:bg-amber-50/60 hover:shadow-md"
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-400 group-hover/item:bg-amber-500 group-hover/item:scale-150 transition-all duration-300" />
+                                                        <span className="text-[15px] font-bold text-slate-700 group-hover/item:text-amber-600 transition-colors relative">
+                                                            {item.title}
+                                                            <span className="absolute bottom-0 left-0 w-0 h-[1.5px] bg-amber-400 group-hover/item:w-full transition-all duration-400" />
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-[13px] text-slate-400 font-medium leading-relaxed line-clamp-2 pl-3.5">
+                                                            {item.description}
+                                                        </span>
+                                                        <ChevronRight className="w-3.5 h-3.5 text-amber-400 opacity-0 group-hover/item:opacity-100 transition-all duration-300 shrink-0" />
+                                                    </div>
+                                                </Link>
+                                            );
+
+                                            /* Style E — Gradient glassmorphism (Inovação etc.) */
+                                            return (
+                                                <Link
+                                                    key={idx}
+                                                    href={href}
+                                                    onClick={onClose}
+                                                    className="group/item flex flex-col gap-2 p-5 rounded-2xl bg-gradient-to-br from-purple-50/80 via-violet-50/60 to-orange-50/60 border border-purple-100 hover:border-purple-200 hover:shadow-[0_8px_30px_rgba(147,51,234,0.1)] backdrop-blur-sm transition-all duration-300 relative overflow-hidden"
+                                                >
+                                                    <div className="absolute -top-4 -right-4 w-20 h-20 bg-purple-200/20 rounded-full blur-xl group-hover/item:bg-purple-300/30 group-hover/item:scale-150 transition-all duration-500" />
+                                                    <div className="flex items-center gap-2.5 relative z-10">
+                                                        <div className="p-1.5 rounded-lg bg-white/80 shadow-sm group-hover/item:shadow-purple-200/50 transition-all">
+                                                            <ItemIcon className="w-4 h-4 text-purple-500 group-hover/item:text-purple-600 transition-colors" />
+                                                        </div>
+                                                        <span className="text-[15px] font-bold text-slate-800 group-hover/item:text-purple-600 transition-colors">
+                                                            {item.title}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-[13px] text-slate-500 font-medium leading-relaxed line-clamp-2 relative z-10 pl-8">
+                                                        {item.description}
+                                                    </span>
+                                                </Link>
+                                            );
+                                        })
                                     )}
                                 </div>
                             </div>

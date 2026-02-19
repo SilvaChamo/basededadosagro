@@ -57,7 +57,7 @@ export default function AdminDashboardPage() {
     ];
 
     return (
-        <div className="space-y-10">
+        <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-slate-900 tracking-tight">Gestão de Conteúdos</h1>

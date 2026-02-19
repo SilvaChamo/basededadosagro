@@ -16,8 +16,13 @@ export default function AdminLojasPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("Todas");
-    const [viewState, setViewState] = useState<'active' | 'archived' | 'trash'>('active');
+    const [statusFilter, setStatusFilter] = useState<'active' | 'archived' | 'deleted'>('active');
+    const [isMounted, setIsMounted] = useState(false);
     const supabase = createClient();
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const fetchStores = async () => {
         try {
@@ -27,63 +32,104 @@ export default function AdminLojasPage() {
                 .select('*')
                 .eq('type', 'Loja');
 
-            if (viewState === 'trash') {
+            // Apply status filters at database level for better performance
+            if (statusFilter === 'active') {
+                query = query.eq('is_archived', false).or('is_deleted.eq.false,is_deleted.is.null');
+            } else if (statusFilter === 'archived') {
+                query = query.eq('is_archived', true).or('is_deleted.eq.false,is_deleted.is.null');
+            } else if (statusFilter === 'deleted') {
                 query = query.eq('is_deleted', true);
-            } else if (viewState === 'archived') {
-                query = query.eq('is_archived', true).eq('is_deleted', false);
-            } else {
-                query = query.eq('is_archived', false).eq('is_deleted', false);
             }
 
             const { data, error } = await query.order('created_at', { ascending: false });
 
             if (error) {
-                console.error('Error fetching stores:', error);
-                toast.error("Erro ao carregar lojas.");
+                // If it's a "column does not exist" error for is_deleted, fallback to just is_archived
+                if (error.code === '42703' && statusFilter !== 'deleted') {
+                    console.warn("is_deleted column missing, falling back to is_archived only.");
+                    const fallbackQuery = supabase
+                        .from('companies')
+                        .select('*')
+                        .eq('type', 'Loja')
+                        .eq('is_archived', statusFilter === 'archived')
+                        .order('created_at', { ascending: false });
+                    const { data: fallbackData, error: fallbackError } = await fallbackQuery;
+                    if (fallbackError) throw fallbackError;
+                    setStores(fallbackData || []);
+                } else if (error.code === '42703' && statusFilter === 'deleted') {
+                    setStores([]);
+                } else {
+                    throw error;
+                }
             } else {
                 setStores(data || []);
             }
         } catch (err) {
             console.error('Exception in fetchStores:', err);
-            toast.error("Ocorreu um erro inesperado.");
+            toast.error("Ocorreu um erro ao carregar os dados.");
         } finally {
             setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchStores();
+        if (isMounted) {
+            fetchStores();
+        }
 
-        // Safety timeout: if it takes more than 10s, stop loading
+        // Safety timeout
         const timer = setTimeout(() => {
             setIsLoading(false);
         }, 10000);
 
         return () => clearTimeout(timer);
-    }, []);
+    }, [isMounted, statusFilter]);
 
-    const handleDelete = async (id: string) => {
-        if (viewState === 'trash') {
-            if (!confirm("Tem certeza que deseja excluir PERMANENTEMENTE esta loja? Esta ação não pode ser desfeita.")) return;
-            const { error } = await supabase.from('companies').delete().eq('id', id);
-            if (error) toast.error("Erro ao excluir permanentemente.");
-            else { toast.success("Loja excluída permanentemente."); fetchStores(); }
+    const handleDelete = async (row: any) => {
+        const isRecycleBin = statusFilter === 'deleted';
+
+        if (isRecycleBin) {
+            if (!confirm(`Tem certeza que deseja EXCLUIR PERMANENTEMENTE a loja "${row.name}"? Esta ação não pode ser desfeita.`)) return;
+
+            const { error } = await supabase
+                .from('companies')
+                .delete()
+                .eq('id', row.id);
+
+            if (error) {
+                toast.error("Erro ao excluir permanentemente.");
+            } else {
+                toast.success("Loja excluída definitivamente.");
+                fetchStores();
+            }
         } else {
-            if (!confirm("Tem certeza que deseja enviar esta loja para a lixeira?")) return;
-            const { error } = await supabase.from('companies').update({ is_deleted: true }).eq('id', id);
-            if (error) toast.error("Erro ao enviar para a lixeira.");
-            else { toast.success("Loja enviada para a lixeira."); fetchStores(); }
+            if (!confirm(`Deseja mover a loja "${row.name}" para a reciclagem?`)) return;
+
+            // Try to set is_deleted = true
+            const { error } = await supabase
+                .from('companies')
+                .update({ is_deleted: true })
+                .eq('id', row.id);
+
+            if (error) {
+                // Fallback to hard delete if is_deleted column is missing
+                if (error.code === '42703') {
+                    if (confirm("A reciclagem não está configurada no banco de dados. Deseja excluir permanentemente?")) {
+                        const { error: delError } = await supabase.from('companies').delete().eq('id', row.id);
+                        if (delError) toast.error("Erro ao excluir.");
+                        else {
+                            toast.success("Loja excluída.");
+                            fetchStores();
+                        }
+                    }
+                } else {
+                    toast.error("Erro ao mover para reciclagem.");
+                }
+            } else {
+                toast.success("Movida para a reciclagem.");
+                fetchStores();
+            }
         }
-    };
-
-    const restoreItem = async (id: string) => {
-        const { error } = await supabase
-            .from('companies')
-            .update({ is_deleted: false, is_archived: false })
-            .eq('id', id);
-
-        if (error) toast.error("Erro ao restaurar loja.");
-        else { toast.success("Loja restaurada com sucesso."); fetchStores(); }
     };
 
     const toggleArchive = async (row: any) => {
@@ -95,11 +141,28 @@ export default function AdminLojasPage() {
 
             if (error) throw error;
 
-            toast.success(row.is_archived ? "Loja reposta com sucesso!" : "Loja arquivada com sucesso!");
+            toast.success(row.is_archived ? "Loja restaurada do arquivo!" : "Loja arquivada com sucesso!");
             fetchStores();
         } catch (err: any) {
             console.error('Error toggling archive:', err);
             toast.error("Erro ao alterar estado de arquivamento.");
+        }
+    };
+
+    const handleRestoreFromTrash = async (row: any) => {
+        try {
+            const { error } = await supabase
+                .from('companies')
+                .update({ is_deleted: false })
+                .eq('id', row.id);
+
+            if (error) throw error;
+
+            toast.success("Loja restaurada da reciclagem!");
+            fetchStores();
+        } catch (err: any) {
+            console.error('Error restoring from trash:', err);
+            toast.error("Erro ao restaurar loja.");
         }
     };
 
@@ -138,10 +201,11 @@ export default function AdminLojasPage() {
         }
     });
 
+
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             {/* Top Bar: Search, Filter and Actions */}
-            <div className="bg-white p-2 rounded-lg shadow-sm border border-slate-200 flex flex-col md:flex-row gap-2 items-center">
+            <div className="flex flex-col md:flex-row gap-2 items-center">
                 <div className="flex-1 relative w-full">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
@@ -167,31 +231,29 @@ export default function AdminLojasPage() {
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 </div>
 
-                <div className="flex items-center bg-slate-100 p-1 rounded-lg gap-1">
+                <div className="flex items-center gap-1 h-10">
                     <button
-                        onClick={() => setViewState('active')}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${viewState === 'active' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        onClick={() => {
+                            const next = statusFilter === 'archived' ? 'active' : 'archived';
+                            setStatusFilter(next);
+                        }}
+                        className={`p-2 rounded-md transition-all ${statusFilter === 'archived' ? 'bg-amber-100 text-amber-700' : 'text-slate-400 hover:text-slate-600'}`}
+                        title="Arquivo"
                     >
-                        Ativas
+                        <Archive className="w-4 h-4" />
                     </button>
+
                     <button
-                        onClick={() => setViewState('archived')}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${viewState === 'archived' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        onClick={() => {
+                            const next = statusFilter === 'deleted' ? 'active' : 'deleted';
+                            setStatusFilter(next);
+                        }}
+                        className={`p-2 rounded-md transition-all ${statusFilter === 'deleted' ? 'bg-rose-100 text-rose-700' : 'text-slate-400 hover:text-slate-600'}`}
+                        title="Reciclagem"
                     >
-                        Arquivadas
-                    </button>
-                    <button
-                        onClick={() => setViewState('trash')}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${viewState === 'trash' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                        Lixeira
+                        <Trash2 className="w-4 h-4" />
                     </button>
                 </div>
-
-                <button className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:text-orange-500 hover:border-orange-200 transition-all flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider w-full md:w-auto">
-                    <Filter className="w-4 h-4" />
-                    <span>Filtros</span>
-                </button>
 
                 <Link
                     href="/admin/lojas/novo"
@@ -280,7 +342,15 @@ export default function AdminLojasPage() {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                {viewState === 'active' ? (
+                                                {statusFilter === 'deleted' ? (
+                                                    <button
+                                                        onClick={() => handleRestoreFromTrash(store)}
+                                                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+                                                        title="Restaurar"
+                                                    >
+                                                        <ArchiveRestore className="w-4 h-4" />
+                                                    </button>
+                                                ) : (
                                                     <>
                                                         <Link
                                                             href={`/admin/lojas/${store.id}`}
@@ -291,38 +361,22 @@ export default function AdminLojasPage() {
                                                         </Link>
                                                         <button
                                                             onClick={() => toggleArchive(store)}
-                                                            className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-all"
-                                                            title="Arquivar"
+                                                            className={`p-2 rounded-lg transition-all ${store.is_archived
+                                                                ? 'text-orange-600 hover:bg-orange-50'
+                                                                : 'text-slate-400 hover:text-orange-500 hover:bg-orange-50'}`}
+                                                            title={store.is_archived ? "Restaurar" : "Arquivar"}
                                                         >
-                                                            <Archive className="w-4 h-4" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(store.id)}
-                                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                                                            title="Excluir"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <button
-                                                            onClick={() => restoreItem(store.id)}
-                                                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all flex items-center gap-1 text-xs font-bold"
-                                                            title="Restaurar"
-                                                        >
-                                                            <ArchiveRestore className="w-4 h-4" />
-                                                            Restaurar
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(store.id)}
-                                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                                            title="Excluir Permanentemente"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
+                                                            {store.is_archived ? <ArchiveRestore className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
                                                         </button>
                                                     </>
                                                 )}
+                                                <button
+                                                    onClick={() => handleDelete(store)}
+                                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                    title={statusFilter === 'deleted' ? "Excluir Permanentemente" : "Mover para Lixeira"}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>

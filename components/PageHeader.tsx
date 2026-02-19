@@ -106,18 +106,6 @@ export function PageHeader({ title, breadcrumbs, backgroundImage, icon: Icon, ba
                 </div>
             )}
 
-            {/* ORANGE LINE - Single Element Switching Mode */}
-            <div
-                key={isSticky ? 'sticky' : 'static'}
-                className={`w-full left-0 z-40 pointer-events-none ${isSticky
-                    ? "fixed top-[64px] md:top-[72px]"
-                    : "absolute -bottom-[6px]"
-                    }`}
-            >
-                <div className="container-site">
-                    <div className={`w-full h-[6px] bg-[#f97316] ${isSticky ? '' : 'shadow-[0_0_15px_rgba(249,115,22,0.6)]'}`} />
-                </div>
-            </div>
         </div>
     );
 }
