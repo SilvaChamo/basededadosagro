@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Store, ShoppingCart, Bell, ShieldCheck, ArrowRight, Star, Truck, RefreshCcw, Wrench } from "lucide-react";
+import { Store, ShoppingCart, Bell, ShieldCheck, ArrowRight, Star, Truck, Users, ShoppingBag } from "lucide-react";
 
 interface MarketCategory {
     id: string;
@@ -13,26 +13,26 @@ interface MarketCategory {
 
 const marketCategories: MarketCategory[] = [
     {
-        id: "alertas",
-        title: "Alertas e Notificações",
-        icon: Bell,
-        link: "/mercado/alertas",
+        id: "produtores",
+        title: "Produtores",
+        icon: Users,
+        link: "/mercado/produtores",
     },
     {
-        id: "pagamentos",
-        title: "Garantia de Negócio",
-        icon: ShieldCheck,
-        link: "/mercado/garantia",
+        id: "fornecedores",
+        title: "Fornecedores",
+        icon: Truck,
+        link: "/mercado/fornecedores",
     },
     {
-        id: "insumos",
-        title: "Insumos e Fornecedores",
-        icon: ShoppingCart,
-        link: "/servicos/insumos",
+        id: "consumidores",
+        title: "Consumidores",
+        icon: ShoppingBag,
+        link: "/mercado/consumidores",
     },
     {
         id: "lojas",
-        title: "Rede de Lojas Físicas",
+        title: "Rede de Lojas",
         icon: Store,
         link: "/servicos/lojas",
     }
@@ -55,7 +55,7 @@ export function MarketMegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose: 
                         </div>
 
                         <p className="text-sm font-medium text-slate-500 leading-relaxed">
-                            A BaseAgroData oferece um ecossistema completo para o agronegócio nacional. Explore no nosso menu de mercado serviços essenciais como Alertas e Notificações, Garantia de Negócio segura, acesso a Insumos e Fornecedores, bem como a nossa Rede de Lojas Físicas. Clique no botão abaixo para aceder à página de mercado e descobrir como estas soluções elevam a integridade e o brio da sua operação agro-industrial.
+                            Conectamos todos os intervenientes da cadeia de valor agrária em Moçambique, desde produtores e fornecedores até ao consumidor final, garantindo integridade e eficiência em cada transação.
                         </p>
 
                         <Link href="/mercado" onClick={onClose} className="inline-flex items-center justify-center px-8 py-3 bg-emerald-600 hover:bg-[#f97316] text-white font-bold rounded-[8px] transition-all shadow-lg shadow-emerald-500/20 hover:shadow-orange-500/30 transform hover:-translate-y-0.5 active:scale-95 text-sm">

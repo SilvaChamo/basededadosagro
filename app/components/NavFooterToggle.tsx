@@ -19,7 +19,12 @@ export default function NavFooterToggle({ children }: { children: React.ReactNod
 
     return (
         <>
-            {!hide && <Navbar />}
+            {!hide && (
+                <>
+                    <div className="h-[6px] bg-green-600 w-full"></div>
+                    <Navbar />
+                </>
+            )}
             <div className="flex-1 flex flex-col min-h-0">
                 {children}
             </div>
