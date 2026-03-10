@@ -113,7 +113,7 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
         return false;
     };
 
-    const LinkItem = memo(({ href, icon: Icon, label }: { href: string; icon: any; label: string }) => {
+    const LinkItem = memo(({ href, icon: Icon, label, isSub }: { href: string; icon: any; label: string; isSub?: boolean }) => {
         const active = isActive(href);
         return (
             <Link
@@ -129,7 +129,12 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                 )}
                 <Icon className={`w-5 h-5 min-w-[20px] transition-colors ${active ? "text-orange-600" : "text-slate-500 group-hover:text-orange-600"
                     }`} />
-                {!isCollapsed && <span>{label}</span>}
+                {!isCollapsed && (
+                    <div className="flex items-center gap-2 flex-1">
+                        {isSub && <div className={`w-1 h-1 rounded-full ${active ? "bg-orange-500" : "bg-slate-300"}`} />}
+                        <span>{label}</span>
+                    </div>
+                )}
             </Link>
         );
     });
