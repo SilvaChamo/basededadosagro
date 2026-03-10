@@ -15,6 +15,7 @@ import {
     Mail
 } from "lucide-react";
 import Link from "next/link";
+import { LogoutButton } from "@/components/LogoutButton";
 
 export default function AdminDashboardPage() {
     const [stats, setStats] = useState({
@@ -63,13 +64,16 @@ export default function AdminDashboardPage() {
                     <h1 className="text-3xl font-black text-slate-900 tracking-tight">Gestão de Conteúdos</h1>
                     <p className="text-slate-500 font-medium">Bem-vindo ao painel administrativo. Monitorize e actualize os dados do site em tempo real.</p>
                 </div>
-                <Link
-                    href="/admin/mensagens"
-                    className="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-[#f97316] transition-all shadow-sm active:scale-95 shrink-0"
-                >
-                    <Mail className="w-3.5 h-3.5" />
-                    Nova Mensagem
-                </Link>
+                <div className="flex items-center gap-2">
+                    <Link
+                        href="/admin/mensagens"
+                        className="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-[#f97316] transition-all shadow-sm active:scale-95 shrink-0"
+                    >
+                        <Mail className="w-3.5 h-3.5" />
+                        Nova Mensagem
+                    </Link>
+                    <LogoutButton variant="outline" className="h-[36px] px-4 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-red-600 border-slate-200" showIcon={true} label="Sair" />
+                </div>
             </div>
 
             {/* Quick Stats Grid */}

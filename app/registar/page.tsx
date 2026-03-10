@@ -1,6 +1,6 @@
 "use client";
 
-import { AuthForm } from "../login/AuthForm";
+import { AuthForm } from "../auth/login/AuthForm";
 
 interface PageProps {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
