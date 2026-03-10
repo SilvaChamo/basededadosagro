@@ -128,11 +128,11 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                     <div className="absolute right-0 top-0 bottom-0 w-[3px] bg-orange-500" />
                 )}
                 <Icon
-                    className={`w-5 h-5 min-w-[20px] transition-colors ${active ? "text-orange-600" : "text-slate-500 group-hover:text-orange-600"} ${!isCollapsed && isSub ? "ml-5" : ""}`}
+                    className={`w-5 h-5 min-w-[20px] transition-colors ${active ? "text-orange-600" : "text-slate-500 group-hover:text-orange-600"}`}
                 />
                 {!isCollapsed && (
                     <div className="flex items-center gap-2 flex-1">
-                        {isSub && <div className={`w-1 h-1 rounded-full ${active ? "bg-orange-500" : "bg-slate-300"}`} />}
+                        {isSub && <div className={`w-1.5 h-1.5 rounded-full ${active ? "bg-orange-500" : "bg-slate-300"}`} />}
                         <span>{label}</span>
                     </div>
                 )}
@@ -219,16 +219,16 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                             {openSubmenus.includes('gestao') && (
                                 <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
                                     {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-2 w-[1.5px] bg-slate-100" />}
-                                    <LinkItem href="/admin/empresas" icon={Building2} label="Empresas" />
-                                    <LinkItem href="/admin/lojas" icon={Store} label="Lojas" />
-                                    <LinkItem href="/admin/produtos" icon={ShoppingCart} label="Produtos" />
-                                    <LinkItem href="/admin/propriedades" icon={LandPlot} label="Propriedades" />
-                                    <LinkItem href="/admin/profissionais" icon={Users} label="Profissionais" />
-                                    <LinkItem href="/admin/artigos" icon={Newspaper} label="Artigos" />
-                                    <LinkItem href="/admin/noticias" icon={FileText} label="Notícias" />
-                                    <LinkItem href="/admin/documentos" icon={FileText} label="Documentos" />
-                                    <LinkItem href="/admin/formacao" icon={GraduationCap} label="Formação" />
-                                    <LinkItem href="/admin/apresentacoes" icon={Presentation} label="Apresentações" />
+                                    <LinkItem href="/admin/empresas" icon={Building2} label="Empresas" isSub />
+                                    <LinkItem href="/admin/lojas" icon={Store} label="Lojas" isSub />
+                                    <LinkItem href="/admin/produtos" icon={ShoppingCart} label="Produtos" isSub />
+                                    <LinkItem href="/admin/propriedades" icon={LandPlot} label="Propriedades" isSub />
+                                    <LinkItem href="/admin/profissionais" icon={Users} label="Profissionais" isSub />
+                                    <LinkItem href="/admin/artigos" icon={Newspaper} label="Artigos" isSub />
+                                    <LinkItem href="/admin/noticias" icon={FileText} label="Notícias" isSub />
+                                    <LinkItem href="/admin/documentos" icon={FileText} label="Documentos" isSub />
+                                    <LinkItem href="/admin/formacao" icon={GraduationCap} label="Formação" isSub />
+                                    <LinkItem href="/admin/apresentacoes" icon={Presentation} label="Apresentações" isSub />
                                 </div>
                             )}
                         </div>
@@ -252,8 +252,8 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                             {openSubmenus.includes('interactions') && (
                                 <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
                                     {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-2 w-[1.5px] bg-slate-100" />}
-                                    <LinkItem href="/admin/estatisticas" icon={BarChart3} label="Estatísticas" />
-                                    <LinkItem href="/admin/indicadores" icon={Target} label="Indicadores" />
+                                    <LinkItem href="/admin/estatisticas" icon={BarChart3} label="Estatísticas" isSub />
+                                    <LinkItem href="/admin/indicadores" icon={Target} label="Indicadores" isSub />
 
                                     {/* Mensagem Dropdown (nested in interactions) */}
                                     <div className="flex flex-col gap-0.5">
@@ -288,7 +288,7 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                                             </div>
                                         )}
                                     </div>
-                                    <LinkItem href="/admin/contactos" icon={Contact} label="Contactos" />
+                                    <LinkItem href="/admin/contactos" icon={Contact} label="Contactos" isSub />
                                 </div>
                             )}
                         </div>
@@ -312,9 +312,9 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                             {openSubmenus.includes('modules') && (
                                 <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
                                     {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-2 w-[1.5px] bg-slate-100" />}
-                                    <LinkItem href="/admin/podcast" icon={Wifi} label="Podcast" />
-                                    <LinkItem href="/admin/actividades" icon={LayoutDashboard} label="Actividades" />
-                                    <LinkItem href="/admin/servicos" icon={Grid2X2} label="Serviços" />
+                                    <LinkItem href="/admin/podcast" icon={Wifi} label="Podcast" isSub />
+                                    <LinkItem href="/admin/actividades" icon={LayoutDashboard} label="Actividades" isSub />
+                                    <LinkItem href="/admin/servicos" icon={Grid2X2} label="Serviços" isSub />
                                 </div>
                             )}
                         </div>
@@ -338,9 +338,9 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                             {openSubmenus.includes('options') && (
                                 <div className="flex flex-col gap-1 animate-in slide-in-from-top-1 duration-200 relative">
                                     {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-1 w-[1.5px] bg-slate-100" />}
-                                    <LinkItem href="/admin/utilizadores" icon={Users} label="Utilizadores" />
-                                    <LinkItem href="/admin/configuracoes" icon={Target} label="Configurações" />
-                                    <LinkItem href="/admin/integracoes" icon={Share2} label="Integrações" />
+                                    <LinkItem href="/admin/utilizadores" icon={Users} label="Utilizadores" isSub />
+                                    <LinkItem href="/admin/configuracoes" icon={Target} label="Configurações" isSub />
+                                    <LinkItem href="/admin/integracoes" icon={Share2} label="Integrações" isSub />
                                 </div>
                             )}
                         </div>
