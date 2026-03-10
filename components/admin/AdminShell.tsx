@@ -127,8 +127,9 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                 {active && (
                     <div className="absolute right-0 top-0 bottom-0 w-[3px] bg-orange-500" />
                 )}
-                <Icon className={`w-5 h-5 min-w-[20px] transition-colors ${active ? "text-orange-600" : "text-slate-500 group-hover:text-orange-600"
-                    }`} />
+                <Icon
+                    className={`w-5 h-5 min-w-[20px] transition-colors ${active ? "text-orange-600" : "text-slate-500 group-hover:text-orange-600"} ${!isCollapsed && isSub ? "ml-5" : ""}`}
+                />
                 {!isCollapsed && (
                     <div className="flex items-center gap-2 flex-1">
                         {isSub && <div className={`w-1 h-1 rounded-full ${active ? "bg-orange-500" : "bg-slate-300"}`} />}
@@ -206,13 +207,13 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                             {!isCollapsed && (
                                 <button
                                     onClick={() => toggleSubmenu('gestao')}
-                                    className="flex items-center justify-between px-6 py-2 text-[11px] font-black uppercase text-slate-400 hover:text-orange-500 transition-colors group w-full text-left tracking-[0.1em]"
+                                    className="flex items-center justify-between px-6 py-2 text-[13px] font-black uppercase text-slate-500 hover:text-orange-500 transition-colors group w-full text-left tracking-[0.1em]"
                                 >
-                                    <div className="flex items-center gap-2">
-                                        <Briefcase className="w-3.5 h-3.5" />
+                                    <div className="flex items-center gap-2.5">
+                                        <Briefcase className="w-5 h-5" />
                                         <span>Gestão</span>
                                     </div>
-                                    <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('gestao') ? 'rotate-90' : ''}`} />
+                                    <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('gestao') ? 'rotate-90' : ''}`} />
                                 </button>
                             )}
                             {openSubmenus.includes('gestao') && (
@@ -239,13 +240,13 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                             {!isCollapsed && (
                                 <button
                                     onClick={() => toggleSubmenu('interactions')}
-                                    className="flex items-center justify-between px-6 py-2 text-[11px] font-black uppercase text-slate-400 hover:text-orange-500 transition-colors group w-full text-left tracking-[0.1em]"
+                                    className="flex items-center justify-between px-6 py-2 text-[13px] font-black uppercase text-slate-500 hover:text-orange-500 transition-colors group w-full text-left tracking-[0.1em]"
                                 >
-                                    <div className="flex items-center gap-2">
-                                        <MessageSquare className="w-3.5 h-3.5" />
+                                    <div className="flex items-center gap-2.5">
+                                        <MessageSquare className="w-5 h-5" />
                                         <span>Interações</span>
                                     </div>
-                                    <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('interactions') ? 'rotate-90' : ''}`} />
+                                    <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('interactions') ? 'rotate-90' : ''}`} />
                                 </button>
                             )}
                             {openSubmenus.includes('interactions') && (
@@ -299,13 +300,13 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                             {!isCollapsed && (
                                 <button
                                     onClick={() => toggleSubmenu('modules')}
-                                    className="flex items-center justify-between px-6 py-2 text-[11px] font-black uppercase text-slate-400 hover:text-orange-500 transition-colors group w-full text-left tracking-[0.1em]"
+                                    className="flex items-center justify-between px-6 py-2 text-[13px] font-black uppercase text-slate-500 hover:text-orange-500 transition-colors group w-full text-left tracking-[0.1em]"
                                 >
-                                    <div className="flex items-center gap-2">
-                                        <Boxes className="w-3.5 h-3.5" />
+                                    <div className="flex items-center gap-2.5">
+                                        <Boxes className="w-5 h-5" />
                                         <span>Módulos</span>
                                     </div>
-                                    <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('modules') ? 'rotate-90' : ''}`} />
+                                    <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('modules') ? 'rotate-90' : ''}`} />
                                 </button>
                             )}
                             {openSubmenus.includes('modules') && (
@@ -325,13 +326,13 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                             {!isCollapsed && (
                                 <button
                                     onClick={() => toggleSubmenu('options')}
-                                    className="flex items-center justify-between px-6 py-2 text-[11px] font-black uppercase text-slate-400 hover:text-orange-500 transition-colors group w-full text-left tracking-[0.1em]"
+                                    className="flex items-center justify-between px-6 py-2 text-[13px] font-black uppercase text-slate-500 hover:text-orange-500 transition-colors group w-full text-left tracking-[0.1em]"
                                 >
-                                    <div className="flex items-center gap-2">
-                                        <Settings className="w-3.5 h-3.5" />
+                                    <div className="flex items-center gap-2.5">
+                                        <Settings className="w-5 h-5" />
                                         <span>Opções</span>
                                     </div>
-                                    <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('options') ? 'rotate-90' : ''}`} />
+                                    <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('options') ? 'rotate-90' : ''}`} />
                                 </button>
                             )}
                             {openSubmenus.includes('options') && (
