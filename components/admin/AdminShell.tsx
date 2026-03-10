@@ -32,6 +32,9 @@ import {
     Share2,
     ChevronRight,
     Store,
+    Briefcase,
+    Boxes,
+    Settings,
 } from "lucide-react";
 
 interface AdminShellProps {
@@ -198,14 +201,18 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                             {!isCollapsed && (
                                 <button
                                     onClick={() => toggleSubmenu('gestao')}
-                                    className="flex items-center justify-between px-6 py-1.5 text-xs font-bold uppercase text-slate-800 hover:text-black transition-colors group w-full text-left tracking-wider"
+                                    className="flex items-center justify-between px-6 py-2 text-[11px] font-black uppercase text-slate-400 hover:text-orange-500 transition-colors group w-full text-left tracking-[0.1em]"
                                 >
-                                    <span>Gestão</span>
-                                    <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('gestao') ? 'rotate-90' : ''}`} />
+                                    <div className="flex items-center gap-2">
+                                        <Briefcase className="w-3.5 h-3.5" />
+                                        <span>Gestão</span>
+                                    </div>
+                                    <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('gestao') ? 'rotate-90' : ''}`} />
                                 </button>
                             )}
                             {openSubmenus.includes('gestao') && (
-                                <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200">
+                                <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
+                                    {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-2 w-[1.5px] bg-slate-100" />}
                                     <LinkItem href="/admin/empresas" icon={Building2} label="Empresas" />
                                     <LinkItem href="/admin/lojas" icon={Store} label="Lojas" />
                                     <LinkItem href="/admin/produtos" icon={ShoppingCart} label="Produtos" />
@@ -227,14 +234,18 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                             {!isCollapsed && (
                                 <button
                                     onClick={() => toggleSubmenu('interactions')}
-                                    className="flex items-center justify-between px-6 py-1.5 text-xs font-bold uppercase text-slate-800 hover:text-black transition-colors group w-full text-left tracking-wider"
+                                    className="flex items-center justify-between px-6 py-2 text-[11px] font-black uppercase text-slate-400 hover:text-orange-500 transition-colors group w-full text-left tracking-[0.1em]"
                                 >
-                                    <span>Interações</span>
-                                    <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('interactions') ? 'rotate-90' : ''}`} />
+                                    <div className="flex items-center gap-2">
+                                        <MessageSquare className="w-3.5 h-3.5" />
+                                        <span>Interações</span>
+                                    </div>
+                                    <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('interactions') ? 'rotate-90' : ''}`} />
                                 </button>
                             )}
                             {openSubmenus.includes('interactions') && (
-                                <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200">
+                                <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
+                                    {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-2 w-[1.5px] bg-slate-100" />}
                                     <LinkItem href="/admin/estatisticas" icon={BarChart3} label="Estatísticas" />
                                     <LinkItem href="/admin/indicadores" icon={Target} label="Indicadores" />
 
@@ -283,14 +294,18 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                             {!isCollapsed && (
                                 <button
                                     onClick={() => toggleSubmenu('modules')}
-                                    className="flex items-center justify-between px-6 py-1.5 text-xs font-bold uppercase text-slate-800 hover:text-black transition-colors group w-full text-left tracking-wider"
+                                    className="flex items-center justify-between px-6 py-2 text-[11px] font-black uppercase text-slate-400 hover:text-orange-500 transition-colors group w-full text-left tracking-[0.1em]"
                                 >
-                                    <span>Módulos</span>
-                                    <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('modules') ? 'rotate-90' : ''}`} />
+                                    <div className="flex items-center gap-2">
+                                        <Boxes className="w-3.5 h-3.5" />
+                                        <span>Módulos</span>
+                                    </div>
+                                    <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('modules') ? 'rotate-90' : ''}`} />
                                 </button>
                             )}
                             {openSubmenus.includes('modules') && (
-                                <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200">
+                                <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
+                                    {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-2 w-[1.5px] bg-slate-100" />}
                                     <LinkItem href="/admin/podcast" icon={Wifi} label="Podcast" />
                                     <LinkItem href="/admin/actividades" icon={LayoutDashboard} label="Actividades" />
                                     <LinkItem href="/admin/servicos" icon={Grid2X2} label="Serviços" />
@@ -305,14 +320,18 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                             {!isCollapsed && (
                                 <button
                                     onClick={() => toggleSubmenu('options')}
-                                    className="flex items-center justify-between px-6 py-1.5 text-xs font-bold uppercase text-slate-800 hover:text-black transition-colors group w-full text-left tracking-wider"
+                                    className="flex items-center justify-between px-6 py-2 text-[11px] font-black uppercase text-slate-400 hover:text-orange-500 transition-colors group w-full text-left tracking-[0.1em]"
                                 >
-                                    <span>Opções</span>
-                                    <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('options') ? 'rotate-90' : ''}`} />
+                                    <div className="flex items-center gap-2">
+                                        <Settings className="w-3.5 h-3.5" />
+                                        <span>Opções</span>
+                                    </div>
+                                    <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('options') ? 'rotate-90' : ''}`} />
                                 </button>
                             )}
                             {openSubmenus.includes('options') && (
-                                <div className="flex flex-col gap-1 animate-in slide-in-from-top-1 duration-200">
+                                <div className="flex flex-col gap-1 animate-in slide-in-from-top-1 duration-200 relative">
+                                    {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-1 w-[1.5px] bg-slate-100" />}
                                     <LinkItem href="/admin/utilizadores" icon={Users} label="Utilizadores" />
                                     <LinkItem href="/admin/configuracoes" icon={Target} label="Configurações" />
                                     <LinkItem href="/admin/integracoes" icon={Share2} label="Integrações" />
