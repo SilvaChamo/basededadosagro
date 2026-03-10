@@ -132,7 +132,6 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                 />
                 {!isCollapsed && (
                     <div className="flex items-center gap-2 flex-1">
-                        {isSub && <div className={`w-1.5 h-1.5 rounded-full ${active ? "bg-orange-500" : "bg-slate-300"}`} />}
                         <span>{label}</span>
                     </div>
                 )}
@@ -255,39 +254,10 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                                     <LinkItem href="/admin/estatisticas" icon={BarChart3} label="Estatísticas" isSub />
                                     <LinkItem href="/admin/indicadores" icon={Target} label="Indicadores" isSub />
 
-                                    {/* Mensagem Dropdown (nested in interactions) */}
-                                    <div className="flex flex-col gap-0.5">
-                                        <button
-                                            onClick={() => { }} // Nested submenus can stay for now or be flattend
-                                            className={`flex items-center gap-3 px-6 py-1.5 text-[13px] font-medium transition-all group whitespace-nowrap w-full text-left relative
-                                                ${pathname.startsWith('/admin/mensagens') ? "text-orange-600 bg-orange-50" : "text-slate-700 hover:text-slate-900 hover:bg-slate-100"} 
-                                                ${isCollapsed ? "justify-center px-2" : ""}
-                                            `}
-                                            title="Mensagem"
-                                        >
-                                            {pathname.startsWith('/admin/mensagens') && (
-                                                <div className="absolute right-0 top-0 bottom-0 w-[3px] bg-orange-500" />
-                                            )}
-                                            <MessageSquare className={`w-4 h-4 min-w-[16px] transition-colors ${pathname.startsWith('/admin/mensagens') ? "text-orange-600" : "text-slate-500 group-hover:text-orange-600"}`} />
-                                            {!isCollapsed && (
-                                                <>
-                                                    <span className="flex-1">Mensagem</span>
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
-                                                </>
-                                            )}
-                                        </button>
+                                    {/* Mensagem Sub-items */}
+                                    <LinkItem href="/admin/mensagens" icon={Mail} label="Email" isSub />
+                                    <LinkItem href="/admin/mensagens/newsletter" icon={Newspaper} label="Newsletter" isSub />
 
-                                        {!isCollapsed && (
-                                            <div className="flex flex-col gap-0.5 pl-12 pr-2">
-                                                <Link href="/admin/mensagens" className={`text-xs pl-8 pr-2 py-1.5 block font-medium hover:text-orange-500 transition-colors ${pathname === '/admin/mensagens' ? "text-orange-500" : "text-slate-500"}`}>
-                                                    Email
-                                                </Link>
-                                                <Link href="/admin/mensagens/newsletter" className={`text-xs pl-8 pr-2 py-1.5 block font-medium hover:text-orange-500 transition-colors ${pathname === '/admin/mensagens/newsletter' ? "text-orange-500" : "text-slate-500"}`}>
-                                                    Newsletter
-                                                </Link>
-                                            </div>
-                                        )}
-                                    </div>
                                     <LinkItem href="/admin/contactos" icon={Contact} label="Contactos" isSub />
                                 </div>
                             )}
