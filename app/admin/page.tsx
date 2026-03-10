@@ -54,7 +54,7 @@ export default function AdminDashboardPage() {
         { name: "Artigos Publicados", value: stats.articles, icon: FileText, color: "text-blue-600", bg: "bg-blue-50", href: "/admin/artigos" },
         { name: "Empresas Registadas", value: stats.companies, icon: Building2, color: "text-emerald-600", bg: "bg-emerald-50", href: "/admin/empresas" },
         { name: "Profissionais no Sistema", value: stats.professionals, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50", href: "/admin/profissionais" },
-        { name: "Produtos & Insumos", value: stats.products, icon: ShoppingCart, color: "text-orange-600", bg: "bg-orange-50", href: "/admin/produtos" },
+        { name: "Produtos", value: stats.products, icon: ShoppingCart, color: "text-orange-600", bg: "bg-orange-50", href: "/admin/produtos" },
     ];
 
     return (
