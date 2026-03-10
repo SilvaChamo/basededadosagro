@@ -49,6 +49,8 @@ export default function RootLayout({
         className={`${montserrat.variable} ${mavenPro.variable} font-sans antialiased bg-background min-h-screen flex flex-col`}
         suppressHydrationWarning
       >
+        {/* Global Identification Bar - 6px Green */}
+        <div className="fixed top-0 left-0 w-full h-[6px] bg-[#22c55e] z-[99999]" />
         <Script
           src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
           strategy="afterInteractive"

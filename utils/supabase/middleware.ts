@@ -44,25 +44,51 @@ export async function updateSession(request: NextRequest) {
         }
     )
 
+    // 0. Rate Limiting Simples para Login
+    const ip = request.headers.get('x-forwarded-for') || 'unknown';
+    const { pathname } = request.nextUrl;
+
+    if (pathname === '/login' && request.method === 'POST') {
+        const lastAttempt = request.cookies.get('last_login_attempt')?.value;
+        const now = Date.now();
+        if (lastAttempt && now - parseInt(lastAttempt) < 2000) {
+            return new NextResponse('Muitas solicitações. Aguarde um momento.', { status: 429 });
+        }
+    }
+
     // IMPORTANT: DO NOT REMOVE auth.getUser()
     const {
         data: { user },
     } = await supabase.auth.getUser()
 
-    if (request.nextUrl.pathname.startsWith('/usuario') && !user) {
-        // no user, potentially respond by redirecting the user to the login page
-        const url = request.nextUrl.clone()
-        url.pathname = '/login'
-        return NextResponse.redirect(url)
+    // 1. Obscuridade: Em vez de redirecionar para login, damos rewrite para 404
+    const isProtectedRoute = pathname.startsWith('/usuario') || pathname.startsWith('/admin');
+    const isSensitivePath = pathname === '/login' ||
+        pathname === '/admin' ||
+        pathname === '/autenticar' ||
+        pathname === '/autenticacao' ||
+        pathname === '/dashboard' ||
+        pathname === '/auth/login';
+
+    // O parâmetro solicitado: ?from=/base ou ?from=/base*
+    const fromParam = request.nextUrl.searchParams.get('from');
+    const hasSecureFrom = fromParam && fromParam.startsWith('/base');
+
+    // Se tentar aceder a rota protegida sem user, OU se tentar aceder a caminhos sensíveis sem o parâmetro oficial
+    // NOTA: Se for /auth/login E tiver o parâmetro correto, PERMITIMOS o acesso à página de login
+    if ((isProtectedRoute && !user) || (isSensitivePath && !user && !(pathname === '/auth/login' && hasSecureFrom))) {
+        // Rewrite interno para o 404, mantendo a URL original (obscuridade total)
+        const url = request.nextUrl.clone();
+        url.pathname = '/404'; // Next.js renderiza o not-found.tsx
+        return NextResponse.rewrite(url);
     }
 
-    // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
-    // creating a new Response object with NextResponse.next() make sure to:
-    // 1. Pass the request in it, like so:
-    //    const myNewResponse = NextResponse.next({ request })
-    // 2. Copy over the cookies, like so:
-    //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-    // 3. Change the myNewResponse object to fit your needs, but avoid changing
-    //    the cookies!
+    if (pathname === '/auth/login' && user) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/usuario/dashboard';
+        return NextResponse.redirect(url);
+    }
+
+
     return supabaseResponse
 }
