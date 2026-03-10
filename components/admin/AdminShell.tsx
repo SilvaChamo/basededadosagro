@@ -118,16 +118,16 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
         return (
             <Link
                 href={href}
-                className={`relative flex items-center gap-3 px-6 py-1.5 text-[13px] font-medium transition-all group whitespace-nowrap ${active
+                className={`relative flex items-center gap-3 py-1.5 text-[13px] font-medium transition-all group whitespace-nowrap ${active
                     ? "text-orange-600 bg-orange-50"
                     : "text-slate-700 hover:text-slate-900 hover:bg-slate-100"
-                    } ${isCollapsed ? "justify-center px-2" : ""}`}
+                    } ${isCollapsed ? "justify-center px-2" : isSub ? "pl-11 pr-6" : "px-6"}`}
                 title={isCollapsed ? label : undefined}
             >
                 {active && (
                     <div className="absolute right-0 top-0 bottom-0 w-[3px] bg-orange-500" />
                 )}
-                <Icon className={`w-4 h-4 min-w-[16px] transition-colors ${active ? "text-orange-600" : "text-slate-500 group-hover:text-orange-600"
+                <Icon className={`w-5 h-5 min-w-[20px] transition-colors ${active ? "text-orange-600" : "text-slate-500 group-hover:text-orange-600"
                     }`} />
                 {!isCollapsed && <span>{label}</span>}
             </Link>
