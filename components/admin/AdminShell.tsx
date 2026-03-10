@@ -320,6 +320,26 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                             )}
                         </div>
                     </nav>
+
+                    {/* Footer - Identificação do Usuário */}
+                    <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+                        {!isCollapsed && (
+                            <div className="flex items-center gap-3 px-2 py-2 overflow-hidden">
+                                <div className="w-10 h-10 min-w-[40px] rounded-full bg-slate-200 flex items-center justify-center text-sm font-bold text-slate-600 ring-2 ring-white shadow-sm">
+                                    AD
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-bold text-slate-900 truncate">Administrador</p>
+                                    <p className="text-[11px] text-slate-500 truncate font-medium">{userEmail}</p>
+                                </div>
+                            </div>
+                        )}
+                        {isCollapsed && (
+                            <div className="w-10 h-10 mx-auto rounded-full bg-slate-200 flex items-center justify-center text-sm font-bold text-slate-600 ring-2 ring-white shadow-sm" title={userEmail}>
+                                AD
+                            </div>
+                        )}
+                    </div>
                 </div>
             </aside>
 
