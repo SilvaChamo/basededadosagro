@@ -38,6 +38,14 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# editor/agent local state
+.claude/
+.idea/
+.vscode/
+
+# leftover backup files from automated fix scripts
+*.bak-*
 # pwa
 public/sw.js
 public/sw.js.map

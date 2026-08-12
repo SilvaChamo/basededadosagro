@@ -4,8 +4,10 @@ import React, { useEffect, useState } from "react";
 import { TrendingUp, Users, Eye, Building2, Tractor, ShoppingBag, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
+import { useTranslations } from 'next-intl';
 
 export function WhyChooseUs() {
+    const t = useTranslations('WhyChooseUs');
     const [counts, setCounts] = useState({
         empresas: 0,
         profissionais: 0,
@@ -32,6 +34,11 @@ export function WhyChooseUs() {
         fetchCounts();
     }, []);
 
+    const richHandlers = {
+        br: () => <br />,
+        highlight: (chunks: React.ReactNode) => <span className="text-[#f97316]">{chunks}</span>
+    };
+
     return (
 
         <section className="bg-transparent py-10 md:py-[100px] overflow-hidden relative">
@@ -46,11 +53,10 @@ export function WhyChooseUs() {
                 <div className="space-y-8 animate-in fade-in slide-in-from-left-8 duration-700 sticky top-24">
                     <div className="space-y-4">
                         <h2 className="text-[28px] md:text-[45px] font-heading font-black text-slate-600 leading-[1.1] tracking-tight">
-                            Porque fazer parte da <br />
-                            maior <span className="text-[#f97316]">plataforma agrária</span>
+                            {t.rich('title', richHandlers)}
                         </h2>
                         <p className="text-slate-500 text-sm leading-relaxed">
-                            Num mercado agrário dinâmico como o moçambicano, a visibilidade e o acesso à informação certa não é apenas um luxo, é uma necessidade de sobrevivência. A nossa plataforma conecta produtores, fornecedores e compradores.
+                            {t('description')}
                         </p>
                     </div>
 
@@ -61,8 +67,8 @@ export function WhyChooseUs() {
                                     <Eye className="w-5 h-5 text-[#f97316]" />
                                 </div>
                                 <div>
-                                    <h3 className="text-base font-bold text-slate-600">Visibilidade no Sector</h3>
-                                    <p className="text-slate-500 text-sm mt-0.5">Apareça nos primeiros resultados para quem procura produtos.</p>
+                                    <h3 className="text-base font-bold text-slate-600">{t('features.visibility.title')}</h3>
+                                    <p className="text-slate-500 text-sm mt-0.5">{t('features.visibility.description')}</p>
                                 </div>
                             </div>
 
@@ -71,8 +77,8 @@ export function WhyChooseUs() {
                                     <TrendingUp className="w-5 h-5 text-emerald-600" />
                                 </div>
                                 <div>
-                                    <h3 className="text-base font-bold text-slate-600">Crescimento Exponencial</h3>
-                                    <p className="text-slate-500 text-sm mt-0.5">Aumente as suas vendas através de campanhas segmentadas.</p>
+                                    <h3 className="text-base font-bold text-slate-600">{t('features.growth.title')}</h3>
+                                    <p className="text-slate-500 text-sm mt-0.5">{t('features.growth.description')}</p>
                                 </div>
                             </div>
                         </div>
@@ -82,7 +88,7 @@ export function WhyChooseUs() {
                             href="/servicos/registo-talento"
                             className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-[#f97316] text-white px-8 py-[10px] rounded-[7px] font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-orange-500/30 hover:-translate-y-1 group"
                         >
-                            É profissional? Registe-se
+                            {t('professional_button')}
                             <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
                         </Link>
                     </div>
@@ -104,11 +110,10 @@ export function WhyChooseUs() {
                                 <div className="space-y-1">
                                     <h4 className="font-black text-lg leading-tight text-white tracking-normal" suppressHydrationWarning>
                                         <span>{counts.empresas > 0 ? `${counts.empresas} ` : ''}</span>
-                                        <span>Empresas</span><br />
-                                        <span>Registadas</span>
+                                        {t.rich('cards.companies.title', richHandlers)}
                                     </h4>
                                     <p className="text-emerald-50 text-[10px] uppercase font-bold tracking-wider flex items-center gap-2 group-hover:gap-3 transition-all">
-                                        Ver arquivo <ArrowRight className="w-3 h-3" />
+                                        {t('cards.companies.link')} <ArrowRight className="w-3 h-3" />
                                     </p>
                                 </div>
                             </div>
@@ -117,7 +122,7 @@ export function WhyChooseUs() {
                             </div>
                         </Link>
 
-                        {/* Card 3: Professionals - Moved to Col 1 */}
+                        {/* Card 3: Professionals */}
                         <Link
                             href="/repositorio?cat=profissionais"
                             className="bg-white p-6 rounded-[16px] shadow-md border border-slate-100 hover:border-[#f97316]/30 transition-all duration-300 hover:-translate-y-1 group cursor-pointer flex flex-col gap-2 min-h-[180px]"
@@ -129,11 +134,10 @@ export function WhyChooseUs() {
                                 <div className="space-y-1">
                                     <h4 className="font-black text-slate-600 text-lg leading-tight tracking-normal" suppressHydrationWarning>
                                         <span>{counts.profissionais > 0 ? `${counts.profissionais} ` : ''}</span>
-                                        <span>Profissionais</span><br />
-                                        <span>Cadastrados</span>
+                                        {t.rich('cards.professionals.title', richHandlers)}
                                     </h4>
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider group-hover:text-[#f97316] transition-colors flex items-center gap-2">
-                                        Explorar <ArrowRight className="w-3 h-3" />
+                                        {t('cards.professionals.link')} <ArrowRight className="w-3 h-3" />
                                     </p>
                                 </div>
                             </div>
@@ -154,11 +158,10 @@ export function WhyChooseUs() {
                                 <div className="space-y-1">
                                     <h4 className="font-black text-slate-600 text-lg leading-tight tracking-normal" suppressHydrationWarning>
                                         <span>{counts.propriedades > 0 ? `${counts.propriedades} ` : ''}</span>
-                                        <span>Propriedades</span><br />
-                                        <span>Cadastrados</span>
+                                        {t.rich('cards.properties.title', richHandlers)}
                                     </h4>
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider group-hover:text-[#f97316] transition-colors flex items-center gap-2">
-                                        Explorar <ArrowRight className="w-3 h-3" />
+                                        {t('cards.properties.link')} <ArrowRight className="w-3 h-3" />
                                     </p>
                                 </div>
                             </div>
@@ -176,11 +179,10 @@ export function WhyChooseUs() {
                                 <div className="space-y-1">
                                     <h4 className="font-black text-lg leading-tight text-white tracking-normal" suppressHydrationWarning>
                                         <span>{counts.produtos > 0 ? `${counts.produtos} ` : ''}</span>
-                                        <span>Produtos</span><br />
-                                        <span>Cadastrados</span>
+                                        {t.rich('cards.products.title', richHandlers)}
                                     </h4>
                                     <p className="text-orange-50 text-[10px] uppercase font-bold tracking-wider flex items-center gap-2 group-hover:gap-3 transition-all">
-                                        Ver arquivo <ArrowRight className="w-3 h-3" />
+                                        {t('cards.products.link')} <ArrowRight className="w-3 h-3" />
                                     </p>
                                 </div>
                             </div>

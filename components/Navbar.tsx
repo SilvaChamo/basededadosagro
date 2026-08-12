@@ -37,6 +37,13 @@ export function Navbar() {
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const headerRef = React.useRef<HTMLElement>(null);
 
+    // Radix generates the Sheet trigger's aria-controls id via useId(), which can
+    // land on a different value between the SSR pass and the client hydration pass
+    // in this tree, producing a harmless but noisy hydration mismatch warning.
+    // Mounting the interactive Sheet only after hydration avoids the SSR/client diff entirely.
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
+
     const toggleMenu = (menu: string) => {
         setActiveMenu(prev => prev === menu ? null : menu);
     };
@@ -325,13 +332,18 @@ export function Navbar() {
                     <button onClick={toggleLanguage} className="notranslate w-9 h-9 flex items-center justify-center rounded-[8px] bg-[#f97316]/10 font-medium text-[13px] text-[#f97316] hover:bg-[#f97316]/20 transition-all uppercase tracking-tight shadow-sm">
                         {language === "PT" ? "EN" : "PT"}
                     </button>
-                    <Link href="/auth/login?from=/base" className="hidden sm:block">
+                    <Link href="/auth/login" className="hidden sm:block">
                         <Button className="notranslate bg-emerald-600 hover:bg-[#f97316] text-white text-[12px] font-bold px-5 h-9 rounded-[8px] transition-all shadow-sm border-none">
                             {t("common.login")}
                         </Button>
                     </Link>
 
                     {/* Mobile Menu Trigger */}
+                    {!mounted ? (
+                        <Button variant="ghost" size="icon" className="md:hidden text-gray-600" aria-label="Menu">
+                            <Menu className="w-6 h-6" />
+                        </Button>
+                    ) : (
                     <Sheet>
                         <SheetTrigger asChild>
                             <Button variant="ghost" size="icon" className="md:hidden text-gray-600">
@@ -400,7 +412,7 @@ export function Navbar() {
                                     </div>
                                 </div>
                                 <div className="p-6 border-t border-slate-50 space-y-4">
-                                    <Link href="/auth/login?from=/base" className="block w-full">
+                                    <Link href="/auth/login" className="block w-full">
                                         <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 rounded-[12px]">
                                             {t("common.login")}
                                         </Button>
@@ -409,6 +421,7 @@ export function Navbar() {
                             </div>
                         </SheetContent>
                     </Sheet>
+                    )}
                 </div>
             </div>
         </header>

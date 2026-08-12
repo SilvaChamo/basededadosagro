@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Search, Building2, ShoppingBag, Users, FileText, LandPlot, ChevronDown, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/utils/supabase/client";
+import { useTranslations } from 'next-intl';
 import {
     Popover,
     PopoverContent,
@@ -18,6 +19,7 @@ interface SearchSectionProps {
 
 export function SearchSection({ isOpen, withBottomBorder = false }: SearchSectionProps) {
     const supabase = createClient();
+    const t = useTranslations('SearchSection');
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState<string>("all");
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
@@ -108,12 +110,12 @@ export function SearchSection({ isOpen, withBottomBorder = false }: SearchSectio
     }, []);
 
     const categories = [
-        { id: "all", label: "Todas categorias", icon: Search },
-        { id: "empresas", label: "Empresas", icon: Building2 },
-        { id: "produtos", label: "Produtos", icon: ShoppingBag },
-        { id: "profissionais", label: "Profissionais", icon: Users },
-        { id: "propriedades", label: "Propriedades", icon: LandPlot },
-        { id: "artigos", label: "Artigos", icon: FileText },
+        { id: "all", label: t("categories.all"), icon: Search },
+        { id: "empresas", label: t("categories.empresas"), icon: Building2 },
+        { id: "produtos", label: t("categories.produtos"), icon: ShoppingBag },
+        { id: "profissionais", label: t("categories.profissionais"), icon: Users },
+        { id: "propriedades", label: t("categories.propriedades"), icon: LandPlot },
+        { id: "artigos", label: t("categories.artigos"), icon: FileText },
     ];
 
     const currentCat = categories.find(c => c.id === activeCategory) || categories[0];
@@ -156,7 +158,7 @@ export function SearchSection({ isOpen, withBottomBorder = false }: SearchSectio
 
                                 <Input
                                     className="border-none shadow-none focus-visible:ring-0 text-base h-full bg-transparent placeholder:text-gray-400 flex-1 px-4 my-1 ml-2 rounded-[5px]"
-                                    placeholder="O que procura hoje?"
+                                    placeholder={t("placeholder")}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
@@ -209,7 +211,7 @@ export function SearchSection({ isOpen, withBottomBorder = false }: SearchSectio
 
                         {!filteredResults ? (
                             <div className="text-center py-20 text-gray-400">
-                                <p className="text-xl">Nenhum resultado encontrado no centro de dados.</p>
+                                <p className="text-xl">{t("no_results")}</p>
                             </div>
                         ) : (
                             <div className="space-y-16">
@@ -275,44 +277,66 @@ export function SearchSection({ isOpen, withBottomBorder = false }: SearchSectio
 function SearchResultCard({ item, colorClass, isRound = false }: { item: any, colorClass: string, isRound?: boolean }) {
     const Icon = item.icon || Search; // Fallback
 
-    // Determine the link based on category or item type
-    let href = "#";
+    // Determine the link based on category or item type.
+    // There is no generic /detalhes/[id] page in this app, so items without a
+    // real destination fall back to the closest listing page instead of a dead link.
+    let href: string | null = null;
 
     if (item.type === 'company' && item.slug) {
         href = `/empresas/${item.slug}`;
-    } else if (item.type === 'product' && item.slug && item.company_slug) {
+    } else if (item.type === 'product' && item.slug && item.company_slug && item.company_slug !== 'geral') {
         href = `/empresas/${item.company_slug}/produto/${item.slug}`;
+    } else if (item.type === 'product') {
+        href = `/produtos`;
     } else if (item.type === 'article' && item.slug) {
         href = `/artigos/${item.slug}`;
-    } else if (item.id) {
-        href = `/detalhes/${item.id}`;
+    } else if (item.type === 'professional' && item.id) {
+        href = `/repositorio/profissionais/${item.id}`;
+    } else if (item.type === 'property') {
+        href = `/propriedades`;
+    }
+
+    if (!href) {
+        return (
+            <div className="bg-white border border-gray-100 p-5 rounded-agro shadow-sm flex items-center gap-agro opacity-60 cursor-default">
+                <SearchResultCardBody item={item} colorClass={colorClass} isRound={isRound} Icon={Icon} />
+            </div>
+        );
     }
 
     return (
         <Link href={href} className="block">
             <div className="bg-white border border-gray-100 p-5 rounded-agro shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex items-center gap-agro group">
-                {/* Image or Icon Container */}
-                <div className="shrink-0">
-                    {item.logo ? (
-                        <div className="w-12 h-12 rounded-[5px] overflow-hidden border border-gray-100 relative bg-white">
-                            <img src={item.logo} alt={item.title} className="w-full h-full object-contain p-1" />
-                        </div>
-                    ) : item.image ? (
-                        <div className={`w-12 h-12 overflow-hidden border border-gray-100 relative ${isRound ? 'rounded-full' : 'rounded-[5px]'}`}>
-                            <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
-                        </div>
-                    ) : (
-                        <div className={`w-12 h-12 rounded-[5px] flex items-center justify-center transition-colors duration-300 ${colorClass} group-hover:bg-gray-900 group-hover:text-white`}>
-                            <Icon className="w-6 h-6" />
-                        </div>
-                    )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-slate-600 text-sm md:text-base leading-tight group-hover:text-[#f97316] transition-colors truncate">{item.title}</h4>
-                    <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mt-1 line-clamp-2">{item.sub}</p>
-                </div>
+                <SearchResultCardBody item={item} colorClass={colorClass} isRound={isRound} Icon={Icon} />
             </div>
         </Link>
+    );
+}
+
+function SearchResultCardBody({ item, colorClass, isRound, Icon }: { item: any, colorClass: string, isRound: boolean, Icon: any }) {
+    return (
+        <>
+            {/* Image or Icon Container */}
+            <div className="shrink-0">
+                {item.logo ? (
+                    <div className="w-12 h-12 rounded-[5px] overflow-hidden border border-gray-100 relative bg-white">
+                        <img src={item.logo} alt={item.title} className="w-full h-full object-contain p-1" />
+                    </div>
+                ) : item.image ? (
+                    <div className={`w-12 h-12 overflow-hidden border border-gray-100 relative ${isRound ? 'rounded-full' : 'rounded-[5px]'}`}>
+                        <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                    </div>
+                ) : (
+                    <div className={`w-12 h-12 rounded-[5px] flex items-center justify-center transition-colors duration-300 ${colorClass} group-hover:bg-gray-900 group-hover:text-white`}>
+                        <Icon className="w-6 h-6" />
+                    </div>
+                )}
+            </div>
+
+            <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-slate-600 text-sm md:text-base leading-tight group-hover:text-[#f97316] transition-colors truncate">{item.title}</h4>
+                <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mt-1 line-clamp-2">{item.sub}</p>
+            </div>
+        </>
     );
 }

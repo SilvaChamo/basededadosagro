@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { syncManager } from "@/lib/syncManager";
-import { shareToFacebook, shareToLinkedin } from "@/app/admin/noticias/share-actions";
+import { shareToFacebook, shareToLinkedin } from "@/app/[locale]/admin/noticias/share-actions";
 
 interface NewsEditorProps {
     initialData?: any;

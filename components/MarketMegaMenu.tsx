@@ -16,19 +16,19 @@ const marketCategories: MarketCategory[] = [
         id: "produtores",
         title: "Produtores",
         icon: Users,
-        link: "/mercado/produtores",
+        link: "/mercado",
     },
     {
         id: "fornecedores",
         title: "Fornecedores",
         icon: Truck,
-        link: "/mercado/fornecedores",
+        link: "/mercado",
     },
     {
         id: "consumidores",
         title: "Consumidores",
         icon: ShoppingBag,
-        link: "/mercado/consumidores",
+        link: "/mercado",
     },
     {
         id: "lojas",

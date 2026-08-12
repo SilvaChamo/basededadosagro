@@ -1,0 +1,90 @@
+{
+  "TermsPage": {
+    "title": "Termos e <highlight>Condições</highlight>",
+    "breadcrumb": "Termos e Condições",
+    "lastUpdated": "Actualizado em Janeiro de 2024",
+    "sections": {
+      "acceptance": {
+        "title": "1. Aceitação dos Termos",
+        "content": "Ao aceder e utilizar a plataforma Base Agro Data, o utilizador concorda plenamente com os presentes termos e condições de uso. Se não concordar com qualquer parte destes termos, não deverá utilizar os nossos serviços."
+      },
+      "serviceDescription": {
+        "title": "2. Descrição do Serviço",
+        "content": "A Base Agro Data fornece uma plataforma digital para agregação de indicadores agrícolas, monitoria de preços de mercado e ligação entre produtores, empresas e profissionais do sector agrário em Moçambique."
+      }
+    },
+    "confirmation": "Ao continuar a navegar, o utilizador confirma que leu e compreendeu integralmente os termos acima descritos."
+  },
+  "HistorialPage": {
+    "header": {
+      "back": "Voltar para Sobre Nós",
+      "title": "Nosso Historial"
+    },
+    "aside": {
+      "title": "Base de Dados <highlight>Agrícola</highlight>",
+      "description": "A força motriz da inovação agrária no país, unindo o legado da comunicação à precisão da tecnologia de dados.",
+      "menu": {
+        "origin": "A origem",
+        "newspaper": "O jornal agrícola",
+        "digital": "A evolução digital",
+        "community": "Impacto comunitário"
+      },
+      "nextChapter": {
+        "label": "Próximo capítulo",
+        "text": "\"Não paramos no diagnóstico; agora estamos a construir o futuro da robótica no campo.\""
+      }
+    },
+    "content": {
+      "badge": "Trajectória de Inovação",
+      "title": "O nosso <highlight>Historial</highlight>",
+      "intro": "A nossa jornada é marcada pela adaptação constante e pelo compromisso inabalável com o sector agrário. Explore os marcos fundamentais que transformaram a nossa visão em realidade tecnológica.",
+      "timeline": {
+        "step1": {
+          "title": "A Raiz: O Jornal Agrícola",
+          "p1": "Tudo começou com o **O Jornal EntreCCAMPOS — Jornal Agrícola**, uma iniciativa registada pelo GABINFO em 2015, como um Orgão de comunicação destinada à divulgação de informações relacionadas com a Agricultura e Desenvolvimento Comunitário, criação e gestão de projectos para o desenvolvimento das comunidades a nível nacional.",
+          "p2": "Durante anos, o jornal foi a voz do campo, reportando notícias e desafios enfrentados pelos agricultores. No entanto, percebemos que reportar os factos era apenas o início. Para realmente transformar a vida no campo, era necessário entregar **soluções tangíveis**, é dái que surge a ideia de criar a base de dados agrícolas."
+        },
+        "step2": {
+          "title": "A Metamorfose Tecnológica",
+          "p1": "Identificamos que a maior barreira para o crescimento não era a falta de vontade, mas a **falta de dados estruturados** e a dificuldade de conexão directa entre os actores da cadeia de valor.",
+          "p2": "Foi então que tomamos uma decisão estratégica: o Jornal Agrícola deixaria de ser apenas um meio impresso para se tornar o coração de uma infra-estrutura digital. Assim nasceu a **Base de Dados Agrícola de Moçambique**."
+        },
+        "step3": {
+          "title": "O Presente e o Futuro",
+          "p1": "Hoje, a base de dados é muito mais do que um arquivo — é o motor propulsor que alimenta o aplicativo **Botânica**, monitora cotações de mercado e conecta fornecedores a clientes.",
+          "p2": "Esquecemos a banca para focar no terreno. A nossa historia está a ser escrita agora, linha a linha de código, transação a transação, hectare a hectare. Somos a evolução digital da comunicação agrária em Moçambique."
+        }
+      },
+      "quote": {
+        "title": "Para produzir soluções tangíveis",
+        "text": "Transformamos o jornal em tecnologia, para que o agricultor não apenas leia sobre a mudança, mas a sinta no seu rendimento final."
+      }
+    }
+  },
+  "ServicesData": {
+    "logistica": {
+      "title": "Logística e transporte",
+      "subCategories": {
+        "transporte": {
+          "title": "Transporte Terrestre",
+          "description": "Frota especializada para o transporte de produtos agrários em grandes quantidades.",
+          "fullDescription": "Colocamos ao seu dispor uma rede estratégica de transportadores moçambicanos certificados...",
+          "features": ["Frotas Certificadas", "Seguro de Carga", "Monitoria 24/7"],
+          "subServices": [
+            { "title": "Transporte de Granéis", "description": "Cereais e oleaginosas em bruto para processamento ou exportação." },
+            { "title": "Cadeia de Frio", "description": "Logística climatizada para hortícolas e produtos sensíveis." }
+          ]
+        },
+        "multimodal": {
+          "title": "Logística Multimodal",
+          "description": "Integração eficiente entre transporte rodoviário e marítimo para exportação.",
+          "fullDescription": "Facilitamos a integração entre a produção local e os mercados globais...",
+          "features": ["Simplificação de burocracia", "Redução de custos logísticos", "Expansão para mercados globais"],
+          "subServices": [
+            { "title": "Conexão Ferroviária", "description": "Aproveitamento dos corredores logísticos nacionais." }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -13,5 +13,6 @@ export function createAdminClient() {
             autoRefreshToken: false,
             persistSession: false,
         },
+        db: { schema: 'basededados' },
     });
 }

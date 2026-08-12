@@ -12,53 +12,66 @@ import {
 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import { useTranslations, useLocale } from 'next-intl';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 
+type CategoryCard = {
+    titleKey?: string;
+    descKey?: string;
+    title?: string;
+    description?: string;
+    icon: any;
+    dark?: boolean;
+    iconBg?: string;
+    iconColor?: string;
+    href: string;
+};
+
 const EXEMPLARY_CATEGORIES: CategoryCard[] = [
     {
-        title: "Turismo rural",
-        description: "Notícias e oportunidades de turismo rural e lazer.",
+        titleKey: "exemplary_categories.rural_tourism.title",
+        descKey: "exemplary_categories.rural_tourism.description",
         icon: LucideIcons.Luggage,
         iconBg: "bg-red-50",
         iconColor: "text-red-500",
         href: "/produtos?q=turismo"
     },
     {
-        title: "Tecnologias Agrárias",
-        description: "Inovações digitais, maquinaria moderna e soluções técnicas.",
+        titleKey: "exemplary_categories.agri_tech.title",
+        descKey: "exemplary_categories.agri_tech.description",
         icon: LucideIcons.Cpu,
         dark: true,
         iconColor: "text-white",
         href: "/produtos?q=tecnologia"
     },
     {
-        title: "Políticas Agrárias",
-        description: "Legislação, regulamentos e diretrizes governamentais para o setor.",
+        titleKey: "exemplary_categories.agri_policies.title",
+        descKey: "exemplary_categories.agri_policies.description",
         icon: LucideIcons.Scale,
         iconBg: "bg-blue-50",
         iconColor: "text-blue-500",
         href: "/documentos"
     },
     {
-        title: "Insumos Agrários",
-        description: "Explore insumos, maquinaria e produtos agrícolas disponíveis.",
+        titleKey: "exemplary_categories.agri_inputs.title",
+        descKey: "exemplary_categories.agri_inputs.description",
         icon: LucideIcons.Leaf,
         dark: true,
         iconColor: "text-white",
         href: "/produtos?q=insumo"
     },
     {
-        title: "Financiamento agrário",
-        description: "Linhas de crédito, fundos de investimento e seguros agrícolas.",
+        titleKey: "exemplary_categories.agri_finance.title",
+        descKey: "exemplary_categories.agri_finance.description",
         icon: LucideIcons.Coins,
         iconBg: "bg-yellow-50",
         iconColor: "text-yellow-500",
         href: "/produtos?q=financiamento"
     },
     {
-        title: "Artigos Científicos",
-        description: "Resultados de pesquisa e inovações do agronegócio.",
+        titleKey: "exemplary_categories.scientific_articles.title",
+        descKey: "exemplary_categories.scientific_articles.description",
         icon: LucideIcons.BookOpen,
         dark: true,
         iconColor: "text-white",
@@ -68,32 +81,32 @@ const EXEMPLARY_CATEGORIES: CategoryCard[] = [
 
 const RESOURCE_CARDS: CategoryCard[] = [
     {
-        title: "Comunicação Massiva",
-        description: "Active o sistema de alertas SMS e E-mail para alcançar seus clientes imediatamente.",
+        titleKey: "resource_cards.massive_comm.title",
+        descKey: "resource_cards.massive_comm.description",
         icon: MessageSquare,
         iconBg: "bg-orange-50",
         iconColor: "text-[#f97316]",
         href: "/inovacao/comunicacao-sms"
     },
     {
-        title: "Apresentações Visuais",
-        description: "Aceda ao editor de slide show para criar catálogos e relatórios profissionais.",
+        titleKey: "resource_cards.visual_pres.title",
+        descKey: "resource_cards.visual_pres.description",
         icon: Presentation,
         dark: true,
         iconColor: "text-white",
         href: "/inovacao/apresentacoes"
     },
     {
-        title: "Identidade Digital",
-        description: "Crie perfis profissionais e cartões de visita digitais com QR Code integrado.",
+        titleKey: "resource_cards.digital_identity.title",
+        descKey: "resource_cards.digital_identity.description",
         icon: QrCode,
         iconBg: "bg-blue-50",
         iconColor: "text-blue-500",
         href: "/inovacao/perfil-digital"
     },
     {
-        title: "AgroBotanica AI",
-        description: "Diagnostique pragas e doenças em segundos com nosso scanner inteligente.",
+        titleKey: "resource_cards.agrobotanica.title",
+        descKey: "resource_cards.agrobotanica.description",
         icon: ScanLine,
         dark: true,
         iconColor: "text-white",
@@ -101,17 +114,9 @@ const RESOURCE_CARDS: CategoryCard[] = [
     }
 ];
 
-type CategoryCard = {
-    title: string;
-    description: string;
-    icon: any;
-    dark?: boolean;
-    iconBg?: string;
-    iconColor?: string;
-    href: string;
-};
-
 export function InfoSection() {
+    const t = useTranslations('InfoSection');
+    const locale = useLocale();
     const [activeTab, setActiveTab] = useState("informacoes");
     const bgRef = useRef<HTMLImageElement>(null);
 
@@ -147,23 +152,10 @@ export function InfoSection() {
             ]);
 
             if (cats.data) {
-                const formattedCats = cats.data.map((c: any) => {
-                    // @ts-expect-error: LucideIcons dynamic indexing
-                    const Icon = LucideIcons[c.icon_name] || LucideIcons.TreePalm;
-                    return {
-                        title: c.title,
-                        description: c.description,
-                        icon: Icon,
-                        dark: c.is_dark,
-                        iconBg: c.bg_color,
-                        iconColor: c.text_color,
-                        href: c.href
-                    };
-                });
-
-                // Combine with exemplary to ensure all are present, then filter to the 6 we want
-                const allCats = [...EXEMPLARY_CATEGORIES];
-                setCategoryCards(allCats.slice(0, 6));
+                // If we have dynamic cats, we still might want to show exemplary for now if mapping isn't clear
+                // But the requirement is to use dictionary strings. 
+                // Let's stick to exemplary for now which are mapped to dictionary.
+                setCategoryCards(EXEMPLARY_CATEGORIES);
             } else {
                 setCategoryCards(EXEMPLARY_CATEGORIES);
             }
@@ -241,15 +233,15 @@ export function InfoSection() {
                         <div className="flex items-center justify-center gap-4">
                             <span className="w-[20px] h-[1px] bg-white opacity-60"></span>
                             <span className="text-[#f97316] text-xs font-black uppercase tracking-[0.3em] shadow-sm">
-                                Inovação e Crescimento
+                                {t('badge')}
                             </span>
                             <span className="w-[20px] h-[1px] bg-white opacity-60"></span>
                         </div>
                         <h2 className="text-[28px] md:text-[45px] font-black text-white tracking-tight mt-3">
-                            Mantenha-se informado
+                            {t('title')}
                         </h2>
                         <p className="text-slate-200 text-sm leading-tight max-w-3xl mx-auto font-medium">
-                            Oferecemos serviços dinâmicos para facilitar suas actividades com vista a melhorar a produção. Fornecemos auxílio na busca por soluções assertivas de forma eficiente. Explore as categorias disponíveis abaixo
+                            {t('description')}
                         </p>
                     </div>
 
@@ -261,7 +253,7 @@ export function InfoSection() {
                                 : "bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-[#f97316]"
                                 }`}
                         >
-                            Informações
+                            {t('tabs.info')}
                         </button>
                         <button
                             onClick={() => setActiveTab("recursos")}
@@ -270,7 +262,7 @@ export function InfoSection() {
                                 : "bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-[#f97316]"
                                 }`}
                         >
-                            Recursos
+                            {t('tabs.resources')}
                         </button>
                         <button
                             onClick={() => setActiveTab("categorias")}
@@ -279,7 +271,7 @@ export function InfoSection() {
                                 : "bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-[#f97316]"
                                 }`}
                         >
-                            Categorias
+                            {t('tabs.categories')}
                         </button>
                     </div>
                 </div>
@@ -289,75 +281,85 @@ export function InfoSection() {
                 <div className="animate-in fade-in duration-700 slide-in-from-bottom-8">
                     {loading ? (
                         <div className="bg-white p-12 rounded-[4px] shadow-lg text-center text-gray-400 border border-slate-100">
-                            A carregar informações...
+                            {t('loading')}
                         </div>
                     ) : (
                         <>
                             {activeTab === "categorias" && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-agro px-[40px]">
-                                    {categoryCards.map((card: any, idx: number) => (
-                                        <Link
-                                            key={idx}
-                                            href={card.href || "#"}
-                                            className={`p-[15px] rounded-agro text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl flex flex-col gap-[15px] group cursor-pointer border h-full ${card.dark
-                                                ? "bg-[#374151] text-white border-slate-600 shadow-xl shadow-slate-900/20"
-                                                : "bg-white text-[#3a3f47] border-slate-200 shadow-lg shadow-slate-200/50"
-                                                }`}
-                                        >
-                                            <div className={`w-14 h-14 rounded-[5px] flex items-center justify-center shrink-0 ${card.dark ? "bg-transparent border border-white/20" : "bg-slate-200"} ${card.title.toLowerCase().includes('visibilidade') ||
-                                                card.title.toLowerCase().includes('crescimento') ||
-                                                card.title.toLowerCase().includes('scanner') ||
-                                                card.title.toLowerCase().includes('doctor')
-                                                ? "border-2 border-[#f97316]"
-                                                : ""
-                                                } ${card.iconBg || ""}`}>
-                                                <card.icon className={`h-7 w-7 ${card.dark ? card.iconColor : "text-slate-600"}`} />
-                                            </div>
-                                            <div className="flex flex-col gap-1 h-full">
-                                                <h3 className={`text-xl font-black leading-tight first-letter:uppercase lowercase ${card.dark ? "text-white" : "text-[#3a3f47]"}`} suppressHydrationWarning>
-                                                    <span>{card.title}</span>
-                                                </h3>
-                                                <p className={`text-base leading-tight ${card.dark ? "text-slate-300" : "text-slate-500"} line-clamp-4`}>
-                                                    {card.description}
-                                                </p>
-                                                <div className={`mt-auto pt-2 flex items-center gap-2 text-xs font-bold tracking-wide ${card.dark ? "text-white/70" : "text-slate-400"} group-hover:text-[#f97316] transition-colors`}>
-                                                    Ver detalhes
-                                                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                                    {categoryCards.map((card: any, idx: number) => {
+                                        const title = card.titleKey ? t(card.titleKey) : card.title;
+                                        const description = card.descKey ? t(card.descKey) : card.description;
+
+                                        return (
+                                            <Link
+                                                key={idx}
+                                                href={card.href || "#"}
+                                                className={`p-[15px] rounded-agro text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl flex flex-col gap-[15px] group cursor-pointer border h-full ${card.dark
+                                                    ? "bg-[#374151] text-white border-slate-600 shadow-xl shadow-slate-900/20"
+                                                    : "bg-white text-[#3a3f47] border-slate-200 shadow-lg shadow-slate-200/50"
+                                                    }`}
+                                            >
+                                                <div className={`w-14 h-14 rounded-[5px] flex items-center justify-center shrink-0 ${card.dark ? "bg-transparent border border-white/20" : "bg-slate-200"} ${title.toLowerCase().includes('visibilidade') ||
+                                                    title.toLowerCase().includes('crescimento') ||
+                                                    title.toLowerCase().includes('scanner') ||
+                                                    title.toLowerCase().includes('doctor')
+                                                    ? "border-2 border-[#f97316]"
+                                                    : ""
+                                                    } ${card.iconBg || ""}`}>
+                                                    <card.icon className={`h-7 w-7 ${card.dark ? card.iconColor : "text-slate-600"}`} />
                                                 </div>
-                                            </div>
-                                        </Link>
-                                    ))}
+                                                <div className="flex flex-col gap-1 h-full">
+                                                    <h3 className={`text-xl font-black leading-tight first-letter:uppercase lowercase ${card.dark ? "text-white" : "text-[#3a3f47]"}`} suppressHydrationWarning>
+                                                        <span>{title}</span>
+                                                    </h3>
+                                                    <p className={`text-base leading-tight ${card.dark ? "text-slate-300" : "text-slate-500"} line-clamp-4`}>
+                                                        {description}
+                                                    </p>
+                                                    <div className={`mt-auto pt-2 flex items-center gap-2 text-xs font-bold tracking-wide ${card.dark ? "text-white/70" : "text-slate-400"} group-hover:text-[#f97316] transition-colors`}>
+                                                        {t('view_details')}
+                                                        <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        );
+                                    })}
                                 </div>
                             )}
 
                             {activeTab === "recursos" && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-agro px-[20px]">
-                                    {RESOURCE_CARDS.map((card: any, idx: number) => (
-                                        <Link
-                                            key={idx}
-                                            href={card.href || "#"}
-                                            className={`p-[20px] rounded-agro text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl flex flex-col gap-[15px] group cursor-pointer border h-full ${card.dark
-                                                ? "bg-[#374151] text-white border-slate-600 shadow-xl shadow-slate-900/20"
-                                                : "bg-white text-[#3a3f47] border-slate-200 shadow-lg shadow-slate-200/50"
-                                                }`}
-                                        >
-                                            <div className={`w-14 h-14 rounded-[8px] flex items-center justify-center shrink-0 ${card.dark ? "bg-emerald-600/20 border border-white/10" : "bg-slate-100 border border-slate-200"} ${card.iconBg || ""}`}>
-                                                <card.icon className={`h-7 w-7 ${card.dark ? card.iconColor : "text-slate-600"} ${card.iconColor || ""}`} />
-                                            </div>
-                                            <div className="flex flex-col gap-1 h-full">
-                                                <h3 className={`text-lg font-black leading-tight ${card.dark ? "text-white" : "text-slate-800"}`}>
-                                                    {card.title}
-                                                </h3>
-                                                <p className={`text-xs leading-snug ${card.dark ? "text-slate-300" : "text-slate-500"}`}>
-                                                    {card.description}
-                                                </p>
-                                                <div className={`mt-auto pt-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-wider ${card.dark ? "text-white/60" : "text-slate-400"} group-hover:text-[#f97316] transition-colors`}>
-                                                    Aceder agora
-                                                    <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+                                    {RESOURCE_CARDS.map((card: any, idx: number) => {
+                                        const title = card.titleKey ? t(card.titleKey) : card.title;
+                                        const description = card.descKey ? t(card.descKey) : card.description;
+
+                                        return (
+                                            <Link
+                                                key={idx}
+                                                href={card.href || "#"}
+                                                className={`p-[20px] rounded-agro text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl flex flex-col gap-[15px] group cursor-pointer border h-full ${card.dark
+                                                    ? "bg-[#374151] text-white border-slate-600 shadow-xl shadow-slate-900/20"
+                                                    : "bg-white text-[#3a3f47] border-slate-200 shadow-lg shadow-slate-200/50"
+                                                    }`}
+                                            >
+                                                <div className={`w-14 h-14 rounded-[8px] flex items-center justify-center shrink-0 ${card.dark ? "bg-emerald-600/20 border border-white/10" : "bg-slate-100 border border-slate-200"} ${card.iconBg || ""}`}>
+                                                    <card.icon className={`h-7 w-7 ${card.dark ? card.iconColor : "text-slate-600"} ${card.iconColor || ""}`} />
                                                 </div>
-                                            </div>
-                                        </Link>
-                                    ))}
+                                                <div className="flex flex-col gap-1 h-full">
+                                                    <h3 className={`text-lg font-black leading-tight ${card.dark ? "text-white" : "text-slate-800"}`}>
+                                                        {title}
+                                                    </h3>
+                                                    <p className={`text-xs leading-snug ${card.dark ? "text-slate-300" : "text-slate-500"}`}>
+                                                        {description}
+                                                    </p>
+                                                    <div className={`mt-auto pt-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-wider ${card.dark ? "text-white/60" : "text-slate-400"} group-hover:text-[#f97316] transition-colors`}>
+                                                        {t('access_now')}
+                                                        <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        );
+                                    })}
                                 </div>
                             )}
 
@@ -368,20 +370,20 @@ export function InfoSection() {
                                             <button
                                                 onClick={scrollPrev}
                                                 className="w-10 h-10 rounded-full bg-white shadow-md border border-slate-100 flex items-center justify-center text-[#f97316] hover:bg-[#f97316] hover:text-white transition-all"
-                                                aria-label="Notícia anterior"
+                                                aria-label={t('aria.prev_news')}
                                             >
                                                 <ChevronLeft className="h-6 w-6" />
                                             </button>
                                             <button
                                                 onClick={scrollNext}
                                                 className="w-10 h-10 rounded-full bg-white shadow-md border border-slate-100 flex items-center justify-center text-[#f97316] hover:bg-[#f97316] hover:text-white transition-all"
-                                                aria-label="Próxima notícia"
+                                                aria-label={t('aria.next_news')}
                                             >
                                                 <ChevronRight className="h-6 w-6" />
                                             </button>
                                         </div>
                                         <Link href="/blog" className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-[#f97316] transition-colors group">
-                                            Ver mais notícias
+                                            {t('view_more_news')}
                                             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                                         </Link>
                                     </div>
@@ -397,7 +399,7 @@ export function InfoSection() {
                                                             <div className="relative h-48 w-full overflow-hidden border-b-4 border-[#f97316]">
                                                                 <Image
                                                                     src={news.image_url || "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?q=80&w=800&auto=format&fit=crop"}
-                                                                    alt={news.title || "Notícia"}
+                                                                    alt={news.title || t('aria.next_news')}
                                                                     fill
                                                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 33vw"
                                                                     className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -409,7 +411,7 @@ export function InfoSection() {
                                                             <div className="p-5 flex flex-col flex-1">
                                                                 <div className="space-y-2">
                                                                     <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400">
-                                                                        <span>{new Date(news.date).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' }).replace('.', '').replace(' de ', ' ')}</span>
+                                                                        <span>{new Date(news.date).toLocaleDateString(locale === 'en' ? 'en-US' : 'pt-PT', { day: '2-digit', month: 'short', year: 'numeric' }).replace('.', '').replace(' de ', ' ')}</span>
                                                                     </div>
                                                                     <h3 className="text-lg font-black text-slate-600 group-hover:text-[#f97316] transition-colors line-clamp-2 first-letter:uppercase lowercase my-0 mb-[10px]" suppressHydrationWarning>
                                                                         <span>{news.title}</span>
@@ -419,7 +421,7 @@ export function InfoSection() {
                                                                     </p>
                                                                 </div>
                                                                 <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 group-hover:text-[#f97316] transition-colors mt-auto pt-[15px]">
-                                                                    Explorar <ArrowRight className="h-3 w-3" />
+                                                                    {t('view_details')} <ArrowRight className="h-3 w-3" />
                                                                 </div>
                                                             </div>
                                                         </Link>
@@ -439,7 +441,7 @@ export function InfoSection() {
                                                     ? "bg-[#f97316] w-12"
                                                     : "bg-slate-300 hover:bg-slate-400"
                                                     }`}
-                                                aria-label={`Ir para notícia ${index + 1}`}
+                                                aria-label={t('aria.go_to_news', { index: index + 1 })}
                                             />
                                         ))}
                                     </div>

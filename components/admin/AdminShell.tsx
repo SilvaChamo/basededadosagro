@@ -65,7 +65,7 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
         try {
             await supabase.auth.signOut();
             router.refresh();
-            router.push('/login');
+            router.push('/auth/login');
             toast.success("Sessão terminada.");
         } catch (error) {
             toast.error("Erro ao sair.");
@@ -113,19 +113,24 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
         return false;
     };
 
-    const LinkItem = memo(({ href, icon: Icon, label, isSub }: { href: string; icon: any; label: string; isSub?: boolean }) => {
+    const LinkItem = memo(({ href, icon: Icon, label, isSub, isHeader }: { href: string; icon: any; label: string; isSub?: boolean; isHeader?: boolean }) => {
         const active = isActive(href);
+        const baseStyles = active
+            ? "text-orange-600 bg-orange-50"
+            : "text-slate-700 hover:text-slate-900 hover:bg-slate-100";
+        
+        const headerStyles = isHeader 
+            ? "font-black uppercase tracking-[0.1em] text-slate-500 hover:text-orange-500" 
+            : "font-medium";
+
         return (
             <Link
                 href={href}
-                className={`relative flex items-center gap-3 py-1.5 text-[13px] font-medium transition-all group whitespace-nowrap ${active
-                    ? "text-orange-600 bg-orange-50"
-                    : "text-slate-700 hover:text-slate-900 hover:bg-slate-100"
-                    } ${isCollapsed ? "justify-center px-2" : isSub ? "pl-11 pr-6" : "px-6"}`}
+                className={`relative flex items-center gap-3 py-2 text-[13px] transition-all group whitespace-nowrap ${active ? (isHeader ? "text-orange-600 bg-orange-50" : "text-orange-600 bg-orange-50") : (isHeader ? "text-slate-500 hover:text-orange-500 hover:bg-slate-50" : "text-slate-700 hover:text-slate-900 hover:bg-slate-100")} ${isHeader ? "font-black uppercase tracking-[0.1em]" : "font-medium"} ${isCollapsed ? "justify-center px-2" : isSub ? "pl-11 pr-6" : "px-6"}`}
                 title={isCollapsed ? label : undefined}
             >
                 {active && (
-                    <div className="absolute right-0 top-0 bottom-0 w-[3px] bg-orange-500" />
+                    <div className={`absolute top-0 bottom-0 bg-orange-500 transition-all ${isSub && !isCollapsed ? "left-[30px] w-[2px] z-10" : "right-0 w-[3px]"}`} />
                 )}
                 <Icon
                     className={`w-5 h-5 min-w-[20px] transition-colors ${active ? "text-orange-600" : "text-slate-500 group-hover:text-orange-600"}`}
@@ -196,7 +201,7 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
 
                         {/* Section 1: Dashboard */}
                         <div className="pt-2">
-                            <LinkItem href="/admin" icon={LayoutDashboard} label="Dashboard" />
+                            <LinkItem href="/admin" icon={LayoutDashboard} label="Dashboard" isHeader />
                         </div>
 
                         <div className={`my-2 border-b border-slate-100 ${isCollapsed ? "mx-2" : "mx-6"}`}></div>
@@ -257,6 +262,8 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                                     {/* Mensagem Sub-items */}
                                     <LinkItem href="/admin/mensagens" icon={Mail} label="Email" isSub />
                                     <LinkItem href="/admin/mensagens/newsletter" icon={Newspaper} label="Newsletter" isSub />
+                                    <LinkItem href="/admin/mensagens/subscritores" icon={Users} label="Subscritores" isSub />
+                                    <LinkItem href="/admin/mensagens/campanhas" icon={BarChart3} label="Campanhas" isSub />
 
                                     <LinkItem href="/admin/contactos" icon={Contact} label="Contactos" isSub />
                                 </div>
@@ -340,7 +347,7 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
 
             {/* Main Content */}
             <main className={`flex-1 bg-slate-50 min-h-screen transition-all duration-300 mt-16 lg:mt-0 ${isCollapsed ? "lg:ml-24" : "lg:ml-72"}`}>
-                <div className={`mx-auto ${pathname.startsWith('/admin/mensagens/newsletter') || pathname.startsWith('/admin/apresentacoes/editor') ? "p-0 max-w-full" : "p-8 max-w-7xl"}`}>
+                <div className={pathname.startsWith('/admin/mensagens/newsletter') || pathname.startsWith('/admin/apresentacoes/editor') ? "p-0" : "p-8"}>
                     {children}
                 </div>
             </main>

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ArrowRight, Building2, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
+import { useTranslations } from 'next-intl';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 
@@ -12,6 +12,7 @@ interface CategoriesShowcaseProps {
 }
 
 export function CategoriesShowcase({ companies }: CategoriesShowcaseProps) {
+    const t = useTranslations('CategoriesShowcase');
     const items = companies || [];
 
     const [emblaRef, emblaApi] = useEmblaCarousel(
@@ -45,12 +46,12 @@ export function CategoriesShowcase({ companies }: CategoriesShowcaseProps) {
             <div className="absolute bottom-0 left-0 w-1/4 h-1/2 bg-orange-50/20 blur-[80px] pointer-events-none" />
 
             <div className="container-site relative z-10">
-                {/* Header - Fixed margins as requested: mb-[35px] for card spacing, no top/bottom margin for section/title area */}
+                {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4 px-[10px]">
                     <div className="flex items-center gap-4">
                         <div className="w-[5px] h-[30px] bg-[#f97316] rounded-none" />
                         <h2 className="text-[28px] leading-none font-heading font-extrabold text-slate-600 uppercase tracking-tight m-0">
-                            Empresas em destaque
+                            {t('title')}
                         </h2>
                     </div>
 
@@ -59,7 +60,7 @@ export function CategoriesShowcase({ companies }: CategoriesShowcaseProps) {
                             href="/destaque"
                             className="inline-flex items-center h-8 px-4 border-2 border-emerald-600 text-emerald-600 text-[10px] font-black uppercase tracking-widest hover:border-[#f97316] hover:text-[#f97316] transition-all duration-300 rounded-md mr-2"
                         >
-                            Destaque a sua
+                            {t('feature_button')}
                         </Link>
 
                         <div className="hidden md:flex items-center gap-3">
@@ -105,11 +106,11 @@ export function CategoriesShowcase({ companies }: CategoriesShowcaseProps) {
                                     return html.replace(/<[^>]*>?/gm, "") || "";
                                 };
 
-                                const category = refineText(parts[0] || "Empresa");
+                                const category = refineText(parts[0] || t("fallbacks.category"));
                                 // Prioritiza a descrição (limpa), fallback para activity, fallback para o sub (antigo)
-                                const rawDescription = company.activity || company.description || refineText(parts[1] || company.sub || "Actividade");
+                                const rawDescription = company.activity || company.description || refineText(parts[1] || company.sub || t("fallbacks.activity"));
                                 const description = stripHtml(rawDescription);
-                                const location = company.location || "Moçambique";
+                                const location = company.location || t("fallbacks.location");
 
                                 return (
                                     <div
@@ -125,7 +126,7 @@ export function CategoriesShowcase({ companies }: CategoriesShowcaseProps) {
                                                             <div className="h-[45px] w-auto max-w-[120px] rounded-[8px] overflow-hidden border border-gray-100 bg-white flex items-center justify-center p-0.5">
                                                                 <img
                                                                     src={company.logo}
-                                                                    alt={company.title || "Empresa"}
+                                                                    alt={company.title || t("fallbacks.category")}
                                                                     className="h-full w-auto object-contain"
                                                                 />
                                                             </div>
@@ -158,7 +159,7 @@ export function CategoriesShowcase({ companies }: CategoriesShowcaseProps) {
 
                                                 <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-2 text-slate-400">
                                                     <div className="flex items-center gap-2 group-hover:text-[#f97316] transition-colors">
-                                                        <span className="text-[10px] font-black uppercase tracking-wider">Ver detalhes</span>
+                                                        <span className="text-[10px] font-black uppercase tracking-wider">{t('view_details')}</span>
                                                         <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
                                                     </div>
                                                     <span className="text-[10px] text-slate-500 font-mono font-medium">

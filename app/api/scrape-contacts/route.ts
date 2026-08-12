@@ -21,7 +21,7 @@ export async function POST(request: Request) {
         try {
             const response = await fetch(url, {
                 headers: {
-                    'User-Agent': 'Mozilla/5.0 (compatible; BaseAgroData/1.0; +https://baseagrodata.com)'
+                    'User-Agent': 'Mozilla/5.0 (compatible; BaseDadosAgro/1.0; +https://basededadosagro.com)'
                 },
                 signal: AbortSignal.timeout(10000) // 10 second timeout
             });

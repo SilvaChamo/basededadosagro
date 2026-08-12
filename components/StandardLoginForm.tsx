@@ -33,7 +33,7 @@ export function StandardLoginForm() {
                     <div>
                         <div className="flex justify-between items-center mb-2">
                             <label className="block text-sm font-bold text-slate-700">Palavra-passe</label>
-                            <Link href="/recuperar" className="text-xs font-bold text-[#f97316] hover:underline">
+                            <Link href="/auth/login" className="text-xs font-bold text-[#f97316] hover:underline">
                                 Esqueceu-se?
                             </Link>
                         </div>

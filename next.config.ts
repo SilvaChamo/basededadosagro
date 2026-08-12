@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "baseagrodata.com",
+        hostname: "basededadosagro.com",
         pathname: "/**",
       },
       {
@@ -47,11 +47,28 @@ const nextConfig: NextConfig = {
         hostname: "ppgmtxzuaxqshipnvebl.supabase.co",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "supabase.visualdesignmoz.com",
+        pathname: "/**",
+      },
     ],
   },
   outputFileTracingRoot: path.join(__dirname),
   async headers() {
     return [
+      {
+        source: '/:locale',
+        headers: [
+          { key: 'Cache-Control', value: 'public, s-maxage=60, stale-while-revalidate=300' },
+        ],
+      },
+      {
+        source: '/:locale/(mercado|servicos|artigos|estatisticas|sobre-nos|contactos|blog|inovacao|termos|politica-privacidade|repositorio|apresentacoes|apresentacao|ajuda|planos|carreiras|documentos|relatorios|produtos|propriedades|empresas|agrocast|destaque|parceria|forum)/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, s-maxage=60, stale-while-revalidate=300' },
+        ],
+      },
       {
         source: '/:path*',
         headers: [
@@ -64,7 +81,7 @@ const nextConfig: NextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.supabase.co *.google.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; img-src 'self' blob: data: *.supabase.co res.cloudinary.com images.unsplash.com; font-src 'self' fonts.gstatic.com; connect-src 'self' *.supabase.co *.baseagrodata.com; frame-src *.google.com; object-src 'none';"
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.supabase.co *.google.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; img-src 'self' blob: data: *.supabase.co supabase.visualdesignmoz.com res.cloudinary.com images.unsplash.com; font-src 'self' fonts.gstatic.com; connect-src 'self' *.supabase.co *.basededadosagro.com supabase.visualdesignmoz.com; frame-src *.google.com; object-src 'none';"
           }
         ]
       }
@@ -81,4 +98,8 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+import createNextIntlPlugin from 'next-intl/plugin';
+ 
+const withNextIntl = createNextIntlPlugin('./i18n.ts');
+ 
+export default withNextIntl(withPWA(nextConfig));

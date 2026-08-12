@@ -1,6 +1,6 @@
 {
-    "name": "Baseagrodata",
-    "short_name": "Baseagro",
+    "name": "Base de Dados Agro",
+    "short_name": "BaseDadosAgro",
     "description": "O seu repositório agrário",
     "start_url": "/",
     "display": "standalone",

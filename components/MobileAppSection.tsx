@@ -2,8 +2,11 @@
 
 import { Scan, Stethoscope, Store, ArrowRight, Download } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from 'next-intl';
 
 export function MobileAppSection() {
+    const t = useTranslations('MobileAppSection');
+
     return (
         <section className="py-24 bg-white overflow-hidden relative">
             {/* Background Decor */}
@@ -16,17 +19,17 @@ export function MobileAppSection() {
                     <div className="space-y-6 text-center lg:text-left z-10 transition-all duration-700 delay-100 transform translate-y-0 opacity-100">
                         <div>
                             <h2 className="text-[28px] md:text-[45px] font-heading font-black text-emerald-600 leading-[1.1] tracking-tight mb-2">
-                                Botânica
+                                {t('badge')}
                             </h2>
                             <h3 className="text-[28px] md:text-[45px] font-heading font-black text-slate-600 mb-6 leading-[1.1] tracking-tight">
-                                Scanner inteligente
+                                {t('title')}
                             </h3>
                             <p className="text-slate-600 text-lg leading-relaxed max-w-xl mx-auto lg:mx-0">
-                                Identifique pragas, doenças e receba orientações técnicas em segundos com nossa Inteligência Artificial avançada.
+                                {t('description')}
                             </p>
                         </div>
 
-                        {/* Two Capabilities as requested */}
+                        {/* Two Capabilities */}
                         <div className="grid sm:grid-cols-2 gap-6">
                             {/* Feature 1 */}
                             <div className="bg-slate-50 p-2 rounded-agro border border-slate-100 hover:border-emerald-200 transition-colors group flex items-start gap-3 text-left">
@@ -34,9 +37,9 @@ export function MobileAppSection() {
                                     <Scan className="w-5 h-5 text-emerald-600" />
                                 </div>
                                 <div className="space-y-0.5">
-                                    <h3 className="text-base font-bold text-slate-700">Scanner Inteligente</h3>
+                                    <h3 className="text-base font-bold text-slate-700">{t('features.scanner.title')}</h3>
                                     <p className="text-[11px] text-slate-500 leading-tight">
-                                        Identifique plantas e revele seu valor nutritivo instantaneamente através da câmera.
+                                        {t('features.scanner.description')}
                                     </p>
                                 </div>
                             </div>
@@ -47,9 +50,9 @@ export function MobileAppSection() {
                                     <Stethoscope className="w-5 h-5 text-emerald-600" />
                                 </div>
                                 <div className="space-y-0.5">
-                                    <h3 className="text-base font-bold text-slate-700">Doctor Plants</h3>
+                                    <h3 className="text-base font-bold text-slate-700">{t('features.doctor.title')}</h3>
                                     <p className="text-[11px] text-slate-500 leading-tight">
-                                        Detecte doenças precocemente e receba sugestões de tratamento correctas.
+                                        {t('features.doctor.description')}
                                     </p>
                                 </div>
                             </div>
@@ -59,14 +62,14 @@ export function MobileAppSection() {
                         <div className="flex items-start gap-3 p-4 bg-orange-50 rounded-agro border border-orange-100">
                             <Store className="w-5 h-5 text-orange-500 mt-0.5 shrink-0" />
                             <p className="text-sm text-slate-600">
-                                <span className="font-bold text-slate-700">Encontre Remédios e Lojas:</span> Localize fornecedores próximos, compare preços e variações na sua região em tempo real.
+                                <span className="font-bold text-slate-700">{t('store_finder.label')}</span> {t('store_finder.description')}
                             </p>
                         </div>
 
                         <div className="pt-4 flex flex-col sm:flex-row gap-4">
                             <button className="inline-flex items-center gap-3 bg-emerald-700 hover:bg-[#f97316] text-white px-6 py-[9px] rounded-[7px] font-bold text-base transition-all duration-300 shadow-xl hover:shadow-[#f97316]/30 hover:-translate-y-1 group">
                                 <Download className="w-5 h-5" />
-                                Baixar Aplicativo
+                                {t('download_button')}
                                 <ArrowRight className="w-5 h-5 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300" />
                             </button>
                             <a
@@ -75,10 +78,10 @@ export function MobileAppSection() {
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center justify-center gap-3 bg-transparent border-2 border-emerald-600/30 hover:border-[#f97316] text-emerald-700 hover:text-[#f97316] px-6 py-[9px] rounded-[7px] font-bold text-base transition-all duration-300 hover:-translate-y-1"
                             >
-                                Testar Aplicativo!
+                                {t('test_button')}
                             </a>
                         </div>
-                        <p className="text-xs text-slate-400 mt-2 ml-1 font-medium">Disponível para Android e iOS</p>
+                        <p className="text-xs text-slate-400 mt-2 ml-1 font-medium">{t('platforms')}</p>
                     </div>
 
                     {/* Right Column: App Interface Image */}
@@ -106,7 +109,7 @@ export function MobileAppSection() {
                                 {/* Screen Image */}
                                 <img
                                     src="/assets/botanica.webp"
-                                    alt="Interface do Agrobotanica"
+                                    alt={t('alt_text')}
                                     className="w-full h-auto object-cover"
                                 />
                             </div>
@@ -114,7 +117,7 @@ export function MobileAppSection() {
 
                         {/* Floating Badge - "Sobre o aplicativo" */}
                         <Link
-                            href="/sobre-aplicativo"
+                            href="/sobre-nos"
                             className="absolute z-10 bottom-20 -left-6 md:left-0 lg:-left-12 bg-white py-4 px-6 rounded-agro shadow-xl animate-bounce delay-1000 duration-3000 border border-slate-50 cursor-pointer hover:scale-105 transition-transform group"
                         >
                             <div className="flex items-center gap-3">
@@ -122,8 +125,8 @@ export function MobileAppSection() {
                                     <Scan className="w-5 h-5 text-[#f97316] group-hover:text-white" />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-tighter">Sobre o</p>
-                                    <p className="text-sm font-black text-slate-700">Aplicativo</p>
+                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-tighter">{t('about_badge.small')}</p>
+                                    <p className="text-sm font-black text-slate-700">{t('about_badge.big')}</p>
                                 </div>
                             </div>
                         </Link>

@@ -34,35 +34,17 @@ export function DashboardStats({
                 const { data: { user } } = await supabase.auth.getUser();
                 if (!user) return;
 
-                // 1. Fetch Impressions (Total Page Views for user's content)
-                const { count: impressionsCount } = await supabase
-                    .from('page_views')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('user_id', user.id);
-
-                // 2. Fetch Profile Clicks (Views specifically of type 'profile')
-                const { count: profileClicksCount } = await supabase
-                    .from('page_views')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('user_id', user.id)
-                    .eq('target_type', 'profile');
-
-                // 3. Fetch Total Leads
-                const { count: leadsCount } = await supabase
-                    .from('leads')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('user_id', user.id);
-
-                const totalImpressions = impressionsCount || 0;
-                const totalClicks = profileClicksCount || 0;
-                const totalLeads = leadsCount || 0;
-                const realCtr = totalImpressions > 0 ? parseFloat(((totalClicks / totalImpressions) * 100).toFixed(1)) : 0;
+                // page_views/leads RLS blocks direct client reads even for the row owner,
+                // so this goes through a server route that scopes the query to the caller.
+                const response = await fetch('/api/dashboard/stats');
+                if (!response.ok) throw new Error((await response.json()).error);
+                const result = await response.json();
 
                 setStats({
-                    impressions: totalImpressions,
-                    clicks: totalClicks,
-                    leads: totalLeads,
-                    ctr: realCtr
+                    impressions: result.impressions,
+                    clicks: result.clicks,
+                    leads: result.leads,
+                    ctr: result.ctr
                 });
             } catch (err) {
                 console.error("Error fetching real dashboard stats:", err);

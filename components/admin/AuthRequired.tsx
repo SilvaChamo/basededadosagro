@@ -157,7 +157,7 @@ export function AuthRequired({ children }: AuthRequiredProps) {
 
                     <div className="text-xs text-slate-500 border-t pt-4">
                         <p className="font-medium mb-2">Credenciais de teste:</p>
-                        <p>Email: admin@baseagrodata.com</p>
+                        <p>Email: admin@basededadosagro.com</p>
                         <p>Password: admin123</p>
                     </div>
                 </CardContent>

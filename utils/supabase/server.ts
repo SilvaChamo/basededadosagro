@@ -73,6 +73,7 @@ export async function createClient() {
         config.url,
         config.key,
         {
+            db: { schema: 'basededados' },
             cookies: {
                 getAll() {
                     return cookieStore.getAll()

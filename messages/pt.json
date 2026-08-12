@@ -1,0 +1,479 @@
+{
+  "common": {
+    "search_placeholder": "O que procura?",
+    "search_button": "Pesquisar",
+    "loading": "Carregando...",
+    "error": "Ocorreu um erro",
+    "success": "Sucesso!",
+    "learn_more": "Saber mais",
+    "view_all": "Ver todos",
+    "read_more": "Ler mais",
+    "contact_us": "Fale conosco",
+    "send": "Enviar",
+    "partners_area": "Área de Parceiros",
+    "start_now": "Começar Agora",
+    "help_center": "Central de Ajuda",
+    "blog": "Blog do Agro",
+    "careers": "Carreiras",
+    "terms": "Termos e Condições",
+    "privacy": "Política de Privacidade",
+    "menu": "Menu",
+    "login": "Entrar",
+    "my_account": "Minha Conta",
+    "back": "Voltar"
+  },
+  "navbar": {
+    "base": "Base",
+    "about": "Sobre nós",
+    "services": "Serviços",
+    "repository": "Repositório",
+    "history": "Nossa história",
+    "partnership": "Parceria",
+    "market": "Mercado",
+    "contacts": "Contactos",
+    "innovation": "Inovação",
+    "innovation_tech": "Inovação",
+    "app": "Sobre app",
+    "about_registration": "Cadastro",
+    "innovation_sections": {
+      "presence": "Cadastro & Visibilidade",
+      "tools": "Comunicação & Design",
+      "science": "Ciência & Tecnologia"
+    },
+    "innovation_menu": {
+      "registration": {
+        "title": "Cadastro de Empresa",
+        "description": "Junte-se à maior rede de agro-negócio de Moçambique.",
+        "link": "/inovacao/vantagens-cadastro"
+      },
+      "communication": {
+        "title": "Comunicação Massiva",
+        "description": "Sistemas de SMS e E-mail para alcance imediato.",
+        "link": "/inovacao/comunicacao-sms"
+      },
+      "visibility": {
+        "title": "Destacar Empresa",
+        "description": "Coloque a sua marca no topo das pesquisas e destaques.",
+        "link": "/inovacao/seo-google"
+      },
+      "identity": {
+        "title": "Identidade Digital",
+        "description": "Perfis profissionais e cartões de visita com QR Code.",
+        "link": "/inovacao/perfil-digital"
+      },
+      "presentations": {
+        "title": "Apresentações Visuais",
+        "description": "Editor de slides interativos para catálogos e relatórios.",
+        "link": "/inovacao/apresentacoes"
+      },
+      "scientific": {
+        "title": "Repositório Científico",
+        "description": "Pesquisa dinâmica e semântica de artigos académicos.",
+        "link": "/inovacao/repositorio-cientifico"
+      },
+      "agrobotanica": {
+        "title": "AgroBotanica AI",
+        "description": "Scanner inteligente para diagnóstico de pragas e doenças.",
+        "link": "/inovacao/agrobotanica"
+      }
+    },
+    "forum": "Fórum"
+  },
+  "parceria": {
+    "header_title": "Seja nosso",
+    "header_span": "Parceiro",
+    "intro_title": "Crescemos juntos",
+    "intro_subtitle": "quando cooperamos",
+    "intro_text": "Acreditamos no poder das parcerias estratégicas para alavancar o sector agrário. Ao tornar-se parceiro da Base Agro Data, a sua organização ganha acesso directo a uma rede qualificada de produtores, empresários e decisores.",
+    "stats_title": "Nossa Posição no",
+    "stats_subtitle": "Mercado Agrário",
+    "stats_text": "A maior base de dados interativa de Moçambique, conectando produtores e mercados com dados em tempo real.",
+    "who_antetitle": "",
+    "who_title": "Quem procuramos?",
+    "who_text": "Todas as entidade que operam no sector agrário podem ser nossos parceiros, mas a nossa colaboração é focada nas organizações que operam nas áreas estratégicas que impulsionam directamente na produção, produtividade e a sustentabilidade no campo.",
+    "who_item1_title": "Fornecedores de insumos",
+    "who_item1_desc": "Empresas de sementes, fertilizantes e maquinaria que queiram expandir seu alcance.",
+    "who_item2_title": "Instituições financeiras",
+    "who_item2_desc": "Bancos e micro-finanças interessados em financiar o crescimento do sector agrário.",
+    "who_item3_title": "Agências de desenvolvimento",
+    "who_item3_desc": "ONGs e projectos focados no impacto social e desenvolvimento rural sustentável.",
+    "who_item4_title": "Tecnologia & dados",
+    "who_item4_desc": "Startups e empresas de software que oferecem soluções de gestão para o campo.",
+    "who_item5_title": "Empresas do agro-negócio",
+    "who_item6_title": "Transporte & distribuição",
+    "form_title": "Quer ser um parceiro?",
+    "form_text": "Preencha o formulário e nossa equipa de parcerias entrará em contacto.",
+    "form_name": "Nome da Empresa",
+    "form_email": "Email Corporativo",
+    "form_message": "Mensagem Curta",
+    "form_category": "Categoria de Parceria",
+    "form_submit": "Enviar proposta",
+    "premium_partners": "Parceiros Premium",
+    "premium_text": "Organizações líderes que confiam na nossa Base de dados agrícolas para impulsionar o desenvolvimento agrário em Moçambique são os nossos principais parceiros."
+  },
+  "footer": {
+    "address": "Av. Karl Marx nº 177, Maputo - Moçambique",
+    "phone": "Telefone",
+    "whatsapp": "Whatsapp",
+    "email": "E-mail"
+  },
+  "Hero": {
+    "title": {
+      "part1": "Cultivando um futuro",
+      "part2": "melhor para",
+      "country": "Moçambique"
+    },
+    "description": "Onde a terra fértil encontra inovação, oportunidade e prosperidade, promovendo o crescimento sustentável e tecnológico, com vista a facilitar investimentos agrários para um futuro promissor.",
+    "buttons": {
+      "partner": "SEJA NOSSO PARCEIRO",
+      "learn_more": "SAIBA MAIS"
+    },
+    "stats": {
+      "companies": {
+        "title": "Empresas Agrárias",
+        "subtitle": "Activas no mercado"
+      },
+      "production": {
+        "title": "Produção Agrária 2025",
+        "unit": "Tons",
+        "growth": "5% Crescimento"
+      },
+      "economy": {
+        "title": "Economia Agrária 2025",
+        "unit": "MZN",
+        "subtitle": "PIB Agrícola (Q2 '25)",
+        "trend": "24% do PIB Nacional"
+      },
+      "jobs": {
+        "title": "Emprego Agrícola",
+        "subtitle": "Força laboral",
+        "description": "Base de sustento para a maioria da população."
+      }
+    }
+  },
+  "SearchSection": {
+    "placeholder": "O que procura hoje?",
+    "no_results": "Nenhum resultado encontrado no centro de dados.",
+    "categories": {
+      "all": "Todas categorias",
+      "empresas": "Empresas",
+      "produtos": "Produtos",
+      "profissionais": "Profissionais",
+      "propriedades": "Propriedades",
+      "artigos": "Artigos"
+    }
+  },
+  "CategoriesShowcase": {
+    "title": "Empresas em destaque",
+    "feature_button": "Destaque a sua",
+    "view_details": "Ver detalhes",
+    "fallbacks": {
+      "category": "Empresa",
+      "activity": "Actividade",
+      "location": "Moçambique"
+    }
+  },
+  "AgroCastSection": {
+    "loading": "Carregando episódios...",
+    "view_all": "Ver todos os episódios",
+    "back_to_featured": "Voltar ao Destaque",
+    "podcast_label": "Podcast",
+    "next_video": "PRÓXIMO VÍDEO",
+    "view_teaser": "Ver Teaser · 1:50",
+    "no_more_episodes": "Sem mais episódios",
+    "interaction": {
+      "label": "Interação",
+      "title": "Sugira um novo tema",
+      "button": "Enviar Sugestão"
+    }
+  },
+  "WhyChooseUs": {
+    "title": "Porque fazer parte da <br/> maior <highlight>plataforma agrária</highlight>",
+    "description": "Num mercado agrário dinâmico como o moçambicano, a visibilidade e o acesso à informação certa não é apenas um luxo, é uma necessidade de sobrevivência. A nossa plataforma conecta produtores, fornecedores e compradores.",
+    "features": {
+      "visibility": {
+        "title": "Visibilidade no Sector",
+        "description": "Apareça nos primeiros resultados para quem procura produtos."
+      },
+      "growth": {
+        "title": "Crescimento Exponencial",
+        "description": "Aumente as suas vendas através de campanhas segmentadas."
+      }
+    },
+    "professional_button": "É profissional? Registe-se",
+    "cards": {
+      "companies": {
+        "title": "Empresas <br/> Registadas",
+        "link": "Ver arquivo"
+      },
+      "professionals": {
+        "title": "Profissionais <br/> Cadastrados",
+        "link": "Explorar"
+      },
+      "properties": {
+        "title": "Propriedades <br/> Cadastradas",
+        "link": "Explorar"
+      },
+      "products": {
+        "title": "Produtos <br/> Cadastrados",
+        "link": "Ver arquivo"
+      }
+    }
+  },
+  "InfoSection": {
+    "badge": "Inovação e Crescimento",
+    "title": "Mantenha-se informado",
+    "description": "Oferecemos serviços dinâmicos para facilitar suas actividades com vista a melhorar a produção. Fornecemos auxílio na busca por soluções assertivas de forma eficiente. Explore as categorias disponíveis abaixo",
+    "tabs": {
+      "info": "Informações",
+      "resources": "Recursos",
+      "categories": "Categorias"
+    },
+    "loading": "A carregar informações...",
+    "view_details": "Ver detalhes",
+    "access_now": "Aceder agora",
+    "view_more_news": "Ver mais notícias",
+    "aria": {
+      "prev_news": "Notícia anterior",
+      "next_news": "Próxima notícia",
+      "go_to_news": "Ir para notícia {index}"
+    },
+    "exemplary_categories": {
+      "rural_tourism": {
+        "title": "Turismo rural",
+        "description": "Notícias e oportunidades de turismo rural e lazer."
+      },
+      "agri_tech": {
+        "title": "Tecnologias Agrárias",
+        "description": "Inovações digitais, maquinaria moderna e soluções técnicas."
+      },
+      "agri_policies": {
+        "title": "Políticas Agrárias",
+        "description": "Legislação, regulamentos e diretrizes governamentais para o setor."
+      },
+      "agri_inputs": {
+        "title": "Insumos Agrários",
+        "description": "Explore insumos, maquinaria e produtos agrícolas disponíveis."
+      },
+      "agri_finance": {
+        "title": "Financiamento agrário",
+        "description": "Linhas de crédito, fundos de investimento e seguros agrícolas."
+      },
+      "scientific_articles": {
+        "title": "Artigos Científicos",
+        "description": "Resultados de pesquisa e inovações do agronegócio."
+      }
+    },
+    "resource_cards": {
+      "massive_comm": {
+        "title": "Comunicação Massiva",
+        "description": "Active o sistema de alertas SMS e E-mail para alcançar seus clientes imediatamente."
+      },
+      "visual_pres": {
+        "title": "Apresentações Visuais",
+        "description": "Aceda ao editor de slide show para criar catálogos e relatórios profissionais."
+      },
+      "digital_identity": {
+        "title": "Identidade Digital",
+        "description": "Crie perfis profissionais e cartões de visita digitais com QR Code integrado."
+      },
+      "agrobotanica": {
+        "title": "AgroBotanica AI",
+        "description": "Diagnostique pragas e doenças em segundos com nosso scanner inteligente."
+      }
+    }
+  },
+  "MobileAppSection": {
+    "badge": "Botânica",
+    "title": "Scanner inteligente",
+    "description": "Identifique pragas, doenças e receba orientações técnicas em segundos com nossa Inteligência Artificial avançada.",
+    "features": {
+      "scanner": {
+        "title": "Scanner Inteligente",
+        "description": "Identifique plantas e revele seu valor nutritivo instantaneamente através da câmera."
+      },
+      "doctor": {
+        "title": "Doctor Plants",
+        "description": "Detecte doenças precocemente e receba sugestões de tratamento correctas."
+      }
+    },
+    "store_finder": {
+      "label": "Encontre Remédios e Lojas:",
+      "description": "Localize fornecedores próximos, compare preços e variações na sua região em tempo real."
+    },
+    "download_button": "Baixar Aplicativo",
+    "test_button": "Testar Aplicativo!",
+    "platforms": "Disponível para Android e iOS",
+    "alt_text": "Interface do Agrobotanica",
+    "about_badge": {
+      "small": "Sobre o",
+      "big": "Aplicativo"
+    }
+  },
+  "TermsPage": {
+    "title": "Termos e <highlight>Condições</highlight>",
+    "breadcrumb": "Termos e Condições",
+    "lastUpdated": "Actualizado em Janeiro de 2024",
+    "sections": {
+      "acceptance": {
+        "title": "1. Aceitação dos Termos",
+        "content": "Ao aceder e utilizar a plataforma Base Agro Data, o utilizador concorda plenamente com os presentes termos e condições de uso. Se não concordar com qualquer parte destes termos, não deverá utilizar os nossos serviços."
+      },
+      "serviceDescription": {
+        "title": "2. Descrição do Serviço",
+        "content": "A Base Agro Data fornece uma plataforma digital para agregação de indicadores agrícolas, monitoria de preços de mercado e ligação entre produtores, empresas e profissionais do sector agrário em Moçambique."
+      }
+    },
+    "confirmation": "Ao continuar a navegar, o utilizador confirma que leu e compreendeu integralmente os termos acima descritos."
+  },
+  "HistorialPage": {
+    "header": { "back": "Voltar para Sobre Nós", "title": "Nosso Historial" },
+    "aside": {
+      "title": "Base de Dados <highlight>Agrícola</highlight>",
+      "description": "A força motriz da inovação agrária no país...",
+      "menu": { "origin": "A origem", "newspaper": "O jornal agrícola", "digital": "A evolução digital", "community": "Impacto comunitário" },
+      "nextChapter": { "label": "Próximo capítulo", "text": "\"Não paramos no diagnóstico; agora estamos a construir o futuro da robótica no campo.\"" }
+    },
+    "content": {
+      "badge": "Trajectória de Inovação",
+      "title": "O nosso <highlight>Historial</highlight>",
+      "intro": "A nossa jornada é marcada pela adaptação constante...",
+      "timeline": {
+        "step1": { "title": "A Raiz: O Jornal Agrícola", "p1": "...", "p2": "..." },
+        "step2": { "title": "A Metamorfose Tecnológica", "p1": "...", "p2": "..." },
+        "step3": { "title": "O Presente e o Futuro", "p1": "...", "p2": "..." }
+      },
+      "quote": { "title": "Para produzir soluções tangíveis", "text": "..." }
+    }
+  },
+  "ServicesData": {
+    "logistica": {
+      "title": "Logística e transporte",
+      "subCategories": {
+        "transporte": {
+          "title": "Transporte Terrestre",
+          "description": "Frota especializada...",
+          "fullDescription": "Colocamos ao seu dispor...",
+          "features": ["Frotas Certificadas", "Seguro de Carga", "Monitoria 24/7"],
+          "subServices": [
+            { "title": "Transporte de Granéis", "description": "..." },
+            { "title": "Cadeia de Frio", "description": "..." }
+          ]
+        },
+        "multimodal": { "title": "Logística Multimodal", "description": "...", "fullDescription": "...", "features": [], "subServices": [] },
+        "seguranca": { "title": "Segurança de Carga", "description": "...", "fullDescription": "...", "features": [], "subServices": [] },
+        "rastreio": { "title": "Rastreio em Tempo Real", "description": "...", "fullDescription": "...", "features": [], "subServices": [] }
+      }
+    },
+    "assistencia": {
+      "title": "Assistência digital",
+      "subCategories": {
+        "portais": { "title": "Criação de Portais", "description": "...", "fullDescription": "...", "features": [], "subServices": [] },
+        "tecnico": { "title": "Apoio Técnico TI", "description": "...", "fullDescription": "...", "features": [], "subServices": [] },
+        "apps": { "title": "Desenvolvimento App", "description": "...", "fullDescription": "...", "features": [], "subServices": [] },
+        "suporte": { "title": "Suporte Online", "description": "...", "fullDescription": "...", "features": [], "subServices": [] }
+      }
+    },
+    "insumos": {
+      "title": "Insumos",
+      "subCategories": {
+        "sementes": { "title": "Sementes Certificadas", "description": "Alta produtividade para sua colheita com sementes verificadas." },
+        "mudas": { "title": "Mudas e Propagação", "description": "Material vegetal de alta qualidade para plantio direto." },
+        "matrizes-reprodutores": { "title": "Matrizes e Reprodutores", "description": "Excelência genética para o seu efetivo pecuário." },
+        "material-genetico": { "title": "Material Genético", "description": "Inseminação artificial e biotecnologia animal." },
+        "microrganismos": { "title": "Microrganismos Benéficos", "description": "Controle biológico e saúde do solo." },
+        "inoculantes": { "title": "Inoculantes", "description": "Potenciadores de fixação de nitrogênio e nutrientes." },
+        "fertilizantes-minerais": { "title": "Fertilizantes Minerais", "description": "Nutrição mineral precisa para alta produtividade." },
+        "corretivos-solo": { "title": "Corretivos de Solo", "description": "Ajuste de acidez e estrutura do solo." },
+        "herbicidas": { "title": "Herbicidas", "description": "Controle eficaz de infestantes e ervas daninhas." },
+        "inseticidas": { "title": "Inseticidas", "description": "Proteção contra pragas e insetos mastigadores." },
+        "fungicidas": { "title": "Fungicidas", "description": "Prevenção e cura de doenças fúngicas." },
+        "esterco": { "title": "Esterco curtido", "description": "Matéria orgânica de origem animal para enriquecimento do solo." },
+        "compostagem": { "title": "Compostagem", "description": "Adubo orgânico estabilizado e rico em húmus." },
+        "biofertilizantes": { "title": "Biofertilizantes", "description": "Nutrição líquida biológica de rápida absorção." },
+        "adubacao-verde": { "title": "Adubação Verde", "description": "Sementes para cobertura e proteção do solo." },
+        "humus": { "title": "Húmus de Minhoca", "description": "O mais completo adubo orgânico para suas plantas." },
+        "racoes": { "title": "Rações Balanceadas", "description": "Nutrição completa para todas as espécies animais." },
+        "suplementos-minerais": { "title": "Suplementos Minerais", "description": "Correção de deficiências minerais no pasto." },
+        "vacinas": { "title": "Vacinas Veterinárias", "description": "Prevenção das principais doenças animais." },
+        "medicamentos-veterinarios": { "title": "Medicamentos Veterinários", "description": "Tratamento e cura para diversas patologias animais." },
+        "sal-mineral": { "title": "Sal Mineral", "description": "Essencial para o equilíbrio eletrolítico do rebanho." },
+        "tratores": { "title": "Tratores Agrícolas", "description": "Potência e versatilidade para todas as operações no campo." },
+        "arados": { "title": "Arados e Cultivadores", "description": "Preparação primária do solo com máxima eficiência." },
+        "grades": { "title": "Grades Agrícolas", "description": "Destorroamento e nivelamento para um leito de semeadura ideal." },
+        "colheitadeiras": { "title": "Colheitadeiras", "description": "Tecnologia de ponta para minimizar perdas na colheita." },
+        "semeadoras": { "title": "Semeadoras e Plantadoras", "description": "Distribuição precisa de sementes e adubo." },
+        "sistemas-irrigacao": { "title": "Sistemas de Irrigação", "description": "Gestão inteligente da água para produção todo o ano." },
+        "sensores-agricolas": { "title": "Sensores Agrícolas", "description": "Monitoramento em tempo real do solo e clima." },
+        "drones": { "title": "Drones Agrícolas", "description": "Mapeamento e pulverização aérea de precisão." },
+        "gps-agricola": { "title": "GPS Agrícola", "description": "Guiamento e barras de luz para operações retas." },
+        "softwares-gestao": { "title": "Softwares de Gestão Rural", "description": "Controle total das finanças e estoque da sua quinta." },
+        "cercas": { "title": "Cercas e Vedações", "description": "Segurança e delimitação para a sua propriedade rural." },
+        "postes": { "title": "Postes e Esteios", "description": "Suporte robusto para cercas e estruturas." },
+        "galpoes": { "title": "Galpões e Armazéns", "description": "Estruturas para armazenamento de colheita e maquinaria." },
+        "estufas": { "title": "Estufas e Túneis", "description": "Produção protegida para hortícolas de alto valor." },
+        "currais": { "title": "Currais e Manejo Animal", "description": "Infraestrutura eficiente para o trato do gado." },
+        "credito-agricola": { "title": "Crédito Agrícola", "description": "Financiamento para a sua campanha e investimentos." },
+        "seguro-rural": { "title": "Seguro Rural", "description": "Proteção financeira contra riscos climáticos." },
+        "investimentos": { "title": "Investimentos no Agronegócio", "description": "Oportunidades de expansão e modernização." },
+        "subsidios": { "title": "Subsídios e Apoio Estatal", "description": "Informações sobre programas de incentivo ao produtor." },
+        "linhas-financiamento": { "title": "Linhas de Financiamento", "description": "Opções diversificadas de capital para o seu negócio." }
+      }
+    },
+    "lojas": { "title": "Lojas", "subCategories": { "registo": { "title": "Registe a sua loja", "description": "..." } } },
+    "compra-venda": {
+      "title": "Compra e venda",
+      "subCategories": {
+        "cotacoes": { "title": "Cotações do Dia", "description": "..." },
+        "ofertas": { "title": "Ofertas de Venda", "description": "..." },
+        "leiloes": { "title": "Leilões Agrários", "description": "..." },
+        "garantia": { "title": "Garantia de Negócio", "description": "..." }
+      }
+    },
+    "eventos": {
+      "title": "Feiras e eventos",
+      "subCategories": {
+        "calendario": { "title": "Calendário Regional", "description": "..." },
+        "promocao": { "title": "Promoção de Eventos", "description": "..." },
+        "bilheteira": { "title": "Bilheteira Online", "description": "..." },
+        "patrocinio": { "title": "Patrocínio Digital", "description": "..." }
+      }
+    },
+    "conteudo": {
+      "title": "Gestão de conteúdo",
+      "subCategories": {
+        "escrita": { "title": "Escrita Técnica", "description": "Produção de artigos e posts especializados para o agro." },
+        "redes": { "title": "Gestão de Redes", "description": "Presença digital estratégica para marcas do sector." },
+        "video": { "title": "Vídeo Marketing", "description": "Cobertura de eventos e produção de vídeos institucionais." },
+        "newsletter": { "title": "Newsletter Agro", "description": "Comunicação directa com a sua base de clientes e parceiros." }
+      }
+    },
+    "emprego": {
+      "title": "Vagas de emprego",
+      "subCategories": {
+        "talento": { "title": "Talento Agrário", "description": "Candidate-se a vagas nas maiores empresas do país." },
+        "recrutamento": { "title": "Recrutamento Especializado", "description": "Serviços de RH focados em perfis técnicos agrícolas." },
+        "estagios": { "title": "Estágios Profissionais", "description": "Programas de entrada no mercado para jovens licenciados." },
+        "carreira": { "title": "Consultoria de Carreira", "description": "Apoio na elaboração de CV e preparação para entrevistas." }
+      }
+    },
+    "consultoria": {
+      "title": "Consultoria digital",
+      "subCategories": {
+        "estrategia": { "title": "Estratégia Digital", "description": "Planos estratégicos para transformação digital do agro-negócio." },
+        "otimizacao": { "title": "Otimização de Processos", "description": "Análise e melhoria de processos operacionais através de tecnologia." },
+        "dados": { "title": "Análise de Dados", "description": "Insights baseados em dados para melhor tomada de decisão." },
+        "implementacao": { "title": "Implementação Tecnológica", "description": "Suporte na adoção e integração de novas tecnologias." }
+      }
+    },
+    "formacao": {
+      "title": "Formações e capacitações",
+      "subCategories": {
+        "academia": { "title": "Academia Agro", "description": "Cursos certificados online para capacitação técnica." },
+        "capacitacao": { "title": "Capacitação Rural", "description": "Treinos práticos de campo para melhoria de produtividade." },
+        "certificacao": { "title": "Certificação ISO", "description": "Preparação para certificações internacionais de qualidade." },
+        "elearning": { "title": "E-learning Corporativo", "description": "Plataformas de treino personalizado para equipas de empresas." }
+      }
+    }
+  }
+}

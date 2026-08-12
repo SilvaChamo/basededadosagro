@@ -19,8 +19,8 @@ export async function GET(req: NextRequest) {
     }
 
     const defaultSettings = [
-        { key: 'site_name', value: 'Base Agro Data' },
-        { key: 'contact_email', value: 'info@baseagrodata.com' },
+        { key: 'site_name', value: 'Base de Dados Agro' },
+        { key: 'contact_email', value: 'info@basededadosagro.com' },
         { key: 'contact_phone', value: '+258 84 000 0000' },
         { key: 'address', value: 'Maputo, Moçambique' },
         { key: 'facebook_url', value: 'https://facebook.com/baseagrodata' },

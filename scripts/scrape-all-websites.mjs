@@ -39,7 +39,7 @@ async function scrapeAll() {
             const timeout = setTimeout(() => controller.abort(), 10000);
 
             const response = await fetch(company.website, {
-                headers: { 'User-Agent': 'Mozilla/5.0 (BaseAgroData Bot)' },
+                headers: { 'User-Agent': 'Mozilla/5.0 (BaseDadosAgro Bot)' },
                 signal: controller.signal
             });
             clearTimeout(timeout);

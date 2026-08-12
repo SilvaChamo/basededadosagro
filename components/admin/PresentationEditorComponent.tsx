@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Save, Loader2, Play, Image as ImageIcon, FileText, ChevronUp, ChevronDown, Layout, Sidebar as SidebarIcon, Menu, Maximize2, Monitor, Copy, Download, FileJson, FilePieChart, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, Loader2, Play, Image as ImageIcon, FileText, ChevronUp, ChevronDown, Layout, Sidebar as SidebarIcon, Menu, Maximize2, Monitor, Copy, Download, FileJson, FilePieChart, AlignLeft, AlignCenter, AlignRight, Undo2, Redo2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import jsPDF from "jspdf";
@@ -38,9 +38,41 @@ export function PresentationEditorComponent({ id, backPath }: PresentationEditor
         description: "",
         slug: "",
         slides: [
-            { id: generateId(), title: "", antetitulo: "", content: "", image_url: "", image_side: "left", image_disabled: false, text_align: "center", title_align: "center", antetitulo_align: "center", cta_text: "", cta_link: "", cta_align: "center", animation_text: "fade-in", animation_image: "fade-in", title_size: 50, image_height: 550, line_height: 1.6, antetitulo_color: "#10b981", title_color: "#ffffff" }
+            { id: generateId(), title: "", antetitulo: "", content: "", image_url: "", image_side: "left", image_disabled: false, highlight_image: false, text_align: "center", title_align: "center", antetitulo_align: "center", cta_text: "", cta_link: "", cta_align: "center", animation_text: "fade-in", animation_image: "fade-in", title_size: 50, image_height: 550, line_height: 1.6, title_line_height: 1.2, paragraph_spacing: 1.5, antetitulo_color: "#10b981", title_color: "#ffffff" }
         ]
     });
+
+    // Undo/Redo Stacks
+    const [undoStack, setUndoStack] = useState<any[]>([]);
+    const [redoStack, setRedoStack] = useState<any[]>([]);
+
+    // Helper to save current state to undo stack
+    const saveToUndo = (state: any) => {
+        setUndoStack(prev => [...prev, JSON.parse(JSON.stringify(state))]);
+        setRedoStack([]); // Clear redo stack on new action
+    };
+
+    const handleUndo = () => {
+        if (undoStack.length === 0) return;
+        const previousState = undoStack[undoStack.length - 1];
+        const currentToRedo = JSON.parse(JSON.stringify(presentation));
+
+        setRedoStack(prev => [...prev, currentToRedo]);
+        setUndoStack(prev => prev.slice(0, -1));
+        setPresentation(previousState);
+        toast.info("Desfeito");
+    };
+
+    const handleRedo = () => {
+        if (redoStack.length === 0) return;
+        const nextState = redoStack[redoStack.length - 1];
+        const currentToUndo = JSON.parse(JSON.stringify(presentation));
+
+        setUndoStack(prev => [...prev, currentToUndo]);
+        setRedoStack(prev => prev.slice(0, -1));
+        setPresentation(nextState);
+        toast.info("Refeito");
+    };
 
     useEffect(() => {
         if (isNew) return;
@@ -59,6 +91,7 @@ export function PresentationEditorComponent({ id, backPath }: PresentationEditor
                     id: s.id || `slide-${idx}-${Date.now()}`,
                     image_side: s.image_side || 'left',
                     image_disabled: s.image_disabled || false,
+                    highlight_image: s.highlight_image || false,
                     text_align: s.text_align || 'center',
                     title_align: s.title_align || 'center',
                     antetitulo_align: s.antetitulo_align || 'center',
@@ -66,10 +99,12 @@ export function PresentationEditorComponent({ id, backPath }: PresentationEditor
                     title_size: s.title_size || 50,
                     image_height: s.image_height || 550,
                     line_height: s.line_height || 1.6,
+                    title_line_height: s.title_line_height || 1.2,
+                    paragraph_spacing: s.paragraph_spacing || 1.5,
                     antetitulo_color: s.antetitulo_color || "#10b981",
                     title_color: s.title_color || "#ffffff"
                 })) : [
-                    { id: generateId(), title: "", antetitulo: "", content: "", image_url: "", image_side: "left", image_disabled: false, text_align: "center", title_align: "center", antetitulo_align: "center", cta_text: "", cta_link: "", cta_align: "center", animation_text: "fade-in", animation_image: "fade-in", title_size: 52, image_height: 550, line_height: 1.6, antetitulo_color: "#10b981", title_color: "#ffffff" }
+                    { id: generateId(), title: "", antetitulo: "", content: "", image_url: "", image_side: "left", image_disabled: false, highlight_image: false, text_align: "center", title_align: "center", antetitulo_align: "center", cta_text: "", cta_link: "", cta_align: "center", animation_text: "fade-in", animation_image: "fade-in", title_size: 52, image_height: 550, line_height: 1.6, title_line_height: 1.2, paragraph_spacing: 1.5, antetitulo_color: "#10b981", title_color: "#ffffff" }
                 ];
 
                 setPresentation({
@@ -89,9 +124,10 @@ export function PresentationEditorComponent({ id, backPath }: PresentationEditor
     }, [id, isNew, supabase]);
 
     const handleAddSlide = () => {
+        saveToUndo(presentation);
         setPresentation(prev => ({
             ...prev,
-            slides: [...prev.slides, { id: generateId(), title: "", antetitulo: "", content: "", image_url: "", image_side: "left", image_disabled: false, text_align: "center", title_align: "center", antetitulo_align: "center", cta_text: "", cta_link: "", cta_align: "center", animation_text: "fade-in", animation_image: "fade-in", title_size: 52, image_height: 550, line_height: 1.6, antetitulo_color: "#10b981", title_color: "#ffffff" }]
+            slides: [...prev.slides, { id: generateId(), title: "", antetitulo: "", content: "", image_url: "", image_side: "left", image_disabled: false, highlight_image: false, text_align: "center", title_align: "center", antetitulo_align: "center", cta_text: "", cta_link: "", cta_align: "center", animation_text: "fade-in", animation_image: "fade-in", title_size: 52, image_height: 550, line_height: 1.6, title_line_height: 1.2, paragraph_spacing: 1.5, antetitulo_color: "#10b981", title_color: "#ffffff" }]
         }));
     };
 
@@ -107,6 +143,7 @@ export function PresentationEditorComponent({ id, backPath }: PresentationEditor
         const newSlides = [...presentation.slides];
         newSlides.splice(index + 1, 0, duplicatedSlide);
 
+        saveToUndo(presentation);
         setPresentation(prev => ({
             ...prev,
             slides: newSlides
@@ -121,6 +158,7 @@ export function PresentationEditorComponent({ id, backPath }: PresentationEditor
             toast.error("Uma apresentação deve ter pelo menos um slide.");
             return;
         }
+        saveToUndo(presentation);
         setPresentation(prev => ({
             ...prev,
             slides: prev.slides.filter(s => s.id !== slideId)
@@ -133,10 +171,12 @@ export function PresentationEditorComponent({ id, backPath }: PresentationEditor
         if (targetIndex < 0 || targetIndex >= newSlides.length) return;
 
         [newSlides[index], newSlides[targetIndex]] = [newSlides[targetIndex], newSlides[index]];
+        saveToUndo(presentation);
         setPresentation(prev => ({ ...prev, slides: newSlides }));
     };
 
     const updateSlide = (slideId: string, fields: any) => {
+        saveToUndo(presentation);
         setPresentation(prev => ({
             ...prev,
             slides: prev.slides.map(s => s.id === slideId ? { ...s, ...fields } : s)
@@ -399,7 +439,33 @@ export function PresentationEditorComponent({ id, backPath }: PresentationEditor
                         <h1 className="text-sm font-black text-slate-900 leading-none uppercase tracking-tight truncate max-w-[200px] md:max-w-md m-0 p-0 mb-0">
                             {presentation.title || "Sem Título"}
                         </h1>
-                        <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded font-black uppercase tracking-widest border border-emerald-100">Editor de Apresentações</span>
+                        <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded font-black uppercase tracking-widest border border-emerald-100 mr-2">Editor de Apresentações</span>
+
+                        {/* Undo / Redo Buttons */}
+                        <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white">
+                            <button
+                                onClick={handleUndo}
+                                disabled={undoStack.length === 0}
+                                className={cn(
+                                    "p-1.5 border-r border-slate-100 hover:bg-slate-50 transition-colors",
+                                    undoStack.length === 0 ? "opacity-30 cursor-not-allowed" : "text-slate-600 hover:text-emerald-600"
+                                )}
+                                title="Desfazer (Undo)"
+                            >
+                                <Undo2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                                onClick={handleRedo}
+                                disabled={redoStack.length === 0}
+                                className={cn(
+                                    "p-1.5 hover:bg-slate-50 transition-colors",
+                                    redoStack.length === 0 ? "opacity-30 cursor-not-allowed" : "text-slate-600 hover:text-emerald-600"
+                                )}
+                                title="Refazer (Redo)"
+                            >
+                                <Redo2 className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -564,33 +630,6 @@ export function PresentationEditorComponent({ id, backPath }: PresentationEditor
                     {/* The Active Slide "Canvas" */}
                     <div className="w-full max-w-5xl space-y-8 pb-12">
 
-                        {/* Slide Title Input - Integrated */}
-                        <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
-                            <div className="px-6 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                                <span className="text-[10px] font-black uppercase text-emerald-600 tracking-wider">Metadados da Apresentação</span>
-                                <Monitor className="w-3.5 h-3.5 text-slate-300" />
-                            </div>
-                            <div className="p-6 flex flex-col md:flex-row gap-6 items-start">
-                                <div className="space-y-1 flex-1 w-full">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Nome do Projecto</label>
-                                    <Input
-                                        value={presentation.title}
-                                        onChange={(e) => setPresentation({ ...presentation, title: e.target.value })}
-                                        placeholder="Nome do Projecto"
-                                        className="h-10 text-xl font-black bg-transparent border-none p-0 focus-visible:ring-0 placeholder:text-slate-200"
-                                    />
-                                </div>
-                                <div className="space-y-1 flex-[2] w-full">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Notas / Descrição</label>
-                                    <Textarea
-                                        value={presentation.description}
-                                        onChange={(e) => setPresentation({ ...presentation, description: e.target.value })}
-                                        placeholder="Notas da apresentação..."
-                                        className="bg-transparent border-none p-0 focus-visible:ring-0 min-h-[40px] resize-none text-sm font-medium text-slate-600 placeholder:text-slate-300 shadow-none ring-0 focus:ring-0"
-                                    />
-                                </div>
-                            </div>
-                        </div>
 
                         {/* Current Slide Editor (THE CANVAS) */}
                         <div className="bg-white rounded-xl shadow-2xl border border-slate-300 overflow-hidden flex flex-col h-auto relative translate-z-0">
@@ -602,406 +641,122 @@ export function PresentationEditorComponent({ id, backPath }: PresentationEditor
                                     <Layout className="w-4 h-4" />
                                     <span className="text-xs font-black uppercase tracking-widest">Editor de Slide #{activeIndex + 1}</span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleExportSingleSlidePDF(activeIndex)}
-                                        className="text-white hover:bg-white/20 h-7 text-[10px] font-bold gap-1.5 uppercase tracking-wider"
-                                    >
-                                        <Download className="w-3 h-3" />
-                                        PDF
-                                    </Button>
-
-                                    <div className="w-px h-4 bg-white/20 mx-1" />
-                                    <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded font-bold">
-                                        SL#{String(activeIndex + 1).padStart(3, '0')}{new Date().toLocaleDateString('pt-PT', { month: 'short', year: '2-digit' }).replace('.', '').replace(' ', '')}
-                                    </span>
-                                </div>
                             </div>
 
                             <div className="p-10 flex flex-col gap-10 z-10 relative">
-                                {/* Header Section: Title/Antetitulo (Left) & Image (Right) */}
+                                {/* Header Section: Title/Antetitulo & Image */}
                                 <div className="flex flex-col md:flex-row gap-10 items-start shrink-0">
-                                    <div className="flex-1 space-y-8 w-full">
+                                    <div className="flex-1 space-y-6 w-full">
                                         <div className="space-y-2">
-                                            <div className="flex items-center justify-between">
-                                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Antetítulo</label>
-                                                <div className="flex items-center gap-2">
-                                                    <ColorPicker
-                                                        color={activeSlide?.antetitulo_color || "#10b981"} // Default emerald-500
-                                                        onChange={(c) => updateSlide(activeSlide.id, { antetitulo_color: c })}
-                                                    />
-                                                    <div className="flex bg-white/50 rounded-md border border-slate-200 p-0.5 scale-75 origin-right">
-                                                        <button
-                                                            onClick={() => updateSlide(activeSlide.id, { antetitulo_align: 'left' })}
-                                                            className={cn(
-                                                                "p-1 rounded transition-colors",
-                                                                (activeSlide?.antetitulo_align || 'center') === 'left' ? "bg-emerald-600 text-white" : "text-slate-400 hover:bg-slate-100"
-                                                            )}
-                                                            title="Alinhar à Esquerda"
-                                                        >
-                                                            <AlignLeft className="w-3 h-3" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => updateSlide(activeSlide.id, { antetitulo_align: 'center' })}
-                                                            className={cn(
-                                                                "p-1 rounded transition-colors",
-                                                                (activeSlide?.antetitulo_align || 'center') === 'center' ? "bg-emerald-600 text-white" : "text-slate-400 hover:bg-slate-100"
-                                                            )}
-                                                            title="Centralizar"
-                                                        >
-                                                            <AlignCenter className="w-3 h-3" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => updateSlide(activeSlide.id, { antetitulo_align: 'right' })}
-                                                            className={cn(
-                                                                "p-1 rounded transition-colors",
-                                                                activeSlide?.antetitulo_align === 'right' ? "bg-emerald-600 text-white" : "text-slate-400 hover:bg-slate-100"
-                                                            )}
-                                                            title="Alinhar à Direita"
-                                                        >
-                                                            <AlignRight className="w-3 h-3" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Antetítulo</label>
                                             <Input
                                                 value={activeSlide?.antetitulo || ""}
                                                 onChange={(e) => updateSlide(activeSlide.id, { antetitulo: e.target.value })}
                                                 placeholder="Digite o Antetítulo..."
-                                                className="h-10 text-xl font-bold bg-white/50 border-slate-200 focus:ring-emerald-500 rounded-lg shadow-sm"
+                                                className="h-10 text-xl font-bold bg-white/50 border-slate-200 focus:ring-emerald-500 rounded-lg shadow-sm text-orange-500 placeholder:text-orange-200"
                                             />
                                         </div>
 
                                         <div className="space-y-2">
                                             <div className="flex items-center justify-between">
                                                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Título</label>
-                                                <ColorPicker
-                                                    color={activeSlide?.title_color || "#ffffff"}
-                                                    onChange={(c) => updateSlide(activeSlide.id, { title_color: c })}
-                                                />
+                                                <div className="flex items-center gap-2">
+                                                    <label className="text-[9px] font-bold text-slate-400 uppercase">Tamanho</label>
+                                                    <Input
+                                                        type="number"
+                                                        value={activeSlide?.title_size ?? 50}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            updateSlide(activeSlide.id, { title_size: val === '' ? '' : parseInt(val) });
+                                                        }}
+                                                        className="w-16 h-7 text-[12px] font-bold bg-white/50 border-slate-200 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                    />
+                                                    <span className="text-[10px] font-bold text-slate-400">px</span>
+                                                    <div className="flex items-center gap-2 border-l border-slate-200 pl-2 ml-2">
+                                                        <label className="text-[9px] font-bold text-slate-400 uppercase">Espaçamento</label>
+                                                        <Input
+                                                            type="number"
+                                                            step="0.1"
+                                                            min="1"
+                                                            max="3"
+                                                            value={activeSlide?.title_line_height ?? 1.2}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                updateSlide(activeSlide.id, { title_line_height: val === '' ? '' : parseFloat(val) });
+                                                            }}
+                                                            className="w-16 h-7 text-[12px] font-bold bg-white/50 border-slate-200 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                        />
+                                                    </div>
+                                                </div>
                                             </div>
                                             <Textarea
                                                 value={activeSlide?.title || ""}
                                                 onChange={(e) => updateSlide(activeSlide.id, { title: e.target.value })}
                                                 placeholder="Digite o Título principal..."
-                                                className="min-h-[130px] text-lg font-bold bg-white/50 border-slate-200 focus:ring-emerald-500 rounded-lg shadow-sm resize-none"
-                                                style={{ color: activeSlide?.title_color || "#ffffff", fontSize: activeSlide?.title_size ? `${activeSlide.title_size}px` : '52px', lineHeight: 1.1 }}
+                                                className="min-h-[100px] text-2xl font-bold bg-white/50 border-slate-200 focus:ring-emerald-500 rounded-lg shadow-sm resize-none text-black placeholder:text-slate-400"
+                                                style={{
+                                                    fontSize: activeSlide?.title_size ? `${activeSlide.title_size / 2}px` : 'inherit',
+                                                    lineHeight: activeSlide?.title_line_height || 1.2
+                                                }}
                                             />
-                                            <div className="flex flex-wrap items-center gap-4 pt-1">
-                                                <div className="flex items-center gap-2">
-                                                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-tighter whitespace-nowrap">Aumentar o tamanho do título</label>
-                                                    <div className="flex items-center gap-1">
-                                                        <Input
-                                                            type="number"
-                                                            value={activeSlide?.title_size ?? 52}
-                                                            onChange={(e) => {
-                                                                const val = e.target.value;
-                                                                updateSlide(activeSlide.id, { title_size: val === '' ? '' : parseInt(val) });
-                                                            }}
-                                                            className="w-24 h-7 text-[12px] font-bold bg-white/50 border-slate-200 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                                        />
-                                                        <span className="text-[10px] font-bold text-slate-400 px-1">px</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center gap-2">
-                                                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-tighter whitespace-nowrap">Alinhamento</label>
-                                                    <div className="flex bg-white/50 rounded-md border border-slate-200 p-0.5">
-                                                        <button
-                                                            onClick={() => updateSlide(activeSlide.id, { title_align: 'left' })}
-                                                            className={cn(
-                                                                "p-1 rounded transition-colors",
-                                                                (activeSlide?.title_align || 'center') === 'left' ? "bg-emerald-600 text-white" : "text-slate-400 hover:bg-slate-100"
-                                                            )}
-                                                            title="Alinhar à Esquerda"
-                                                        >
-                                                            <AlignLeft className="w-3 h-3" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => updateSlide(activeSlide.id, { title_align: 'center' })}
-                                                            className={cn(
-                                                                "p-1 rounded transition-colors",
-                                                                (activeSlide?.title_align || 'center') === 'center' ? "bg-emerald-600 text-white" : "text-slate-400 hover:bg-slate-100"
-                                                            )}
-                                                            title="Centralizar"
-                                                        >
-                                                            <AlignCenter className="w-3 h-3" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => updateSlide(activeSlide.id, { title_align: 'right' })}
-                                                            className={cn(
-                                                                "p-1 rounded transition-colors",
-                                                                activeSlide?.title_align === 'right' ? "bg-emerald-600 text-white" : "text-slate-400 hover:bg-slate-100"
-                                                            )}
-                                                            title="Alinhar à Direita"
-                                                        >
-                                                            <AlignRight className="w-3 h-3" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </div>
-
                                     </div>
 
-                                    {/* Compact Image Selector Top-Right */}
+                                    {/* Image Selector */}
                                     <div className="w-full md:w-80 shrink-0 space-y-3">
-                                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-tighter flex items-center gap-2">
-                                            <ImageIcon className="w-3 h-3 text-emerald-500" />
-                                            Imagem / Fundo do Slide
-                                        </label>
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-tighter flex items-center gap-2">
+                                                <ImageIcon className="w-3 h-3 text-emerald-500" />
+                                                Imagem Lateral (30%)
+                                            </label>
+                                            <button
+                                                onClick={() => updateSlide(activeSlide.id, { highlight_image: !activeSlide?.highlight_image })}
+                                                className={cn(
+                                                    "flex items-center gap-1.5 px-2 py-1 rounded text-[9px] font-black uppercase tracking-tighter transition-all border",
+                                                    activeSlide?.highlight_image
+                                                        ? "bg-emerald-600 text-white border-emerald-700 shadow-md scale-105"
+                                                        : "bg-white text-slate-400 border-slate-200 hover:text-slate-600 hover:border-slate-300"
+                                                )}
+                                                title="Destacar Imagem no Centro (Layout Cheio)"
+                                            >
+                                                <Maximize2 className={cn("w-3 h-3", activeSlide?.highlight_image && "animate-pulse")} />
+                                                {activeSlide?.highlight_image ? "Destaque Ativo" : "Destacar no Centro"}
+                                            </button>
+                                        </div>
                                         <div className="bg-white rounded-lg border-2 border-dashed border-slate-200 transition-all hover:border-emerald-500 hover:bg-emerald-50/5 shadow-sm group overflow-hidden aspect-video relative">
                                             <ImageUpload
                                                 value={activeSlide?.image_url}
                                                 onChange={(url) => updateSlide(activeSlide.id, { image_url: url })}
-                                                label="Mudar Fundo"
+                                                label="Upload Imagem"
                                                 bucket="public-assets"
                                                 folder="presentations"
                                                 className="border-none bg-transparent rounded-none h-full w-full aspect-video"
                                                 imageClassName="object-cover object-center"
                                             />
                                         </div>
-                                        {/* Image Positioning Toggle */}
-                                        <div className="flex items-center justify-between gap-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
-                                            <span className="text-[10px] font-black uppercase text-slate-400">Imagem</span>
-                                            <div className="flex bg-white rounded-md border border-slate-200 p-0.5">
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); updateSlide(activeSlide.id, { image_side: 'left', image_disabled: false }); }}
-                                                    className={cn(
-                                                        "px-3 py-1 text-[9px] font-black uppercase rounded transition-all",
-                                                        (activeSlide?.image_side || 'left') === 'left' && !activeSlide?.image_disabled ? "bg-emerald-600 text-white shadow-sm" : "text-slate-400 hover:text-slate-600"
-                                                    )}
-                                                >
-                                                    Esquerda
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); updateSlide(activeSlide.id, { image_side: 'right', image_disabled: false }); }}
-                                                    className={cn(
-                                                        "px-3 py-1 text-[9px] font-black uppercase rounded transition-all",
-                                                        activeSlide?.image_side === 'right' && !activeSlide?.image_disabled ? "bg-emerald-600 text-white shadow-sm" : "text-slate-400 hover:text-slate-600"
-                                                    )}
-                                                >
-                                                    Direita
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); updateSlide(activeSlide.id, { image_side: 'center', image_disabled: false }); }}
-                                                    className={cn(
-                                                        "px-3 py-1 text-[9px] font-black uppercase rounded transition-all",
-                                                        activeSlide?.image_side === 'center' && !activeSlide?.image_disabled ? "bg-emerald-600 text-white shadow-sm" : "text-slate-400 hover:text-slate-600"
-                                                    )}
-                                                >
-                                                    Centro
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); updateSlide(activeSlide.id, { image_disabled: true }); }}
-                                                    className={cn(
-                                                        "px-3 py-1 text-[9px] font-black uppercase rounded transition-all",
-                                                        activeSlide?.image_disabled ? "bg-rose-500 text-white shadow-sm" : "text-slate-400 hover:text-rose-500"
-                                                    )}
-                                                >
-                                                    Desactivar
-                                                </button>
-                                            </div>
-                                        </div>
-
                                     </div>
                                 </div>
 
-
                                 {/* Content Section: FULL WIDTH & EXPANDED */}
-                                <div className="flex flex-col gap-3 h-auto mb-10">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Conteúdo & Storytelling (Área Expandida)</label>
-                                        <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">Auto-save activo</span>
-                                    </div>
-                                    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xl ring-1 ring-slate-950/5 h-auto">
+                                <div className="flex flex-col h-auto">
+                                    <div className="bg-white overflow-hidden h-auto">
                                         <RichTextEditor
                                             key={activeSlide.id}
                                             value={activeSlide?.content}
                                             onChange={(val) => updateSlide(activeSlide.id, { content: val })}
                                             placeholder="Descreva sua visão para este slide de forma detalhada..."
                                             className="bg-transparent"
+                                            style={{ lineHeight: activeSlide?.line_height || 1.6 }}
+                                            lineHeight={activeSlide?.line_height}
+                                            onLineHeightChange={(val) => updateSlide(activeSlide.id, { line_height: val })}
+                                            paragraphSpacing={activeSlide?.paragraph_spacing}
+                                            onParagraphSpacingChange={(val) => updateSlide(activeSlide.id, { paragraph_spacing: val })}
                                         />
-                                        <a
-                                            href={`/apresentacao/${presentation?.slug || id}?fullscreen=true`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-colors"
-                                        >
-                                        </a>
-                                    </div>
-                                </div>
-
-                                {/* Layout & Animation Controls */}
-                                <div className="grid grid-cols-2 gap-6 bg-slate-50 border border-slate-200 rounded-xl p-6 mb-10">
-                                    {/* Line Height Control (NEW) - Moved to top for visibility check */}
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Espaçamento de Texto</span>
-                                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                                                {activeSlide?.line_height || 1.6}
-                                            </span>
-                                        </div>
-                                        <div className="relative pt-1">
-                                            <input
-                                                type="range"
-                                                min="1.0"
-                                                max="2.5"
-                                                step="0.1"
-                                                value={activeSlide?.line_height || 1.6}
-                                                onChange={(e) => updateSlide(activeSlide.id, { line_height: parseFloat(e.target.value) })}
-                                                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600 transition-all hover:bg-slate-300"
-                                            />
-                                            <div className="flex justify-between mt-2 px-1">
-                                                <span className="text-[8px] font-bold text-slate-400">Compacto</span>
-                                                <span className="text-[8px] font-bold text-slate-400">Normal</span>
-                                                <span className="text-[8px] font-bold text-slate-400">Relaxado</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Image Height Control */}
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Altura da Imagem</span>
-                                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                                                {Math.round(((activeSlide?.image_height || 550) - 300) / 5)}%
-                                            </span>
-                                        </div>
-                                        <div className="relative pt-1">
-                                            <input
-                                                type="range"
-                                                min="300"
-                                                max="800"
-                                                step="125"
-                                                value={activeSlide?.image_height || 550}
-                                                onChange={(e) => updateSlide(activeSlide.id, { image_height: parseInt(e.target.value) })}
-                                                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600 transition-all hover:bg-slate-300"
-                                            />
-                                            <div className="flex justify-between mt-2">
-                                                {[0, 25, 50, 75, 100].map((step) => (
-                                                    <div key={step} className="flex flex-col items-center gap-1">
-                                                        <div className={cn("w-1 h-1 rounded-full", ((activeSlide?.image_height || 550) - 300) / 5 >= step ? "bg-emerald-500" : "bg-slate-300")} />
-                                                        <span className="text-[8px] font-bold text-slate-400">{step}%</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Animation Controls */}
-                                    <div className="space-y-3 col-span-2 border-t border-slate-200 pt-4 mt-2">
-                                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Animações de Entrada</span>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <label className="text-[9px] font-bold text-slate-500 uppercase">Texto</label>
-                                                <select
-                                                    value={activeSlide?.animation_text || 'fade-in'}
-                                                    onChange={(e) => updateSlide(activeSlide.id, { animation_text: e.target.value })}
-                                                    className="w-full h-9 text-[10px] px-2 rounded-lg border border-slate-200 bg-white font-bold text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none focus:border-emerald-500 transition-all"
-                                                >
-                                                    <option value="none">Sem animação</option>
-                                                    <option value="fade-in">Fade In</option>
-                                                    <option value="slide-left">Deslizar da Esquerda</option>
-                                                    <option value="slide-right">Deslizar da Direita</option>
-                                                    <option value="slide-up">Deslizar de Baixo</option>
-                                                    <option value="slide-down">Deslizar de Cima</option>
-                                                    <option value="zoom-in">Zoom In</option>
-                                                    <option value="bounce">Bounce</option>
-                                                </select>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[9px] font-bold text-slate-500 uppercase">Imagem</label>
-                                                <select
-                                                    value={activeSlide?.animation_image || 'fade-in'}
-                                                    onChange={(e) => updateSlide(activeSlide.id, { animation_image: e.target.value })}
-                                                    className="w-full h-9 text-[10px] px-2 rounded-lg border border-slate-200 bg-white font-bold text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none focus:border-emerald-500 transition-all"
-                                                >
-                                                    <option value="none">Sem animação</option>
-                                                    <option value="fade-in">Fade In</option>
-                                                    <option value="slide-left">Deslizar da Esquerda</option>
-                                                    <option value="slide-right">Deslizar da Direita</option>
-                                                    <option value="slide-up">Deslizar de Baixo</option>
-                                                    <option value="slide-down">Deslizar de Cima</option>
-                                                    <option value="zoom-in">Zoom In</option>
-                                                    <option value="bounce">Bounce</option>
-                                                </select>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Call to Action (CTA) Section */}
-                            <div className="grid grid-cols-4 gap-4 pt-4 border-t border-slate-100 px-8 pb-6">
-                                <div className="space-y-3 col-span-1">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Texto do Botão (CTA)</label>
-                                    <Input
-                                        value={activeSlide?.cta_text || ""}
-                                        onChange={(e) => updateSlide(activeSlide.id, { cta_text: e.target.value })}
-                                        placeholder="Ex: Saiba Mais"
-                                        className="font-bold bg-white border-slate-200 focus:ring-emerald-500 rounded-md shadow-sm"
-                                    />
-                                </div>
-                                <div className="space-y-3 col-span-2">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Link do Botão (URL)</label>
-                                    <Input
-                                        value={activeSlide?.cta_link || ""}
-                                        onChange={(e) => updateSlide(activeSlide.id, { cta_link: e.target.value })}
-                                        placeholder="Ex: /sobre-nos"
-                                        className="font-bold bg-white border-slate-200 focus:ring-emerald-500 rounded-md shadow-sm"
-                                    />
-                                </div>
-                                <div className="space-y-3 col-span-1">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Alinhamento do Botão</label>
-                                    <div className="flex bg-white/50 rounded-md border border-slate-200 p-1 w-fit">
-                                        <button
-                                            onClick={() => updateSlide(activeSlide.id, { cta_align: 'left' })}
-                                            className={cn(
-                                                "px-3 py-1.5 rounded transition-colors text-[10px] font-black uppercase flex items-center gap-1",
-                                                (activeSlide?.cta_align || 'center') === 'left' ? "bg-emerald-600 text-white" : "text-slate-400 hover:bg-slate-100"
-                                            )}
-                                        >
-                                            <AlignLeft className="w-3 h-3" /> Esq
-                                        </button>
-                                        <button
-                                            onClick={() => updateSlide(activeSlide.id, { cta_align: 'center' })}
-                                            className={cn(
-                                                "px-3 py-1.5 rounded transition-colors text-[10px] font-black uppercase flex items-center gap-1",
-                                                (activeSlide?.cta_align || 'center') === 'center' ? "bg-emerald-600 text-white" : "text-slate-400 hover:bg-slate-100"
-                                            )}
-                                        >
-                                            <AlignCenter className="w-3 h-3" /> Centro
-                                        </button>
-                                        <button
-                                            onClick={() => updateSlide(activeSlide.id, { cta_align: 'right' })}
-                                            className={cn(
-                                                "px-3 py-1.5 rounded transition-colors text-[10px] font-black uppercase flex items-center gap-1",
-                                                activeSlide?.cta_align === 'right' ? "bg-emerald-600 text-white" : "text-slate-400 hover:bg-slate-100"
-                                            )}
-                                        >
-                                            <AlignRight className="w-3 h-3" /> Dir
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
                         </div>
 
-                        {/* Shortcut Tip */}
-                        <div className="flex justify-center">
-                            <div className="px-6 py-3 bg-white/50 backdrop-blur rounded-full border border-slate-200 flex items-center gap-4 shadow-sm text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                                <div className="flex items-center gap-1"><span className="bg-slate-200 px-1.5 py-0.5 rounded text-slate-600">CMD</span> + <span className="bg-slate-200 px-1.5 py-0.5 rounded text-slate-600">S</span> PARA SALVAR</div>
-                                <div className="w-px h-3 bg-slate-200" />
-                                <div className="flex items-center gap-1"><span className="bg-slate-200 px-1.5 py-0.5 rounded text-slate-600">SHIFT</span> + <span className="bg-slate-200 px-1.5 py-0.5 rounded text-slate-600">+</span> NOVO SLIDE</div>
-                            </div>
-                        </div>
                     </div>
                 </main>
             </div>

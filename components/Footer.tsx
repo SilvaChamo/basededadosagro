@@ -71,7 +71,7 @@ export function Footer() {
                             <h3 className="text-lg font-bold text-gray-200">Links internos</h3>
                             <ul className="space-y-1 text-[15px] text-gray-400">
                                 <li><Link href="/sobre-nos" className="hover:text-[#f97316] transition-colors">Sobre nós</Link></li>
-                                <li><Link href="/login" className="hover:text-[#f97316] transition-colors">Minha conta</Link></li>
+                                <li><Link href="/auth/login" className="hover:text-[#f97316] transition-colors">Minha conta</Link></li>
                                 <li><Link href="/artigos" className="hover:text-[#f97316] transition-colors">Actividades</Link></li>
                                 <li><Link href="/blog" className="hover:text-[#f97316] transition-colors">Blog do Agro</Link></li>
                                 <li><Link href="/usuario/dashboard" className="hover:text-[#f97316] transition-colors">Dashboard</Link></li>

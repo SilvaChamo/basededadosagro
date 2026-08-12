@@ -1,7 +1,10 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { translations, Language } from '@/lib/translations';
+import { useLocale, useTranslations } from 'next-intl';
+import { usePathname, useRouter } from 'next/navigation';
+
+export type Language = 'PT' | 'EN';
 
 interface LanguageContextType {
     language: Language;
@@ -13,37 +16,28 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-    const [language, setLanguageState] = useState<Language>('PT');
-    const [mounted, setMounted] = useState(false);
+    const locale = useLocale();
+    const router = useRouter();
+    const pathname = usePathname();
+    const nt = useTranslations();
+
+    // Sincronizar o estado interno com o locale do next-intl
+    const [language, setLanguageState] = useState<Language>(locale.toUpperCase() as Language);
 
     useEffect(() => {
-        const saved = localStorage.getItem('language') as Language;
-        if (saved && (saved === 'PT' || saved === 'EN') && saved !== language) {
-            setTimeout(() => setLanguageState(saved), 0);
-        }
-        setTimeout(() => setMounted(true), 0);
-    }, []);
+        setLanguageState(locale.toUpperCase() as Language);
+    }, [locale]);
 
     const setLanguage = (lang: Language) => {
-        setLanguageState(lang);
-        localStorage.setItem('language', lang);
-
-        if (lang === 'PT') {
-            // Clear Google Translate cookies to restore original text
-            document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname}`;
-            // Also try clearing the specific value if it persists
-            document.cookie = "googtrans=; path=/;";
-            document.cookie = `googtrans=; path=/; domain=.${window.location.hostname}`;
-        } else {
-            // Set for English
-            const translateValue = '/pt/en';
-            document.cookie = `googtrans=${translateValue}; path=/`;
-            document.cookie = `googtrans=${translateValue}; path=/; domain=.${window.location.hostname}`;
-        }
-
-        // Refresh to apply change
-        window.location.reload();
+        const newLocale = lang.toLowerCase();
+        
+        // Substituir o [locale] no pathname atual 
+        // Ex: /pt/sobre-nos -> /en/sobre-nos
+        const segments = pathname.split('/');
+        segments[1] = newLocale;
+        const newPathname = segments.join('/');
+        
+        router.push(newPathname);
     };
 
     const toggleLanguage = () => {
@@ -52,20 +46,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     };
 
     const t = (key: string): string => {
-        // We keep t function for manual overrides if needed, 
-        // but now the whole page is translated by Google
-        const keys = key.split('.');
-        let value: any = translations[language];
-
-        for (const k of keys) {
-            if (value && typeof value === 'object' && k in value) {
-                value = value[k as keyof typeof value];
-            } else {
-                return key;
-            }
+        try {
+            return nt(key);
+        } catch (e) {
+            return key;
         }
-
-        return typeof value === 'string' ? value : key;
     };
 
     return (

@@ -118,7 +118,7 @@ export default function MapNavigationInner({ companyCoords: initialCoords, compa
         try {
             const refinedQuery = `${userSearchQuery}, Moçambique`;
             const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(refinedQuery)}&limit=1`;
-            const res = await fetch(url, { headers: { 'User-Agent': 'BaseAgroData-App' } });
+            const res = await fetch(url, { headers: { 'User-Agent': 'BaseDadosAgro-App' } });
             const data = await res.json();
 
             if (data && data.length > 0) {
@@ -155,7 +155,7 @@ export default function MapNavigationInner({ companyCoords: initialCoords, compa
 
                 for (const query of queries) {
                     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
-                    const res = await fetch(url, { headers: { 'User-Agent': 'BaseAgroData-App' } });
+                    const res = await fetch(url, { headers: { 'User-Agent': 'BaseDadosAgro-App' } });
                     const data = await res.json();
 
                     if (data && data.length > 0) {
@@ -230,7 +230,7 @@ export default function MapNavigationInner({ companyCoords: initialCoords, compa
             if (!userCoords) return;
             try {
                 const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${userCoords[0]}&lon=${userCoords[1]}`;
-                const res = await fetch(url, { headers: { 'User-Agent': 'BaseAgroData-App' } });
+                const res = await fetch(url, { headers: { 'User-Agent': 'BaseDadosAgro-App' } });
                 const data = await res.json();
                 if (data.address) {
                     setUserAddress({

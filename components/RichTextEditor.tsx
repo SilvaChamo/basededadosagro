@@ -6,15 +6,27 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
 
 interface RichTextEditorProps {
     value: string;
     onChange: (value: string) => void;
     placeholder?: string;
     className?: string;
+    style?: React.CSSProperties;
+    lineHeight?: number;
+    onLineHeightChange?: (value: number) => void;
+    paragraphSpacing?: number;
+    onParagraphSpacingChange?: (value: number) => void;
 }
 
-export function RichTextEditor({ value, onChange, placeholder, className }: RichTextEditorProps) {
+export function RichTextEditor({ value, onChange, placeholder, className, style, lineHeight, onLineHeightChange, paragraphSpacing, onParagraphSpacingChange }: RichTextEditorProps) {
     const editorRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [activeStyles, setActiveStyles] = useState({
@@ -34,6 +46,9 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
 
     // Initial value sync (only once to avoid cursor jumping)
     useEffect(() => {
+        if (typeof document !== 'undefined') {
+            document.execCommand('defaultParagraphSeparator', false, 'p');
+        }
         if (editorRef.current && editorRef.current.innerHTML !== value) {
             if (value === "" && editorRef.current.innerHTML === "<br>") return;
             if (editorRef.current.innerHTML === "") {
@@ -351,9 +366,11 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
     };
 
     return (
-        <div className={cn("flex flex-col bg-white overflow-hidden transition-all relative", className)}>
+        <div
+            className={cn("flex flex-col bg-white overflow-hidden transition-all relative", className)}
+        >
             {/* Toolbar */}
-            <div className="flex items-center gap-1 p-2 border-b border-slate-100 bg-slate-50 flex-wrap">
+            <div className="flex items-center gap-1 px-2 py-1 border-b border-slate-200 bg-slate-50 flex-wrap">
                 <ToolbarButton onClick={() => execCommand("bold")} icon={<span className="font-black text-lg leading-none font-serif">B</span>} title="Bold" isActive={activeStyles.bold} />
                 <ToolbarButton onClick={() => execCommand("italic")} icon={<Italic className="w-4 h-4" />} title="Italic" isActive={activeStyles.italic} />
 
@@ -436,6 +453,50 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
                 </div>
 
                 <div className="w-px h-4 bg-slate-300 mx-1" />
+
+                {/* Line Height Input */}
+                <div className="flex items-center gap-1 border border-slate-200 rounded px-1 bg-white h-7 hover:border-emerald-500 transition-colors">
+                    <span className="text-[10px] font-bold text-slate-400">LH</span>
+                    <Input
+                        type="number"
+                        step="0.1"
+                        min="1"
+                        max="3"
+                        value={lineHeight || 1.6}
+                        className="w-12 h-6 text-xs text-slate-600 bg-white border-none shadow-none focus-visible:ring-0 text-center p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            if (onLineHeightChange) {
+                                onLineHeightChange(val === '' ? 1.6 : parseFloat(val));
+                            }
+                        }}
+                    />
+                </div>
+
+                {/* Paragraph Spacing Dropdown */}
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button className="flex items-center gap-1 border border-slate-200 rounded px-2 bg-white h-7 hover:border-emerald-500 transition-colors outline-none group">
+                            <span className="text-[10px] font-bold text-slate-400 group-hover:text-emerald-600 transition-colors">PS</span>
+                            <span className="text-xs font-bold text-slate-600 min-w-[20px]">{paragraphSpacing || 1.5}</span>
+                            <ChevronDown className="w-3 h-3 text-slate-400" />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-[80px] bg-white border-slate-200 shadow-xl p-1 z-[100]">
+                        {[0, 0.5, 1.0, 1.2, 1.5, 2.0, 2.5, 3.0].map((val) => (
+                            <DropdownMenuItem
+                                key={val}
+                                className={cn(
+                                    "text-xs font-bold py-1.5 px-2 cursor-pointer hover:bg-emerald-50 hover:text-emerald-700 rounded-sm transition-colors",
+                                    (paragraphSpacing || 1.5) === val ? "bg-emerald-50 text-emerald-700" : "text-slate-600"
+                                )}
+                                onClick={() => onParagraphSpacingChange && onParagraphSpacingChange(val)}
+                            >
+                                {val.toFixed(1)}
+                            </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                </DropdownMenu>
 
                 <ToolbarButton onClick={() => execCommand("insertUnorderedList")} icon={<List className="w-4 h-4" />} title="Bullet List" />
                 <ToolbarButton onClick={() => execCommand("insertOrderedList")} icon={<ListOrdered className="w-4 h-4" />} title="Numbered List" />
@@ -552,7 +613,7 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
             <div
                 ref={editorRef}
                 contentEditable
-                className="flex-1 p-4 min-h-[150px] outline-none text-slate-600 text-sm overflow-y-visible prose prose-sm max-w-none prose-p:my-1 prose-headings:my-2 [&_b]:font-black [&_strong]:font-black prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 marker:text-emerald-600 [&_.rich-text-image-selected]:ring-2 [&_.rich-text-image-selected]:ring-emerald-500 [&_.rich-text-image-selected]:ring-offset-2"
+                className="flex-1 px-0 py-2 pb-0 min-h-[150px] outline-none text-black text-sm overflow-y-visible prose prose-sm max-w-none prose-headings:my-2 [&_b]:font-black [&_strong]:font-black prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 marker:text-emerald-600 [&_.rich-text-image-selected]:ring-2 [&_.rich-text-image-selected]:ring-emerald-500 [&_.rich-text-image-selected]:ring-offset-2"
                 onInput={handleInput}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
@@ -560,8 +621,23 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
                 onKeyUp={checkStyles}
                 onMouseUp={checkStyles}
                 data-placeholder={placeholder}
-                style={{ fontWeight: 400 }} // Base weight
+                style={{
+                    ...style,
+                    fontWeight: 400,
+                    '--line-height': lineHeight ?? 1.6,
+                    '--paragraph-spacing': `${paragraphSpacing ?? 1.5}em`
+                } as React.CSSProperties} // Apply variables here
             />
+            {/* Dynamic CSS for Paragraph Spacing */}
+            <style jsx>{`
+                :global([contenteditable] p), :global([contenteditable] div) {
+                    line-height: var(--line-height, 1.6) !important;
+                    margin-bottom: var(--paragraph-spacing, 1.5em) !important;
+                }
+                :global([contenteditable] p:last-child), :global([contenteditable] div:last-child) {
+                    margin-bottom: 0 !important;
+                }
+            `}</style>
             {/* Placeholder Overlay */}
             {!value && (
                 <div className="absolute top-[50px] left-4 text-slate-400 text-sm pointer-events-none select-none">

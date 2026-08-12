@@ -10,7 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .select('slug, updated_at')
         .eq('is_featured', true)
 
-    const baseUrl = 'https://baseagrodata.com'
+    const baseUrl = 'https://basededadosagro.com'
 
     // Temporarily disabled for development phase
     return [];

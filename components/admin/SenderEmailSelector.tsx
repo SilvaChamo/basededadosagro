@@ -27,11 +27,11 @@ interface SenderEmailSelectorProps {
 }
 
 const DEFAULT_EMAILS = [
-    "geral@baseagrodata.com",
-    "admin@baseagrodata.com",
-    "suporte@baseagrodata.com",
-    "info@baseagrodata.com",
-    "noreply@baseagrodata.com"
+    "geral@basededadosagro.com",
+    "admin@basededadosagro.com",
+    "suporte@basededadosagro.com",
+    "info@basededadosagro.com",
+    "noreply@basededadosagro.com"
 ];
 
 export function SenderEmailSelector({ value, onChange }: SenderEmailSelectorProps) {
@@ -120,7 +120,7 @@ export function SenderEmailSelector({ value, onChange }: SenderEmailSelectorProp
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-slate-700">Endereço de Email</label>
                             <Input
-                                placeholder="ex: novidades@baseagrodata.com"
+                                placeholder="ex: novidades@basededadosagro.com"
                                 value={newEmail}
                                 onChange={(e) => setNewEmail(e.target.value)}
                             />

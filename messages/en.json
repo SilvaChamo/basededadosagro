@@ -1,0 +1,385 @@
+{
+  "common": {
+    "search_placeholder": "What are you looking for?",
+    "search_button": "Search",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success!",
+    "learn_more": "Learn more",
+    "view_all": "View all",
+    "read_more": "Read more",
+    "contact_us": "Contact us",
+    "send": "Send",
+    "partners_area": "Partners Area",
+    "start_now": "Start Now",
+    "help_center": "Help Center",
+    "blog": "Agro Blog",
+    "careers": "Careers",
+    "terms": "Terms & Conditions",
+    "privacy": "Privacy Policy",
+    "menu": "Menu",
+    "login": "Login",
+    "my_account": "My Account",
+    "back": "Back"
+  },
+  "navbar": {
+    "base": "Base",
+    "about": "About us",
+    "services": "Services",
+    "repository": "Repository",
+    "history": "Our history",
+    "partnership": "Partnership",
+    "market": "Market",
+    "contacts": "Contacts",
+    "innovation": "Innovation",
+    "innovation_tech": "Innovation",
+    "app": "About app",
+    "about_registration": "Registration",
+    "innovation_sections": {
+      "presence": "Registration & Visibility",
+      "tools": "Communication & Design",
+      "science": "Science & Technology"
+    },
+    "innovation_menu": {
+      "registration": {
+        "title": "Company Registration",
+        "description": "Join Mozambique's largest agribusiness network.",
+        "link": "/inovacao/vantagens-cadastro"
+      },
+      "communication": {
+        "title": "Mass Communication",
+        "description": "SMS and E-mail systems for immediate reach.",
+        "link": "/inovacao/comunicacao-sms"
+      },
+      "visibility": {
+        "title": "Feature Company",
+        "description": "Stand out your brand at the top of Google and search engines.",
+        "link": "/inovacao/seo-google"
+      },
+      "identity": {
+        "title": "Digital Identity",
+        "description": "Professional profiles and business cards with QR Code.",
+        "link": "/inovacao/perfil-digital"
+      },
+      "presentations": {
+        "title": "Visual Presentations",
+        "description": "Interactive slide editor for catalogs and reports.",
+        "link": "/inovacao/apresentacoes"
+      },
+      "scientific": {
+        "title": "Scientific Repository",
+        "description": "Dynamic and semantic search for academic articles.",
+        "link": "/inovacao/repositorio-cientifico"
+      },
+      "agrobotanica": {
+        "title": "AgroBotanica AI",
+        "description": "Intelligent scanner for diagnosing pests and diseases.",
+        "link": "/inovacao/agrobotanica"
+      }
+    },
+    "forum": "Forum"
+  },
+  "parceria": {
+    "header_title": "Become our",
+    "header_span": "Partner",
+    "intro_title": "We grow together",
+    "intro_subtitle": "when we cooperate",
+    "intro_text": "We believe in the power of strategic partnerships to leverage the agricultural sector. By becoming a partner of Base Agro Data, your organization gains direct access to a qualified network of producers, entrepreneurs, and decision-makers.",
+    "stats_title": "Our Position in the",
+    "stats_subtitle": "Agrarian Market",
+    "stats_text": "Mozambique's largest interactive database, connecting producers and markets with real-time data.",
+    "who_antetitle": "",
+    "who_title": "Who are we looking for?",
+    "who_text": "All entities operating in the agricultural sector can be our partners, but our collaboration is focused on organizations operating in strategic areas that directly boost production, productivity and sustainability in the field.",
+    "who_item1_title": "Input Suppliers",
+    "who_item1_desc": "Seed, fertilizer, and machinery companies looking to expand their reach.",
+    "who_item2_title": "Financial Institutions",
+    "who_item2_desc": "Banks and microfinance interested in financing the growth of the agricultural sector.",
+    "who_item3_title": "Development Agencies",
+    "who_item3_desc": "NGOs and projects focused on social impact and sustainable rural development.",
+    "who_item4_title": "Technology & Data",
+    "who_item4_desc": "Startups and software companies offering management solutions for the field.",
+    "who_item5_title": "Agribusiness Companies",
+    "who_item6_title": "Transport & Distribution",
+    "form_title": "Want to be a partner?",
+    "form_text": "Fill out the form and our partnerships team will get in touch.",
+    "form_name": "Company Name",
+    "form_email": "Corporate Email",
+    "form_message": "Short Message",
+    "form_category": "Partnership Category",
+    "form_submit": "Send proposal",
+    "premium_partners": "Premium Partners",
+    "premium_text": "Leading organizations that trust our Agricultural Database to drive agrarian development in Mozambique are our main partners."
+  },
+  "footer": {
+    "address": "Karl Marx Av. nº 177, Maputo - Mozambique",
+    "phone": "Phone",
+    "whatsapp": "Whatsapp",
+    "email": "E-mail"
+  },
+  "Hero": {
+    "title": {
+      "part1": "Cultivating a better",
+      "part2": "future for",
+      "country": "Mozambique"
+    },
+    "description": "Where fertile land meets innovation, opportunity, and prosperity, promoting sustainable and technological growth, aiming to facilitate agricultural investments for a promising future.",
+    "buttons": {
+      "partner": "BECOME OUR PARTNER",
+      "learn_more": "LEARN MORE"
+    },
+    "stats": {
+      "companies": {
+        "title": "Agricultural Companies",
+        "subtitle": "Active in the market"
+      },
+      "production": {
+        "title": "Agrarian Production 2025",
+        "unit": "Tons",
+        "growth": "5% Growth"
+      },
+      "economy": {
+        "title": "Agrarian Economy 2025",
+        "unit": "MZN",
+        "subtitle": "Agricultural GDP (Q2 '25)",
+        "trend": "24% of National GDP"
+      },
+      "jobs": {
+        "title": "Agricultural Employment",
+        "subtitle": "Labor force",
+        "description": "Source of livelihood for the majority of the population."
+      }
+    }
+  },
+  "SearchSection": {
+    "placeholder": "What are you looking for today?",
+    "no_results": "No results found in the data center.",
+    "categories": {
+      "all": "All categories",
+      "empresas": "Companies",
+      "produtos": "Products",
+      "profissionais": "Professionals",
+      "propriedades": "Properties",
+      "artigos": "Articles"
+    }
+  },
+  "CategoriesShowcase": {
+    "title": "Featured Companies",
+    "feature_button": "Feature yours",
+    "view_details": "View details",
+    "fallbacks": {
+      "category": "Company",
+      "activity": "Activity",
+      "location": "Mozambique"
+    }
+  },
+  "AgroCastSection": {
+    "loading": "Loading episodes...",
+    "view_all": "View all episodes",
+    "back_to_featured": "Back to Featured",
+    "podcast_label": "Podcast",
+    "next_video": "NEXT VIDEO",
+    "view_teaser": "Watch Teaser · 1:50",
+    "no_more_episodes": "No more episodes",
+    "interaction": {
+      "label": "Interaction",
+      "title": "Suggest a new theme",
+      "button": "Send Suggestion"
+    }
+  },
+  "WhyChooseUs": {
+    "title": "Why be part of the <br/> largest <highlight>agricultural platform</highlight>",
+    "description": "In a dynamic agricultural market like Mozambique, visibility and access to the right information is not just a luxury, it's a survival necessity. Our platform connects producers, suppliers and buyers.",
+    "features": {
+      "visibility": {
+        "title": "Sector Visibility",
+        "description": "Appear in the top results for those looking for products."
+      },
+      "growth": {
+        "title": "Exponential Growth",
+        "description": "Increase your sales through targeted campaigns."
+      }
+    },
+    "professional_button": "Are you a professional? Register",
+    "cards": {
+      "companies": {
+        "title": "Registered <br/> Companies",
+        "link": "View archive"
+      },
+      "professionals": {
+        "title": "Registered <br/> Professionals",
+        "link": "Explore"
+      },
+      "properties": {
+        "title": "Registered <br/> Properties",
+        "link": "Explore"
+      },
+      "products": {
+        "title": "Registered <br/> Products",
+        "link": "View archive"
+      }
+    }
+  },
+  "InfoSection": {
+    "badge": "Innovation and Growth",
+    "title": "Stay informed",
+    "description": "We offer dynamic services to facilitate your activities with a view to improving production. We provide assistance in searching for assertive solutions efficiently. Explore the available categories below",
+    "tabs": {
+      "info": "Information",
+      "resources": "Resources",
+      "categories": "Categories"
+    },
+    "loading": "Loading information...",
+    "view_details": "View details",
+    "access_now": "Access now",
+    "view_more_news": "View more news",
+    "aria": {
+      "prev_news": "Previous news",
+      "next_news": "Next news",
+      "go_to_news": "Go to news {index}"
+    },
+    "exemplary_categories": {
+      "rural_tourism": {
+        "title": "Rural tourism",
+        "description": "News and opportunities for rural tourism and leisure."
+      },
+      "agri_tech": {
+        "title": "Agri Tech",
+        "description": "Digital innovations, modern machinery and technical solutions."
+      },
+      "agri_policies": {
+        "title": "Agricultural Policies",
+        "description": "Legislation, regulations and government guidelines for the sector."
+      },
+      "agri_inputs": {
+        "title": "Agricultural Inputs",
+        "description": "Explore inputs, machinery and agricultural products available."
+      },
+      "agri_finance": {
+        "title": "Agricultural Financing",
+        "description": "Credit lines, investment funds and agricultural insurance."
+      },
+      "scientific_articles": {
+        "title": "Scientific Articles",
+        "description": "Research results and agribusiness innovations."
+      }
+    },
+    "resource_cards": {
+      "massive_comm": {
+        "title": "Massive Communication",
+        "description": "Activate the SMS and Email alert system to reach your customers immediately."
+      },
+      "visual_pres": {
+        "title": "Visual Presentations",
+        "description": "Access the slide show editor to create professional catalogs and reports."
+      },
+      "digital_identity": {
+        "title": "Digital Identity",
+        "description": "Create professional profiles and digital business cards with integrated QR Code."
+      },
+      "agrobotanica": {
+        "title": "AgroBotanica AI",
+        "description": "Diagnose pests and diseases in seconds with our smart scanner."
+      }
+    }
+  },
+  "MobileAppSection": {
+    "badge": "Botany",
+    "title": "Smart scanner",
+    "description": "Identify pests, diseases and receive technical guidance in seconds with our advanced Artificial Intelligence.",
+    "features": {
+      "scanner": {
+        "title": "Smart Scanner",
+        "description": "Identify plants and reveal their nutritional value instantly through the camera."
+      },
+      "doctor": {
+        "title": "Doctor Plants",
+        "description": "Detect diseases early and receive correct treatment suggestions."
+      }
+    },
+    "store_finder": {
+      "label": "Find Remedies and Stores:",
+      "description": "Locate nearby suppliers, compare prices and variations in your region in real time."
+    },
+    "download_button": "Download App",
+    "test_button": "Test App!",
+    "platforms": "Available for Android and iOS",
+    "alt_text": "Agrobotanica Interface",
+    "about_badge": {
+      "small": "About the",
+      "big": "App"
+    }
+  },
+  "TermsPage": {
+    "title": "Terms and <highlight>Conditions</highlight>",
+    "breadcrumb": "Terms and Conditions",
+    "lastUpdated": "Updated in January 2024",
+    "sections": {
+      "acceptance": {
+        "title": "1. Acceptance of Terms",
+        "content": "By accessing and using the Base Agro Data platform, the user fully agrees to these terms and conditions of use. If you do not agree with any part of these terms, you should not use our services."
+      },
+      "serviceDescription": {
+        "title": "2. Service Description",
+        "content": "Base Agro Data provides a digital platform for aggregating agricultural indicators, monitoring market prices, and connecting producers, companies, and professionals in the agrarian sector in Mozambique."
+      }
+    },
+    "confirmation": "By continuing to browse, the user confirms they have read and fully understood the terms described above."
+  },
+  "HistorialPage": {
+    "header": { "back": "Back to About Us", "title": "Our History" },
+    "aside": {
+      "title": "Agricultural <highlight>Database</highlight>",
+      "description": "The driving force of agrarian innovation in the country...",
+      "menu": { "origin": "Origin", "newspaper": "Agricultural Newspaper", "digital": "Digital Evolution", "community": "Community Impact" },
+      "nextChapter": { "label": "Next Chapter", "text": "\"We don't stop at diagnosis; now we are building the future of robotics in the field.\"" }
+    },
+    "content": {
+      "badge": "Innovation Trajectory",
+      "title": "Our <highlight>History</highlight>",
+      "intro": "Our journey is marked by constant adaptation...",
+      "timeline": {
+        "step1": { "title": "The Root: The Agricultural Newspaper", "p1": "...", "p2": "..." },
+        "step2": { "title": "Technical Metamorphosis", "p1": "...", "p2": "..." },
+        "step3": { "title": "Present and Future", "p1": "...", "p2": "..." }
+      },
+      "quote": { "title": "To produce tangible solutions", "text": "..." }
+    }
+  },
+  "ServicesData": {
+    "logistica": {
+      "title": "Logistics and transport",
+      "subCategories": {
+        "transporte": {
+          "title": "Land Transport",
+          "description": "Specialized fleet for transporting agrarian products in large quantities.",
+          "fullDescription": "We put at your disposal a strategic network of certified Mozambican transporters...",
+          "features": ["Certified Fleets", "Cargo Insurance", "24/7 Monitoring"],
+          "subServices": [
+            { "title": "Bulk Transport", "description": "Raw cereals and oilseeds for processing or export." },
+            { "title": "Cold Chain", "description": "Climatized logistics for vegetables and sensitive products." }
+          ]
+        },
+        "multimodal": { "title": "Multimodal Logistics", "description": "...", "fullDescription": "...", "features": [], "subServices": [] },
+        "seguranca": { "title": "Cargo Security", "description": "...", "fullDescription": "...", "features": [], "subServices": [] },
+        "rastreio": { "title": "Real-time Tracking", "description": "...", "fullDescription": "...", "features": [], "subServices": [] }
+      }
+    },
+    "assistencia": {
+      "title": "Digital Assistance",
+      "subCategories": {
+        "portais": { "title": "Portal Creation", "description": "...", "fullDescription": "...", "features": [], "subServices": [] },
+        "tecnico": { "title": "IT Technical Support", "description": "...", "fullDescription": "...", "features": [], "subServices": [] },
+        "apps": { "title": "App Development", "description": "...", "fullDescription": "...", "features": [], "subServices": [] },
+        "suporte": { "title": "Online Support", "description": "...", "fullDescription": "...", "features": [], "subServices": [] }
+      }
+    },
+    "insumos": {
+      "title": "Inputs",
+      "subCategories": {
+        "sementes": { "title": "Certified Seeds", "description": "High productivity for your harvest with verified seeds." },
+        "mudas": { "title": "Saplings and Propagation", "description": "High-quality plant material for direct planting." }
+      }
+    }
+  }
+}

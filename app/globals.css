@@ -359,6 +359,17 @@ body {
   top: 0 !important;
 }
 
+/* Prevent Google Translate from modifying html element attributes */
+html.translated-ltr {
+  /* Prevent hydration mismatch by ensuring consistent attributes */
+  direction: ltr !important;
+}
+
+html.translated-ltr body {
+  /* Ensure body styles remain consistent */
+  top: 0 !important;
+}
+
 .goog-te-balloon-frame {
   display: none !important;
 }

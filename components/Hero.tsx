@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Search, X } from "lucide-react";
+import { useTranslations } from 'next-intl';
 
 interface HeroProps {
     onToggleSearch: () => void;
@@ -10,7 +11,7 @@ interface HeroProps {
 }
 
 export function Hero({ onToggleSearch, isSearchOpen, stats }: HeroProps) {
-    // Removed internal fetching. stats are now passed via props.
+    const t = useTranslations('Hero');
 
     // Função auxiliar para obter o valor com segurança
     const getVal = (slug: string, fallback: string) => stats[slug]?.value || fallback;
@@ -22,7 +23,7 @@ export function Hero({ onToggleSearch, isSearchOpen, stats }: HeroProps) {
             <div className="absolute inset-0 z-0">
                 <Image
                     src="/assets/hero-bg-new.webp"
-                    alt="Paisagem agrícola de fundo"
+                    alt={t('title.part1')}
                     fill
                     className="object-cover"
                     priority
@@ -41,24 +42,24 @@ export function Hero({ onToggleSearch, isSearchOpen, stats }: HeroProps) {
                 <div className="space-y-8 animate-in slide-in-from-left-6 duration-700">
                     <div className="space-y-4">
                         <h1 className="text-[28px] md:text-[32px] lg:text-[48px] font-heading font-black text-white leading-[1.2] tracking-tight">
-                            <span className="block">Cultivando um futuro</span>
-                            <span className="block">melhor para</span>
-                            <span className="block text-[#22c55e]">Moçambique</span>
+                            <span className="block">{t('title.part1')}</span>
+                            <span className="block">{t('title.part2')}</span>
+                            <span className="block text-[#22c55e]">{t('title.country')}</span>
                         </h1>
                         <p className="text-base md:text-lg text-gray-200 max-w-xl font-sans leading-relaxed">
-                            Onde a terra fértil encontra inovação, oportunidade e prosperidade, promovendo o crescimento sustentável e tecnológico, com vista a facilitar investimentos agrários para um futuro promissor.
+                            {t('description')}
                         </p>
                     </div>
 
                     <div className="flex flex-wrap gap-4">
                         <Link href="/parceria#secao-parceria">
                             <Button className="bg-emerald-700 hover:bg-[#f97316] text-white px-8 py-6 rounded-[7px] text-sm font-medium uppercase tracking-wider shadow-md transition-colors duration-300">
-                                SEJA NOSSO PARCEIRO
+                                {t('buttons.partner')}
                             </Button>
                         </Link>
                         <Link href="/sobre-nos">
                             <Button variant="outline" className="bg-[#5c3a1e]/80 border-[#f97316] text-white hover:bg-[#f97316] hover:border-[#f97316] hover:text-white px-8 py-6 rounded-[7px] text-sm font-medium uppercase tracking-wider backdrop-blur-sm transition-all duration-300">
-                                SAIBA MAIS
+                                {t('buttons.learn_more')}
                             </Button>
                         </Link>
                     </div>
@@ -75,9 +76,9 @@ export function Hero({ onToggleSearch, isSearchOpen, stats }: HeroProps) {
                             <div className="absolute top-3 right-3 opacity-50">
                                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
                             </div>
-                            <h4 className="text-[10px] font-black uppercase tracking-widest text-white/70 group-hover:text-white mb-2 truncate drop-shadow-md transition-colors" suppressHydrationWarning>Empresas Agrárias</h4>
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-white/70 group-hover:text-white mb-2 truncate drop-shadow-md transition-colors" suppressHydrationWarning>{t('stats.companies.title')}</h4>
                             <h3 className="text-4xl font-heading font-black text-white mb-1 drop-shadow-md group-hover:scale-105 transition-transform origin-left" suppressHydrationWarning><span>{getVal('hero-companies', '950+')}</span></h3>
-                            <p className="text-xs text-gray-200 uppercase tracking-wider drop-shadow-sm group-hover:text-white transition-colors">Activas no mercado</p>
+                            <p className="text-xs text-gray-200 uppercase tracking-wider drop-shadow-sm group-hover:text-white transition-colors">{t('stats.companies.subtitle')}</p>
                             <div className="mt-4 w-full h-1 bg-black/20 rounded-full overflow-hidden">
                                 <div className="h-full bg-[#f97316] w-[85%] shadow-[0_0_15px_rgba(249,115,22,0.6)] group-hover:w-[90%] transition-all duration-700"></div>
                             </div>
@@ -90,13 +91,13 @@ export function Hero({ onToggleSearch, isSearchOpen, stats }: HeroProps) {
                             {/* Shine Sweep Effect */}
                             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-[100%] group-hover:animate-shine transition-transform duration-1000"></div>
 
-                            <h4 className="text-[10px] font-black uppercase tracking-widest text-white/70 group-hover:text-white mb-2 truncate drop-shadow-md transition-colors" suppressHydrationWarning>Produção Agrária 2025</h4>
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-white/70 group-hover:text-white mb-2 truncate drop-shadow-md transition-colors" suppressHydrationWarning>{t('stats.production.title')}</h4>
                             <div className="flex items-baseline gap-1 group-hover:scale-105 transition-transform origin-left">
                                 <h3 className="text-4xl font-heading font-black text-white drop-shadow-md" suppressHydrationWarning><span>{getVal('hero-production', '20M+').split(' ')[0]}</span></h3>
-                                <span className="text-sm font-bold text-gray-200">Tons</span>
+                                <span className="text-sm font-bold text-gray-200">{t('stats.production.unit')}</span>
                             </div>
                             <p className="text-xs text-green-300 mt-2 uppercase tracking-wider flex items-center gap-1 font-bold drop-shadow-sm group-hover:text-green-400 transition-colors">
-                                <span className="text-lg animate-bounce">↑</span> 5% Crescimento
+                                <span className="text-lg animate-bounce">↑</span> {t('stats.production.growth')}
                             </p>
                         </div>
                     </Link>
@@ -107,14 +108,14 @@ export function Hero({ onToggleSearch, isSearchOpen, stats }: HeroProps) {
                             {/* Shine Sweep Effect */}
                             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-[100%] group-hover:animate-shine transition-transform duration-1000"></div>
 
-                            <h4 className="text-[10px] font-black uppercase tracking-widest text-white/70 group-hover:text-white mb-2 truncate drop-shadow-md transition-colors" suppressHydrationWarning>Economia Agrária 2025</h4>
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-white/70 group-hover:text-white mb-2 truncate drop-shadow-md transition-colors" suppressHydrationWarning>{t('stats.economy.title')}</h4>
                             <div className="space-y-1 group-hover:scale-105 transition-transform origin-left">
-                                <h3 className="text-3xl font-heading font-black text-white leading-tight drop-shadow-md" suppressHydrationWarning><span>{getVal('hero-economy', '91.4B').split(' ')[0]}</span> <span className="text-base text-gray-200">MZN</span></h3>
-                                <p className="text-xs text-gray-200 uppercase tracking-wider drop-shadow-sm group-hover:text-white transition-colors">PIB Agrícola (Q2 &apos;25)</p>
+                                <h3 className="text-3xl font-heading font-black text-white leading-tight drop-shadow-md" suppressHydrationWarning><span>{getVal('hero-economy', '91.4B').split(' ')[0]}</span> <span className="text-base text-gray-200">{t('stats.economy.unit')}</span></h3>
+                                <p className="text-xs text-gray-200 uppercase tracking-wider drop-shadow-sm group-hover:text-white transition-colors">{t('stats.economy.subtitle')}</p>
                                 <div className="w-full h-1.5 bg-black/20 rounded-full mt-2 overflow-hidden">
-                                    <div className="h-full w-[24%] bg-emerald-500 shadow-[0_0_15px_rgba(34,197,94,0.6)] group-hover:w-[30%] transition-all duration-700" title="24% do PIB Nacional"></div>
+                                    <div className="h-full w-[24%] bg-emerald-500 shadow-[0_0_15px_rgba(34,197,94,0.6)] group-hover:w-[30%] transition-all duration-700" title={t('stats.economy.trend')}></div>
                                 </div>
-                                <p className="text-[10px] text-right text-gray-300 group-hover:text-white mt-1 transition-colors" suppressHydrationWarning><span>{getTrend('hero-economy', '24% do PIB Nacional')}</span></p>
+                                <p className="text-[10px] text-right text-gray-300 group-hover:text-white mt-1 transition-colors" suppressHydrationWarning><span>{getTrend('hero-economy', t('stats.economy.trend'))}</span></p>
                             </div>
                         </div>
                     </Link>
@@ -125,13 +126,13 @@ export function Hero({ onToggleSearch, isSearchOpen, stats }: HeroProps) {
                             {/* Shine Sweep Effect */}
                             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-[100%] group-hover:animate-shine transition-transform duration-1000"></div>
 
-                            <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-2 truncate drop-shadow-md group-hover:text-emerald-400 transition-colors" suppressHydrationWarning>Emprego Agrícola</h4>
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-2 truncate drop-shadow-md group-hover:text-emerald-400 transition-colors" suppressHydrationWarning>{t('stats.jobs.title')}</h4>
                             <div className="flex items-end gap-2 group-hover:scale-105 transition-transform origin-left">
                                 <h3 className="text-4xl font-heading font-black text-white leading-none drop-shadow-md" suppressHydrationWarning><span>{getVal('hero-jobs', '70%')}</span></h3>
-                                <p className="text-xs text-gray-200 uppercase tracking-wider mb-1.5 drop-shadow-sm group-hover:text-white transition-colors">Força laboral</p>
+                                <p className="text-xs text-gray-200 uppercase tracking-wider mb-1.5 drop-shadow-sm group-hover:text-white transition-colors">{t('stats.jobs.subtitle')}</p>
                             </div>
                             <p className="text-[10px] text-gray-200 group-hover:text-white mt-2 leading-tight drop-shadow-sm transition-colors">
-                                Base de sustento para a maioria da população.
+                                {t('stats.jobs.description')}
                             </p>
                         </div>
                     </Link>

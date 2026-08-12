@@ -33,7 +33,7 @@ export function FloatingChatButton() {
         "terra": "O acesso à terra em Moçambique é regulado pela Lei de Terras. Todas as terras pertencem ao Estado, mas podem ser obtidos direitos de uso (DUAT) para agricultura.",
         "fertilizante": "No nosso Directório (Menu Mercado), pode encontrar fornecedores certificados de fertilizantes e outros insumos agrícolas em cada província.",
         "província": "Moçambique tem um elevado potencial agrário em todas as províncias, com destaque para o corredor da Beira (Manica/Sofala) e o Norte (Nampula/Zambézia).",
-        "ine": "A BaseAgroData integra dados oficiais do Censo Agro-Pecuário do INE de 2020 para fornecer estatísticas precisas sobre a produção nacional."
+        "ine": "A Base de Dados Agro integra dados oficiais do Censo Agro-Pecuário do INE de 2020 para fornecer estatísticas precisas sobre a produção nacional."
     };
 
     const scrollToBottom = () => {

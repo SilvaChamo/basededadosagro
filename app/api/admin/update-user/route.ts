@@ -25,7 +25,7 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { userId, role, plan, password } = body;
+        const { userId, role, plan, password, fullName, phone, address, bio, website } = body;
 
         if (!userId) {
             return NextResponse.json({ error: "ID do utilizador é obrigatório" }, { status: 400 });
@@ -43,10 +43,15 @@ export async function POST(request: Request) {
             if (passwordError) throw passwordError;
         }
 
-        // 4. Update Profile Data (Role, Plan)
+        // 4. Update Profile Data (Role, Plan, Contact Info)
         const updateData: any = {};
         if (role) updateData.role = role;
         if (plan) updateData.plan = plan;
+        if (fullName !== undefined) updateData.full_name = fullName;
+        if (phone !== undefined) updateData.phone = phone;
+        if (address !== undefined) updateData.address = address;
+        if (bio !== undefined) updateData.bio = bio;
+        if (website !== undefined) updateData.website = website;
         updateData.updated_at = new Date().toISOString();
 
         const { error: profileError } = await supabaseAdmin

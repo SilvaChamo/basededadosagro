@@ -41,5 +41,5 @@ const config = getSupabaseConfig()
 // If it returned the proxy, createClient will likely fail or we can handle it.
 // To be safe with supabase-js:
 export const supabase = (config as any).url
-    ? createClient((config as any).url, (config as any).key)
+    ? createClient((config as any).url, (config as any).key, { db: { schema: 'basededados' } })
     : config as any; // This would be the proxy

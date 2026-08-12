@@ -194,7 +194,7 @@ export function ProfessionalRegistrationForm({ initialData, isAdmin }: Professio
                     description: "O seu perfil será analisado pela nossa equipa."
                 });
                 setTimeout(() => {
-                    router.push("/servicos/talentos");
+                    router.push("/servicos");
                 }, 3000);
             }
 
@@ -219,7 +219,7 @@ export function ProfessionalRegistrationForm({ initialData, isAdmin }: Professio
                     Obrigado por se juntar à nossa rede de talentos. O seu perfil foi enviado para aprovação e estará visível em breve.
                 </p>
                 <Button
-                    onClick={() => router.push("/servicos/talentos")}
+                    onClick={() => router.push("/servicos")}
                     className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl px-8 py-6 text-base"
                 >
                     Voltar aos Talentos

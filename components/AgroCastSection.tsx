@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Play, Mic, Users, ArrowRight, ArrowLeft, PlayCircle, Star, Clock } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { useTranslations } from 'next-intl';
 
 interface PodcastEpisode {
     id: string;
@@ -34,6 +35,7 @@ interface AgroCastSectionProps {
 }
 
 export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
+    const t = useTranslations('AgroCastSection');
     const [episodes, setEpisodes] = useState<PodcastEpisode[]>([]);
     const [activeEpisode, setActiveEpisode] = useState<PodcastEpisode | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -82,16 +84,14 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
     };
 
     if (loading) {
-        return <div className="py-20 text-center">Carregando episódios...</div>;
+        return <div className="py-20 text-center">{t('loading')}</div>;
     }
 
     if (!activeEpisode) {
         return null;
     }
 
-    // Prepare next episode (the second one in the list, or the first if only one exists but that would be the active one)
-    // Actually the design shows a "Next Video" card.
-    // If we have at least 2 episodes, use the second one. If not, maybe hide the sidebar or show something else.
+    // Prepare next episode
     const nextEpisode = episodes.length > 1 ? episodes[1] : null;
 
     return (
@@ -104,7 +104,7 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                 <div className="flex justify-end mb-[30px]">
                     <Link href="/agrocast" className="inline-block">
                         <button className="flex items-center gap-2 text-slate-400 hover:text-emerald-600 transition-colors text-xs font-bold uppercase tracking-widest group">
-                            Ver todos os episódios
+                            {t('view_all')}
                             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </button>
                     </Link>
@@ -137,7 +137,7 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                                                 className="pointer-events-auto bg-black/80 hover:bg-[#f97316] text-white text-xs font-bold px-4 py-2.5 rounded-full flex items-center gap-2 transition-all shadow-xl border border-white/10 backdrop-blur-md"
                                             >
                                                 <ArrowLeft className="w-3.5 h-3.5" />
-                                                Voltar ao Destaque
+                                                {t('back_to_featured')}
                                             </button>
                                         </div>
                                     )}
@@ -147,7 +147,7 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                                     {activeEpisode.thumbnail_url ? (
                                         <Image
                                             src={activeEpisode.thumbnail_url}
-                                            alt={activeEpisode.title || "Episódio AgroCast"}
+                                            alt={activeEpisode.title || t('podcast_label')}
                                             fill
                                             className="object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
                                         />
@@ -161,7 +161,7 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                                     <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)] pointer-events-none" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent opacity-100" />
 
-                                    {/* Play Button Overlay - ORANGE -> GREEN with ORANGE Hover */}
+                                    {/* Play Button Overlay */}
                                     <div className="absolute inset-0 flex items-center justify-center mb-10">
                                         <button
                                             onClick={handlePlay}
@@ -181,7 +181,7 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                                             </span>
                                             <div className="flex items-center gap-2 text-white/90 bg-slate-900/40 px-3 py-0.5 rounded-[50px] backdrop-blur-sm border border-white/10">
                                                 <Mic className="w-3.5 h-3.5 text-[#f97316]" />
-                                                <span className="text-[10px] font-bold uppercase tracking-wider">Podcast</span>
+                                                <span className="text-[10px] font-bold uppercase tracking-wider">{t('podcast_label')}</span>
                                             </div>
                                             <div className="flex items-center gap-2 text-white/90 bg-slate-900/40 px-3 py-0.5 rounded-[50px] backdrop-blur-sm border border-white/10">
                                                 <Clock className="w-3.5 h-3.5 text-[#f97316]" />
@@ -210,7 +210,7 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                         </div>
                     </div>
 
-                    {/* Sidebar section - 5px rounding */}
+                    {/* Sidebar section */}
                     <div className="flex flex-col gap-0 h-full">
                         {/* 1. NEXT VIDEO CARD */}
                         {nextEpisode ? (
@@ -224,7 +224,7 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                                 {nextEpisode.thumbnail_url && (
                                     <Image
                                         src={nextEpisode.thumbnail_url}
-                                        alt={nextEpisode.title || "Próximo Episódio"}
+                                        alt={nextEpisode.title || t('next_video')}
                                         fill
                                         className="object-cover transition-transform duration-1000 group-hover:scale-110"
                                     />
@@ -233,7 +233,7 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
 
                                 <div className="absolute inset-0 flex flex-col justify-end p-6 space-y-1">
                                     <div className="flex items-center gap-2">
-                                        <span className="bg-[#f97316] text-white text-[10px] font-black uppercase px-2 py-0.5">PRÓXIMO VÍDEO</span>
+                                        <span className="bg-[#f97316] text-white text-[10px] font-black uppercase px-2 py-0.5">{t('next_video')}</span>
                                         <span className="text-white/80 text-[10px] font-bold uppercase tracking-widest">{nextEpisode.category}</span>
                                     </div>
                                     <h3
@@ -266,24 +266,24 @@ export function AgroCastSection({ embedded = false }: AgroCastSectionProps) {
                                         }}
                                     >
                                         <PlayCircle className="w-4 h-4 text-[#f97316]" />
-                                        <span>Ver Teaser · 1:50</span>
+                                        <span>{t('view_teaser')}</span>
                                     </div>
                                 </div>
                             </div>
                         ) : (
                             <div className="flex-1 bg-slate-900 border-[6px] border-slate-800 border-b-0 rounded-t-[15px] flex items-center justify-center">
-                                <span className="text-slate-500 text-xs">Sem mais episódios</span>
+                                <span className="text-slate-500 text-xs">{t('no_more_episodes')}</span>
                             </div>
                         )}
 
 
                         <div className="bg-emerald-600 p-6 text-white relative overflow-hidden group cursor-pointer rounded-b-[15px] shadow-lg shadow-emerald-500/10">
                             <div className="relative z-10 space-y-2">
-                                <p className="text-[10px] text-[#00ff7f] font-black uppercase tracking-widest opacity-100 m-0">Interação</p>
-                                <h4 className="text-base font-black leading-tight text-white m-0">Sugira um novo tema</h4>
+                                <p className="text-[10px] text-[#00ff7f] font-black uppercase tracking-widest opacity-100 m-0">{t('interaction.label')}</p>
+                                <h4 className="text-base font-black leading-tight text-white m-0">{t('interaction.title')}</h4>
                                 <Link href="/contactos" className="inline-block mt-1">
                                     <button className="bg-white text-slate-600 px-5 py-2 rounded-[6px] font-black text-[10px] uppercase tracking-wider hover:bg-[#f97316] hover:text-white active:scale-95 transition-all flex items-center gap-2">
-                                        Enviar Sugestão <ArrowRight className="w-3 h-3" />
+                                        {t('interaction.button')} <ArrowRight className="w-3 h-3" />
                                     </button>
                                 </Link>
                             </div>

@@ -97,14 +97,14 @@ export function PWAInstallPrompt() {
                     <div className="w-14 h-14 relative flex-shrink-0 bg-emerald-50 rounded-xl p-2 border border-emerald-100">
                         <Image
                             src="/Logo.svg"
-                            alt="Baseagrodata Logo"
+                            alt="Base de Dados Agro Logo"
                             width={56}
                             height={56}
                             className="object-contain"
                         />
                     </div>
                     <div className="flex-1">
-                        <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight">Instalar Baseagrodata</h3>
+                        <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight">Instalar Base de Dados Agro</h3>
                         <p className="text-[12px] text-slate-500 leading-tight mt-0.5">
                             Adicione à sua tela inicial para acesso rápido e navegação offline.
                         </p>

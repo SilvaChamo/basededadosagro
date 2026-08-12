@@ -1,12 +1,12 @@
-# Base AgroData
+# Base de Dados Agro
 
 O seu repositório agrário de confiança.
 
 ## Visite o Site
-[www.baseagrodata.com](https://www.baseagrodata.com)
+[www.basededadosagro.com](https://www.basededadosagro.com)
 
 ## Sobre o Projecto
-Este é o repositório oficial do projecto Base AgroData, desenvolvido com Next.js. O projecto está configurado para actualizações automáticas (CI/CD) via Vercel, garantindo que cada melhoria feita aqui seja reflectida instantaneamente no site oficial.
+Este é o repositório oficial do projecto Base de Dados Agro, desenvolvido com Next.js.
 
 ## Desenvolvimento
 Para rodar o projecto localmente:
