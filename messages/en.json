@@ -188,7 +188,7 @@
     }
   },
   "WhyChooseUs": {
-    "title": "Why be part of the <br/> largest <highlight>agricultural platform</highlight>",
+    "title": "Why be part of the <br></br> largest <highlight>agricultural platform</highlight>",
     "description": "In a dynamic agricultural market like Mozambique, visibility and access to the right information is not just a luxury, it's a survival necessity. Our platform connects producers, suppliers and buyers.",
     "features": {
       "visibility": {
@@ -203,19 +203,19 @@
     "professional_button": "Are you a professional? Register",
     "cards": {
       "companies": {
-        "title": "Registered <br/> Companies",
+        "title": "Registered <br></br> Companies",
         "link": "View archive"
       },
       "professionals": {
-        "title": "Registered <br/> Professionals",
+        "title": "Registered <br></br> Professionals",
         "link": "Explore"
       },
       "properties": {
-        "title": "Registered <br/> Properties",
+        "title": "Registered <br></br> Properties",
         "link": "Explore"
       },
       "products": {
-        "title": "Registered <br/> Products",
+        "title": "Registered <br></br> Products",
         "link": "View archive"
       }
     }

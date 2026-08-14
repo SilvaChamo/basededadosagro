@@ -188,7 +188,7 @@
     }
   },
   "WhyChooseUs": {
-    "title": "Porque fazer parte da <br/> maior <highlight>plataforma agrária</highlight>",
+    "title": "Porque fazer parte da <br></br> maior <highlight>plataforma agrária</highlight>",
     "description": "Num mercado agrário dinâmico como o moçambicano, a visibilidade e o acesso à informação certa não é apenas um luxo, é uma necessidade de sobrevivência. A nossa plataforma conecta produtores, fornecedores e compradores.",
     "features": {
       "visibility": {
@@ -203,19 +203,19 @@
     "professional_button": "É profissional? Registe-se",
     "cards": {
       "companies": {
-        "title": "Empresas <br/> Registadas",
+        "title": "Empresas <br></br> Registadas",
         "link": "Ver arquivo"
       },
       "professionals": {
-        "title": "Profissionais <br/> Cadastrados",
+        "title": "Profissionais <br></br> Cadastrados",
         "link": "Explorar"
       },
       "properties": {
-        "title": "Propriedades <br/> Cadastradas",
+        "title": "Propriedades <br></br> Cadastradas",
         "link": "Explorar"
       },
       "products": {
-        "title": "Produtos <br/> Cadastrados",
+        "title": "Produtos <br></br> Cadastrados",
         "link": "Ver arquivo"
       }
     }

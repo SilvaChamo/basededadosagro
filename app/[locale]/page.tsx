@@ -4,7 +4,6 @@ import { CategoriesShowcase } from "@/components/CategoriesShowcase";
 import { CommunityBanner } from "@/components/CommunityBanner";
 import { WhyChooseUs } from "@/components/WhyChooseUs";
 import { MobileAppSection } from "@/components/MobileAppSection";
-import { AgroCastSection } from "@/components/AgroCastSection";
 import { createClient } from "@/utils/supabase/server";
 import { getTranslations } from 'next-intl/server';
 
@@ -65,7 +64,6 @@ export default async function Home() {
       <CategoriesShowcase companies={companies} />
       <CommunityBanner />
       <WhyChooseUs />
-      <AgroCastSection />
       <InfoSection />
       <MobileAppSection />
     </main>
