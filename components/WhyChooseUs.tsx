@@ -49,8 +49,8 @@ export function WhyChooseUs() {
             />
 
             <div className="container-site grid lg:grid-cols-2 gap-16 lg:gap-12 items-start">
-                {/* Left Column: Text Content */}
-                <div className="space-y-8 animate-in fade-in slide-in-from-left-8 duration-700 sticky top-24">
+                {/* Text Content — desktop: right column */}
+                <div className="space-y-8 animate-in fade-in slide-in-from-left-8 duration-700 sticky top-24 lg:order-2">
                     <div className="space-y-4">
                         <h2 className="text-[28px] md:text-[45px] font-heading font-black text-slate-600 leading-[1.1] tracking-tight">
                             {t.rich('title', richHandlers)}
@@ -94,13 +94,13 @@ export function WhyChooseUs() {
                     </div>
                 </div>
 
-                {/* Right Column: Split Columns for Staggered Layout */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 relative">
-                    {/* Column 1 - Staggered with padding top */}
-                    <div className="space-y-5 pt-[35px]">
+                {/* Cards — desktop: left column */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 relative lg:order-1">
+                    {/* Column 1 */}
+                    <div className="space-y-5">
                         {/* Card 1: Companies */}
                         <Link
-                            href="/repositorio?cat=empresas"
+                            href="/empresas"
                             className="bg-emerald-600 text-white p-6 rounded-[16px] shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group cursor-pointer relative overflow-hidden flex flex-col gap-2 bg-[url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1770&auto=format&fit=crop')] bg-cover bg-center before:absolute before:inset-0 before:bg-emerald-600/90 before:z-0 min-h-[180px]"
                         >
                             <div className="relative z-10 flex flex-col items-start gap-3">
@@ -124,7 +124,7 @@ export function WhyChooseUs() {
 
                         {/* Card 3: Professionals */}
                         <Link
-                            href="/repositorio?cat=profissionais"
+                            href="/repositorio/profissionais"
                             className="bg-white p-6 rounded-[16px] shadow-md border border-slate-100 hover:border-[#f97316]/30 transition-all duration-300 hover:-translate-y-1 group cursor-pointer flex flex-col gap-2 min-h-[180px]"
                         >
                             <div className="relative z-10 flex flex-col items-start gap-3">
@@ -148,7 +148,7 @@ export function WhyChooseUs() {
                     <div className="space-y-5">
                         {/* Card 2: Properties */}
                         <Link
-                            href="/repositorio?cat=propriedades"
+                            href="/propriedades"
                             className="bg-white p-6 rounded-[16px] shadow-md border border-slate-100 hover:border-[#f97316]/30 transition-all duration-300 hover:-translate-y-1 group cursor-pointer flex flex-col gap-2 min-h-[180px]"
                         >
                             <div className="relative z-10 flex flex-col items-start gap-3">
@@ -169,7 +169,7 @@ export function WhyChooseUs() {
 
                         {/* Card 4: Products */}
                         <Link
-                            href="/repositorio?cat=produtos"
+                            href="/produtos"
                             className="bg-[#f97316] text-white p-6 rounded-[16px] shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group cursor-pointer relative overflow-hidden flex flex-col gap-2 bg-[url('https://images.unsplash.com/photo-1625246333195-bf791369018e?q=80&w=1770&auto=format&fit=crop')] bg-cover bg-center before:absolute before:inset-0 before:bg-[#f97316]/90 before:z-0 min-h-[180px]"
                         >
                             <div className="relative z-10 flex flex-col items-start gap-3">
