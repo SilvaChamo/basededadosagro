@@ -11,7 +11,6 @@ import {
     ScanLine, QrCode, MessageSquare, Presentation
 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
 import { useTranslations, useLocale } from 'next-intl';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
@@ -114,16 +113,23 @@ const RESOURCE_CARDS: CategoryCard[] = [
     }
 ];
 
-export function InfoSection() {
+interface InfoSectionProps {
+    initialArticles?: any[];
+}
+
+export function InfoSection({ initialArticles = [] }: InfoSectionProps) {
     const t = useTranslations('InfoSection');
     const locale = useLocale();
     const [activeTab, setActiveTab] = useState("informacoes");
     const bgRef = useRef<HTMLImageElement>(null);
 
-    const [categoryCards, setCategoryCards] = useState<CategoryCard[]>([]);
-    const [statsData, setStatsData] = useState<any[]>([]);
-    const [articlesData, setArticlesData] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    // Categorias são sempre as mesmas (EXEMPLARY_CATEGORIES) — não há
+    // necessidade de as ir buscar ao Supabase.
+    const categoryCards = EXEMPLARY_CATEGORIES;
+    // Artigos/notícias já vêm pré-carregados do servidor (page.tsx), evitando
+    // um pedido lento a partir do browser do visitante que deixava esta
+    // secção presa em "A carregar informações..." por vários segundos.
+    const articlesData = initialArticles;
 
     useEffect(() => {
         const handleScroll = () => {
@@ -139,43 +145,6 @@ export function InfoSection() {
                 bgRef.current.style.transform = `translateY(${distance * 0.3}px)`;
             }
         };
-
-        const fetchData = async () => {
-            const [cats, stats, arts] = await Promise.all([
-                supabase.from('info_categories').select('*'),
-                supabase.from('agricultural_stats').select('*').limit(3),
-                supabase.from('articles').select('id, title, subtitle, image_url, date, slug, type')
-                    .is('deleted_at', null)
-                    .in('type', ['Notícia', 'Internacional', 'Artigo', 'Artigo Técnico', 'Comunicado', 'Evento', 'Oportunidade', 'Curiosidade', 'Guia'])
-                    .order('created_at', { ascending: false })
-                    .limit(5)
-            ]);
-
-            if (cats.data) {
-                // If we have dynamic cats, we still might want to show exemplary for now if mapping isn't clear
-                // But the requirement is to use dictionary strings. 
-                // Let's stick to exemplary for now which are mapped to dictionary.
-                setCategoryCards(EXEMPLARY_CATEGORIES);
-            } else {
-                setCategoryCards(EXEMPLARY_CATEGORIES);
-            }
-
-            if (stats.data) {
-                setStatsData(stats.data.map((s: any) => ({
-                    label: s.label || s.category,
-                    val: s.variation ? `${s.variation > 0 ? '+' : ''}${s.variation}%` : `${s.value}`,
-                    color: s.variation && s.variation < 0 ? "text-red-500" : "text-emerald-500"
-                })));
-            }
-
-            if (arts.data) {
-                setArticlesData(arts.data);
-            }
-
-            setLoading(false);
-        };
-
-        fetchData();
 
         window.addEventListener("scroll", handleScroll, { passive: true });
         handleScroll();
@@ -279,12 +248,7 @@ export function InfoSection() {
 
             <div className="container-site relative z-20 mt-[40px] pb-24">
                 <div className="animate-in fade-in duration-700 slide-in-from-bottom-8">
-                    {loading ? (
-                        <div className="bg-white p-12 rounded-[4px] shadow-lg text-center text-gray-400 border border-slate-100">
-                            {t('loading')}
-                        </div>
-                    ) : (
-                        <>
+                    <>
                             {activeTab === "categorias" && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-agro px-[40px]">
                                     {categoryCards.map((card: any, idx: number) => {
@@ -448,7 +412,6 @@ export function InfoSection() {
                                 </div>
                             )}
                         </>
-                    )}
                 </div>
             </div>
         </section >

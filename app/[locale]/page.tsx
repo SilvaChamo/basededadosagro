@@ -17,20 +17,30 @@ export default async function Home() {
   // Parallel Data Fetching with error resilience
   let statsResult: any = null;
   let companiesResult: any = null;
+  let articlesResult: any = null;
 
   try {
     const results = await Promise.all([
       supabase.from('dashboard_indicators').select('slug, value, trend').eq('location', 'hero'),
-      supabase.from('companies').select('id, name, slug, category, province, location, logo_url, activity, description').eq('is_archived', false).eq('is_featured', true).order('created_at', { ascending: false }).limit(10)
+      supabase.from('companies').select('id, name, slug, category, province, location, logo_url, activity, description').eq('is_archived', false).eq('is_featured', true).order('created_at', { ascending: false }).limit(10),
+      supabase.from('articles').select('id, title, subtitle, image_url, date, slug, type')
+        .is('deleted_at', null)
+        .in('type', ['Notícia', 'Internacional', 'Artigo', 'Artigo Técnico', 'Comunicado', 'Evento', 'Oportunidade', 'Curiosidade', 'Guia'])
+        .order('created_at', { ascending: false })
+        .limit(5)
     ]);
     statsResult = results[0];
     companiesResult = results[1];
+    articlesResult = results[2];
 
     if (statsResult.error) {
       console.error("❌ Error fetching stats:", JSON.stringify(statsResult.error, null, 2));
     }
     if (companiesResult.error) {
       console.error("❌ Error fetching companies:", JSON.stringify(companiesResult.error, null, 2));
+    }
+    if (articlesResult.error) {
+      console.error("❌ Error fetching articles:", JSON.stringify(articlesResult.error, null, 2));
     }
   } catch (err) {
     console.error("💥 Critical error during homepage data fetch:", err);
@@ -58,13 +68,15 @@ export default async function Home() {
     }))
     : [];
 
+  const articles = articlesResult?.data || [];
+
   return (
     <main className="min-h-screen bg-transparent">
       <HomeHeaderSection stats={stats} />
       <CategoriesShowcase companies={companies} />
       <CommunityBanner />
       <WhyChooseUs />
-      <InfoSection />
+      <InfoSection initialArticles={articles} />
       <MobileAppSection />
     </main>
   );
