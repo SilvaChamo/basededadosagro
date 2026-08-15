@@ -47,7 +47,7 @@ export function StandardBlogTemplate({
                     {isSidebarLeft ? (
                         <>
                             {/* Sidebar on Left (4/12 columns = 33.3%, approx the 30% requested) */}
-                            <aside className="lg:col-span-4 lg:col-start-1 space-y-agro sticky top-32 hidden lg:block max-h-[calc(100vh-9rem)] overflow-y-auto">
+                            <aside className="lg:col-span-4 lg:col-start-1 space-y-agro sticky top-32 hidden lg:block">
                                 {sidebarComponents}
                             </aside>
 
@@ -64,7 +64,7 @@ export function StandardBlogTemplate({
                             </div>
 
                             {/* Sidebar on Right */}
-                            <aside className="lg:col-span-3 space-y-agro sticky top-32 hidden lg:block max-h-[calc(100vh-9rem)] overflow-y-auto">
+                            <aside className="lg:col-span-3 space-y-agro sticky top-32 hidden lg:block">
                                 {sidebarComponents}
                             </aside>
                         </>

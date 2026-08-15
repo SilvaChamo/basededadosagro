@@ -55,7 +55,7 @@ export function NewsCard({
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                <div className="absolute top-4 left-4 bg-[#f97316] text-white text-[10px] font-black uppercase px-3.5 py-1.5 rounded-[6px] shadow-lg">
+                <div className="absolute top-4 left-4 bg-[#f97316] text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg">
                     {category || "Artigo"}
                 </div>
             </Link>
@@ -71,7 +71,15 @@ export function NewsCard({
 
                     {/* Title */}
                     <Link href={`/artigos/${slug}`} className="block">
-                        <h3 className="text-[17px] font-black text-slate-800 group-hover:text-[#f97316] transition-colors line-clamp-3 leading-[1.25] py-[7px] tracking-tighter first-letter:uppercase my-0 mb-[10px] overflow-hidden">
+                        <h3
+                            className="text-[17px] font-black text-slate-800 group-hover:text-[#f97316] transition-colors leading-[1.25] tracking-tighter first-letter:uppercase my-0 mb-[10px]"
+                            style={{
+                                display: '-webkit-box',
+                                WebkitBoxOrient: 'vertical',
+                                WebkitLineClamp: 3,
+                                overflow: 'hidden',
+                            }}
+                        >
                             {title}
                         </h3>
                     </Link>
