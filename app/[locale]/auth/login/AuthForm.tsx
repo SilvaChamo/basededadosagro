@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
+import { prefetchDashboardStats } from "@/lib/adminDashboardCache";
 import { Mail, Lock, User, CheckCircle, AlertCircle, Loader2, ArrowRight, Eye, EyeOff, Phone, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,13 @@ import { useRouter } from "next/navigation";
 interface AuthFormProps {
     searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
     initialMode?: "login" | "register"
+}
+
+function getAuthErrorMessage(err: any): string {
+    if (err?.message === "Failed to fetch" || err?.name === "TypeError") {
+        return "Não foi possível ligar ao servidor. Verifique a sua ligação à internet e tente novamente.";
+    }
+    return err?.message || "Ocorreu um erro. Tente novamente.";
 }
 
 export function AuthForm(props: AuthFormProps) {
@@ -128,10 +136,14 @@ export function AuthForm(props: AuthFormProps) {
                             .eq('id', data.session.user.id)
                             .single();
 
-                        setLoading(false);
                         if (profile?.role === 'admin') {
+                            // Password/OTP já confirmada — prepara os dados do painel em
+                            // segundo plano (até 4s) antes de navegar, para abrir sem loading.
+                            await prefetchDashboardStats();
+                            setLoading(false);
                             router.push("/admin");
                         } else {
+                            setLoading(false);
                             router.push("/usuario/dashboard");
                         }
                     }
@@ -168,6 +180,9 @@ export function AuthForm(props: AuthFormProps) {
                         .single();
 
                     if (profile?.role === 'admin') {
+                        // Password já confirmada — prepara os dados do painel em segundo
+                        // plano (até 4s) antes de navegar, para abrir sem mostrar loading.
+                        await prefetchDashboardStats();
                         setLoading(false);
                         router.push("/admin");
                     } else {
@@ -235,7 +250,7 @@ export function AuthForm(props: AuthFormProps) {
                 }
             }
         } catch (err: any) {
-            setStatus({ type: 'error', message: err.message });
+            setStatus({ type: 'error', message: getAuthErrorMessage(err) });
         } finally {
             setLoading(false);
         }
@@ -262,7 +277,7 @@ export function AuthForm(props: AuthFormProps) {
             setStatus({ type: 'success', message: 'Senha redefinida com sucesso! A redireccionar...' });
             setTimeout(() => router.push('/auth/login'), 1500);
         } catch (err: any) {
-            setStatus({ type: 'error', message: err.message });
+            setStatus({ type: 'error', message: getAuthErrorMessage(err) });
         } finally {
             setLoading(false);
         }
