@@ -70,36 +70,36 @@ export function Footer() {
                         <div className="col-span-1 lg:col-span-2 space-y-4 pt-[30px]">
                             <h3 className="text-lg font-bold text-gray-200">Links internos</h3>
                             <ul className="space-y-1 text-[15px] text-gray-400">
-                                <li><Link href="/sobre-nos" className="hover:text-[#f97316] transition-colors">Sobre nós</Link></li>
-                                <li><Link href="/auth/login" className="hover:text-[#f97316] transition-colors">Minha conta</Link></li>
-                                <li><Link href="/artigos" className="hover:text-[#f97316] transition-colors">Actividades</Link></li>
-                                <li><Link href="/blog" className="hover:text-[#f97316] transition-colors">Blog do Agro</Link></li>
-                                <li><Link href="/usuario/dashboard" className="hover:text-[#f97316] transition-colors">Dashboard</Link></li>
-                                <li><Link href="/contactos" className="hover:text-[#f97316] transition-colors">Contactos</Link></li>
+                                <li><Link prefetch={false} href="/sobre-nos" className="hover:text-[#f97316] transition-colors">Sobre nós</Link></li>
+                                <li><Link prefetch={false} href="/auth/login" className="hover:text-[#f97316] transition-colors">Minha conta</Link></li>
+                                <li><Link prefetch={false} href="/artigos" className="hover:text-[#f97316] transition-colors">Actividades</Link></li>
+                                <li><Link prefetch={false} href="/blog" className="hover:text-[#f97316] transition-colors">Blog do Agro</Link></li>
+                                <li><Link prefetch={false} href="/usuario/dashboard" className="hover:text-[#f97316] transition-colors">Dashboard</Link></li>
+                                <li><Link prefetch={false} href="/contactos" className="hover:text-[#f97316] transition-colors">Contactos</Link></li>
                             </ul>
                         </div>
 
                         <div className="col-span-1 lg:col-span-2 space-y-4 pt-[30px]">
                             <h3 className="text-lg font-bold text-gray-200">Links rápidos</h3>
                             <ul className="space-y-1 text-[15px] text-gray-400">
-                                <li><Link href="/servicos" className="hover:text-[#f97316] transition-colors">Agro-negócio</Link></li>
-                                <li><Link href="/servicos/consultoria" className="hover:text-[#f97316] transition-colors">Tecnologia agrária</Link></li>
-                                <li><Link href="/servicos/assistencia" className="hover:text-[#f97316] transition-colors">Políticas agrárias</Link></li>
-                                <li><Link href="/servicos" className="hover:text-[#f97316] transition-colors">Financiamento agrário</Link></li>
-                                <li><Link href="/servicos/insumos" className="hover:text-[#f97316] transition-colors">Insumos agrícolas</Link></li>
-                                <li><Link href="/mercado" className="hover:text-[#f97316] transition-colors">Produtos</Link></li>
+                                <li><Link prefetch={false} href="/servicos" className="hover:text-[#f97316] transition-colors">Agro-negócio</Link></li>
+                                <li><Link prefetch={false} href="/servicos/consultoria" className="hover:text-[#f97316] transition-colors">Tecnologia agrária</Link></li>
+                                <li><Link prefetch={false} href="/servicos/assistencia" className="hover:text-[#f97316] transition-colors">Políticas agrárias</Link></li>
+                                <li><Link prefetch={false} href="/servicos" className="hover:text-[#f97316] transition-colors">Financiamento agrário</Link></li>
+                                <li><Link prefetch={false} href="/servicos/insumos" className="hover:text-[#f97316] transition-colors">Insumos agrícolas</Link></li>
+                                <li><Link prefetch={false} href="/mercado" className="hover:text-[#f97316] transition-colors">Produtos</Link></li>
                             </ul>
                         </div>
 
                         <div className="col-span-1 lg:col-span-2 space-y-4 pt-[30px]">
                             <h3 className="text-lg font-bold text-gray-200">Nossos Serviços</h3>
                             <ul className="space-y-1 text-[15px] text-gray-400">
-                                <li><Link href="/apresentacoes" className="hover:text-[#f97316] transition-colors text-emerald-400 font-bold">Apresentações</Link></li>
-                                <li><Link href="/servicos/transporte" className="hover:text-[#f97316] transition-colors">Logística & Transporte</Link></li>
-                                <li><Link href="/servicos/insumos" className="hover:text-[#f97316] transition-colors">Lojas de Insumos</Link></li>
-                                <li><Link href="/servicos/mercado" className="hover:text-[#f97316] transition-colors">Compra & Venda</Link></li>
-                                <li><Link href="/repositorio" className="hover:text-[#f97316] transition-colors">Repositório</Link></li>
-                                <li><Link href="/servicos/consultoria" className="hover:text-[#f97316] transition-colors">Consultoria Digital</Link></li>
+                                <li><Link prefetch={false} href="/apresentacoes" className="hover:text-[#f97316] transition-colors text-emerald-400 font-bold">Apresentações</Link></li>
+                                <li><Link prefetch={false} href="/servicos/transporte" className="hover:text-[#f97316] transition-colors">Logística & Transporte</Link></li>
+                                <li><Link prefetch={false} href="/servicos/insumos" className="hover:text-[#f97316] transition-colors">Lojas de Insumos</Link></li>
+                                <li><Link prefetch={false} href="/servicos/mercado" className="hover:text-[#f97316] transition-colors">Compra & Venda</Link></li>
+                                <li><Link prefetch={false} href="/repositorio" className="hover:text-[#f97316] transition-colors">Repositório</Link></li>
+                                <li><Link prefetch={false} href="/servicos/consultoria" className="hover:text-[#f97316] transition-colors">Consultoria Digital</Link></li>
                             </ul>
                         </div>
 
@@ -149,12 +149,12 @@ export function Footer() {
                     {/* Bottom Bar: Legal Links & Socials */}
                     <div className="border-t border-gray-500/30 py-6 flex flex-col md:flex-row justify-between items-center gap-6">
                         <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-2 text-gray-300 text-[10px] font-black uppercase tracking-widest">
-                            <Link href="/politica-privacidade" className="hover:text-[#f97316] transition-colors">Política de privacidade</Link>
-                            <Link href="/termos" className="hover:text-[#f97316] transition-colors">Termos e condições</Link>
-                            <Link href="/ajuda" className="hover:text-[#f97316] transition-colors">Ajuda</Link>
-                            <Link href="/contactos" className="hover:text-[#f97316] transition-colors">Suporte</Link>
+                            <Link prefetch={false} href="/politica-privacidade" className="hover:text-[#f97316] transition-colors">Política de privacidade</Link>
+                            <Link prefetch={false} href="/termos" className="hover:text-[#f97316] transition-colors">Termos e condições</Link>
+                            <Link prefetch={false} href="/ajuda" className="hover:text-[#f97316] transition-colors">Ajuda</Link>
+                            <Link prefetch={false} href="/contactos" className="hover:text-[#f97316] transition-colors">Suporte</Link>
                             {isAdmin && (
-                                <Link href="/admin" className="hover:text-[#f97316] transition-colors text-emerald-600/70">Admin</Link>
+                                <Link prefetch={false} href="/admin" className="hover:text-[#f97316] transition-colors text-emerald-600/70">Admin</Link>
                             )}
                         </div>
                         <div className="flex items-center gap-4">
