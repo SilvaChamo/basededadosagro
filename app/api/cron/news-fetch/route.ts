@@ -121,11 +121,9 @@ async function fetchArticleContent(url: string): Promise<ArticleContent> {
 
         if (paragraphs.length === 0) return { image, snippet: null };
 
-        // "Pelo menos metade do texto original": ficamos com a primeira
-        // metade dos parágrafos do corpo do artigo (arredondado para cima),
-        // com um tecto para não guardar artigos inteiros gigantes.
-        const half = Math.max(1, Math.ceil(paragraphs.length / 2));
-        const snippet = paragraphs.slice(0, half).join('\n\n').slice(0, 4000);
+        // Artigo completo, tal como vem na fonte — só com um tecto de
+        // segurança para não guardar algo desproporcionalmente gigante.
+        const snippet = paragraphs.join('\n\n').slice(0, 20000);
 
         return { image, snippet };
     } catch (err) {

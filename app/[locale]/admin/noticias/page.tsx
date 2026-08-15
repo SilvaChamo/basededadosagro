@@ -267,6 +267,16 @@ export default function AdminNoticiasPage() {
         }
     ];
 
+    if (isFormOpen) {
+        return (
+            <ArticleForm
+                onClose={() => { setIsFormOpen(false); setPublishingFromPendingId(null); }}
+                onSuccess={handleSuccess}
+                initialData={editingArticle}
+            />
+        );
+    }
+
     return (
         <div className="space-y-4">
             {/* Header - Single Line */}
@@ -388,12 +398,11 @@ export default function AdminNoticiasPage() {
                                     </button>
                                 ))}
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-6 items-start">
                                 {filteredPending.map((pending: any) => (
                                     <NewsCard
                                         key={pending.id}
                                         title={pending.title}
-                                        subtitle={pending.snippet}
                                         category={pending.category}
                                         date={pending.date || pending.created_at}
                                         image={pending.image_url || undefined}
@@ -470,15 +479,6 @@ export default function AdminNoticiasPage() {
                         }
                         hideHeader={true}
                         pageSize={50}
-                    />
-                )}
-
-                {/* Modal */}
-                {isFormOpen && (
-                    <ArticleForm
-                        onClose={() => { setIsFormOpen(false); setPublishingFromPendingId(null); }}
-                        onSuccess={handleSuccess}
-                        initialData={editingArticle}
                     />
                 )}
 

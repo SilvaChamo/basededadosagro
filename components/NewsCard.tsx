@@ -52,7 +52,7 @@ export function NewsCard({
     });
 
     return (
-        <div className="group flex flex-col h-full bg-white rounded-[10px] shadow-lg border border-slate-100 hover:border-[#f97316]/50 transition-all overflow-hidden hover:shadow-xl">
+        <div className={`group flex flex-col ${image ? 'h-full' : ''} bg-white rounded-[10px] shadow-lg border border-slate-100 hover:border-[#f97316]/50 transition-all overflow-hidden hover:shadow-xl`}>
             {image ? (
                 /* Image Section */
                 onCtaClick ? (
@@ -83,8 +83,8 @@ export function NewsCard({
                     </Link>
                 )
             ) : (
-                /* Sem imagem: faixa com o badge de categoria, mesma linha laranja da imagem */
-                <div className="px-5 py-4 border-b-4 border-[#f97316]">
+                /* Sem imagem: faixa cinza suave com o badge da categoria, linha laranja fina por baixo */
+                <div className="px-5 py-4 bg-slate-50 border-b border-[#f97316]">
                     <span className="inline-block bg-[#f97316] text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px]">
                         {category || "Artigo"}
                     </span>
@@ -104,7 +104,7 @@ export function NewsCard({
                     {onCtaClick ? (
                         <button type="button" onClick={onCtaClick} className="block text-left">
                             <h3
-                                className="text-[17px] font-bold text-slate-800 group-hover:text-[#f97316] transition-colors leading-[1.25] tracking-tighter first-letter:uppercase my-0 mb-1"
+                                className="text-[17px] font-bold text-slate-800 group-hover:text-[#f97316] transition-colors leading-[1.4] tracking-tighter first-letter:uppercase my-0 mb-1"
                                 style={{
                                     display: '-webkit-box',
                                     WebkitBoxOrient: 'vertical',
@@ -118,7 +118,7 @@ export function NewsCard({
                     ) : (
                         <Link href={`/artigos/${slug}`} className="block">
                             <h3
-                                className="text-[17px] font-bold text-slate-800 group-hover:text-[#f97316] transition-colors leading-[1.25] tracking-tighter first-letter:uppercase my-0 mb-1"
+                                className="text-[17px] font-bold text-slate-800 group-hover:text-[#f97316] transition-colors leading-[1.4] tracking-tighter first-letter:uppercase my-0 mb-1"
                                 style={{
                                     display: '-webkit-box',
                                     WebkitBoxOrient: 'vertical',

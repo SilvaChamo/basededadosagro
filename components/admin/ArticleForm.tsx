@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
-import { Loader2, X, Image as ImageIcon, Type, Link as LinkIcon, Calendar } from "lucide-react";
+import { Loader2, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Calendar } from "lucide-react";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -128,23 +128,33 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
-            <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
+        <div className="space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500" title="Voltar">
+                        <ArrowLeft className="w-5 h-5" />
+                    </button>
                     <div>
-                        <h2 className="text-xl font-bold text-slate-800">
+                        <h1 className="text-2xl font-black text-slate-900 tracking-tight">
                             {initialData ? "Editar Artigo" : "Novo Artigo"}
-                        </h2>
+                        </h1>
                         <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-0.5">Gestão de Conteúdo</p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-500">
-                        <X className="w-5 h-5" />
-                    </button>
                 </div>
+                <div className="flex items-center gap-3">
+                    <Button variant="ghost" type="button" onClick={onClose}>
+                        Cancelar
+                    </Button>
+                    <Button type="submit" form="article-form" disabled={loading} className="bg-emerald-600 hover:bg-emerald-700 min-w-[120px]">
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                        {initialData ? "Actualizar" : "Publicar"}
+                    </Button>
+                </div>
+            </div>
 
-                {/* Body */}
-                <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+            {/* Body */}
+            <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
                     <form id="article-form" onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {/* Main Column */}
@@ -261,18 +271,6 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
                             </div>
                         </div>
                     </form>
-                </div>
-
-                {/* Footer */}
-                <div className="px-6 py-4 bg-white border-t border-slate-100 flex justify-end gap-3">
-                    <Button variant="ghost" type="button" onClick={onClose}>
-                        Cancelar
-                    </Button>
-                    <Button type="submit" form="article-form" disabled={loading} className="bg-emerald-600 hover:bg-emerald-700 min-w-[120px]">
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                        {initialData ? "Actualizar" : "Publicar"}
-                    </Button>
-                </div>
             </div>
         </div>
     );
