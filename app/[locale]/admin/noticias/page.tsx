@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Button } from "@/components/ui/button";
-import { Plus, LayoutGrid, List, Pencil, Trash2, Calendar, Link as LinkIcon, Search, FileText, Globe, BookOpen, Lightbulb, RotateCcw, Trash } from "lucide-react";
+import { Plus, LayoutGrid, List, Pencil, Trash2, Calendar, Link as LinkIcon, Search, FileText, Globe, BookOpen, Lightbulb, RotateCcw, Trash, Bot, ExternalLink, CheckCircle2 } from "lucide-react";
 import { ArticleForm } from "@/components/admin/ArticleForm";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -26,6 +26,10 @@ export default function AdminNoticiasPage() {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [showBin, setShowBin] = useState(false);
     const [showEmptyBinConfirm, setShowEmptyBinConfirm] = useState(false);
+    const [pendingArticles, setPendingArticles] = useState<any[]>([]);
+    const [pendingLoading, setPendingLoading] = useState(true);
+    const [publishingFromPendingId, setPublishingFromPendingId] = useState<string | null>(null);
+    const [pendingToDiscard, setPendingToDiscard] = useState<any>(null);
 
     const tabs = [
         { id: 'Todas', label: 'Todas', icon: List },
@@ -33,7 +37,51 @@ export default function AdminNoticiasPage() {
         { id: 'Guia', label: 'Guias', icon: BookOpen },
         { id: 'Dicas', label: 'Dicas', icon: Lightbulb },
         { id: 'Internacional', label: 'Internacional', icon: Globe },
+        { id: 'Pendentes', label: `Pendentes do Robô${pendingArticles.length > 0 ? ` (${pendingArticles.length})` : ''}`, icon: Bot },
     ];
+
+    const fetchPending = async () => {
+        setPendingLoading(true);
+        const { data } = await supabase
+            .from('articles_pending')
+            .select('*')
+            .order('created_at', { ascending: false });
+        setPendingArticles(data || []);
+        setPendingLoading(false);
+    };
+
+    useEffect(() => {
+        fetchPending();
+    }, []);
+
+    const handleReviewPending = (pending: any) => {
+        setPublishingFromPendingId(pending.id);
+        setEditingArticle({
+            title: pending.title,
+            subtitle: pending.snippet || '',
+            type: pending.category || 'Notícia',
+            content: pending.snippet || '',
+            image_url: pending.image_url || '',
+            source: pending.source || '',
+            source_url: pending.source_url || '',
+            date: pending.date || new Date().toISOString().split('T')[0],
+        });
+        setIsFormOpen(true);
+    };
+
+    const handleDiscardPending = async () => {
+        if (!pendingToDiscard) return;
+        try {
+            const { error } = await supabase.from('articles_pending').delete().eq('id', pendingToDiscard.id);
+            if (error) throw error;
+            toast.success('Notícia descartada.');
+            await fetchPending();
+        } catch (error: any) {
+            toast.error(error.message || 'Erro ao descartar');
+        } finally {
+            setPendingToDiscard(null);
+        }
+    };
 
     const fetchArticles = async () => {
         setLoading(true);
@@ -158,11 +206,17 @@ export default function AdminNoticiasPage() {
 
     const handleEdit = (article: any) => {
         setEditingArticle(article);
+        setPublishingFromPendingId(null);
         setIsFormOpen(true);
     };
 
-    const handleSuccess = () => {
-        fetchArticles();
+    const handleSuccess = async () => {
+        await fetchArticles();
+        if (publishingFromPendingId) {
+            await supabase.from('articles_pending').delete().eq('id', publishingFromPendingId);
+            setPublishingFromPendingId(null);
+            await fetchPending();
+        }
         setEditingArticle(null);
     };
 
@@ -212,7 +266,7 @@ export default function AdminNoticiasPage() {
             {/* Header - Single Line */}
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-black text-slate-900 tracking-tight">Gestão de Notícias</h1>
-                <Button onClick={() => { setEditingArticle(null); setIsFormOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700">
+                <Button onClick={() => { setEditingArticle(null); setPublishingFromPendingId(null); setIsFormOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700">
                     <Plus className="w-4 h-4 mr-2" />
                     Novo Artigo
                 </Button>
@@ -303,7 +357,68 @@ export default function AdminNoticiasPage() {
 
             {/* Content - with 40px margin from menu */}
             <div className="pt-10">
-                {loading ? (
+                {activeTab === 'Pendentes' ? (
+                    pendingLoading ? (
+                        <div className="flex justify-center py-20">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+                        </div>
+                    ) : pendingArticles.length === 0 ? (
+                        <div className="text-center py-20 text-slate-400">
+                            <Bot className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+                            Sem notícias pendentes de momento. O robô procura novidades automaticamente.
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                            {pendingArticles.map((pending: any) => (
+                                <div key={pending.id} className="bg-white rounded-[10px] shadow-md border border-slate-100 p-5 flex flex-col gap-3">
+                                    <div className="flex items-center justify-between">
+                                        <span className="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider">
+                                            {pending.category || 'Notícia'}
+                                        </span>
+                                        <span className="text-[10px] text-slate-400 font-bold">
+                                            {pending.date ? new Date(pending.date).toLocaleDateString() : ''}
+                                        </span>
+                                    </div>
+                                    <h3 className="font-black text-slate-800 text-sm leading-snug line-clamp-3">
+                                        {pending.title}
+                                    </h3>
+                                    {pending.snippet && (
+                                        <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">
+                                            {pending.snippet}
+                                        </p>
+                                    )}
+                                    {pending.source_url && (
+                                        <a
+                                            href={pending.source_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 hover:text-emerald-600 transition-colors"
+                                        >
+                                            <ExternalLink className="w-3 h-3" />
+                                            {pending.source || 'Ver fonte original'}
+                                        </a>
+                                    )}
+                                    <div className="mt-auto pt-3 border-t border-slate-50 flex items-center gap-2">
+                                        <button
+                                            onClick={() => handleReviewPending(pending)}
+                                            className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 rounded-lg transition-all"
+                                        >
+                                            <CheckCircle2 className="w-3.5 h-3.5" />
+                                            Rever e Publicar
+                                        </button>
+                                        <button
+                                            onClick={() => setPendingToDiscard(pending)}
+                                            className="w-9 h-9 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all border border-slate-100"
+                                            title="Descartar"
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )
+                ) : loading ? (
                     <div className="flex justify-center py-20">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
                     </div>
@@ -313,7 +428,7 @@ export default function AdminNoticiasPage() {
                     </div>
                 ) : viewMode === 'grid' ? (
                     // Grid View
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-6">
                         {filteredArticles.map((article: any) => (
                             <NewsCard
                                 key={article.id}
@@ -371,7 +486,7 @@ export default function AdminNoticiasPage() {
                 {/* Modal */}
                 {isFormOpen && (
                     <ArticleForm
-                        onClose={() => setIsFormOpen(false)}
+                        onClose={() => { setIsFormOpen(false); setPublishingFromPendingId(null); }}
                         onSuccess={handleSuccess}
                         initialData={editingArticle}
                     />
@@ -408,6 +523,16 @@ export default function AdminNoticiasPage() {
                     title="Eliminar em Massa"
                     description={`Tem a certeza que deseja eliminar ${selectedIds.length} artigos? Esta acção não pode ser desfeita.`}
                     confirmLabel="Eliminar Todos"
+                    variant="destructive"
+                />
+
+                <ConfirmationModal
+                    isOpen={!!pendingToDiscard}
+                    onClose={() => setPendingToDiscard(null)}
+                    onConfirm={handleDiscardPending}
+                    title="Descartar Notícia Pendente"
+                    description={`A notícia "${pendingToDiscard?.title}" será removida da lista de pendentes. Esta acção não pode ser desfeita.`}
+                    confirmLabel="Descartar"
                     variant="destructive"
                 />
             </div>
