@@ -55,6 +55,17 @@ export function ImageUpload({
     disabled = false
 }: ImageUploadProps) {
     const supabase = createClient();
+    // Tecto absoluto de 50kb por imagem (mantendo a melhor qualidade possível
+    // dentro desse limite) — aplica-se sempre, independentemente do que for
+    // passado em maxSizeMB, para garantir que nenhuma imagem do site ultrapassa
+    // este tamanho.
+    const effectiveMaxBytes = Math.min(maxSizeMB, 0.05) * 1024 * 1024;
+    // Se quem chama este componente não definir dimensões máximas, aplicamos
+    // um tecto de resolução por defeito — sem isto, imagens grandes só eram
+    // comprimidas por qualidade (mantendo a resolução original), o que torna
+    // impossível chegar a 50kb sem destruir a qualidade visual.
+    const effectiveMaxWidth = maxWidth ?? 1600;
+    const effectiveMaxHeight = maxHeight ?? (maxWidth ? undefined : 1600);
     const [uploading, setUploading] = useState(false);
     const [userId, setUserId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -84,7 +95,7 @@ export function ImageUpload({
                 img.onload = () => {
                     const width = img.width;
                     const height = img.height;
-                    const needsResizing = (maxWidth && width > maxWidth) || (maxHeight && height > maxHeight) || (file.size > maxSizeMB * 1024 * 1024);
+                    const needsResizing = (effectiveMaxWidth && width > effectiveMaxWidth) || (effectiveMaxHeight && height > effectiveMaxHeight) || (file.size > effectiveMaxBytes);
 
                     if (needsResizing) {
                         setResizeDetails({ width, height });
@@ -99,7 +110,7 @@ export function ImageUpload({
         });
     };
 
-    const convertToWebP = (file: File, forceResize: boolean, quality: number = 0.85): Promise<Blob> => {
+    const convertToWebP = (file: File, forceResize: boolean, quality: number = 0.85, extraScale: number = 1): Promise<Blob> => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -111,26 +122,35 @@ export function ImageUpload({
                     let targetWidth = img.width;
                     let targetHeight = img.height;
 
-                    if (forceResize && maxWidth && maxHeight) {
-                        targetWidth = maxWidth;
-                        targetHeight = maxHeight;
+                    if (forceResize && effectiveMaxWidth && effectiveMaxHeight) {
+                        targetWidth = effectiveMaxWidth;
+                        targetHeight = effectiveMaxHeight;
                     } else if (forceResize) {
-                        if (maxWidth && targetWidth > maxWidth) {
-                            targetHeight *= maxWidth / targetWidth;
-                            targetWidth = maxWidth;
+                        if (effectiveMaxWidth && targetWidth > effectiveMaxWidth) {
+                            targetHeight *= effectiveMaxWidth / targetWidth;
+                            targetWidth = effectiveMaxWidth;
                         }
-                        if (maxHeight && targetHeight > maxHeight) {
-                            targetWidth *= maxHeight / targetHeight;
-                            targetHeight = maxHeight;
+                        if (effectiveMaxHeight && targetHeight > effectiveMaxHeight) {
+                            targetWidth *= effectiveMaxHeight / targetHeight;
+                            targetHeight = effectiveMaxHeight;
                         }
                     }
+
+                    // Redução adicional progressiva (usada quando qualidade +
+                    // tecto de resolução normal ainda não chegam aos 50kb).
+                    if (extraScale < 1) {
+                        targetWidth *= extraScale;
+                        targetHeight *= extraScale;
+                    }
+                    targetWidth = Math.max(1, Math.round(targetWidth));
+                    targetHeight = Math.max(1, Math.round(targetHeight));
 
                     canvas.width = targetWidth;
                     canvas.height = targetHeight;
                     const ctx = canvas.getContext("2d");
                     if (!ctx) return reject(new Error("Não foi possível criar o contexto do canvas"));
 
-                    if (forceResize && maxWidth && maxHeight) {
+                    if (forceResize && effectiveMaxWidth && effectiveMaxHeight) {
                         // Center crop logic
                         const imgSize = img.width / img.height;
                         const targetSize = targetWidth / targetHeight;
@@ -193,31 +213,29 @@ export function ImageUpload({
     const startUpload = async (file: File, shouldResize: boolean) => {
         setUploading(true);
         try {
-            // Attempt 1: High Quality
-            let webpBlob = await convertToWebP(file, shouldResize, 0.85);
+            // Tenta primeiro só reduzir a qualidade, com o tecto de resolução
+            // já aplicado (shouldResize=true assim que a imagem excede o
+            // tecto de resolução ou de tamanho — ver checkAndResize).
+            let webpBlob = await convertToWebP(file, true, 0.85);
 
-            // Attempt 2: Medium Quality if > 1MB
-            if (webpBlob.size > maxSizeMB * 1024 * 1024) {
-                webpBlob = await convertToWebP(file, shouldResize, 0.70);
+            const qualitySteps = [0.70, 0.55, 0.40];
+            for (const q of qualitySteps) {
+                if (webpBlob.size <= effectiveMaxBytes) break;
+                webpBlob = await convertToWebP(file, true, q);
             }
 
-            // Attempt 3: Low Quality if still > 1MB
-            if (webpBlob.size > maxSizeMB * 1024 * 1024) {
-                webpBlob = await convertToWebP(file, shouldResize, 0.50);
-            }
-
-            // Attempt 4: Aggressive resizing if still too big
-            if (webpBlob.size > maxSizeMB * 1024 * 1024) {
-                // Force resize calculation logic here or just fail gracefully
-                // For now, let's just warn but allow, or stricter fail
-                // Implementation detail: User asked for "activar compressao para menos de 1mg"
-                // So we must enforce.
-                webpBlob = await convertToWebP(file, true, 0.40); // Force resize implied by 'true' might not be enough if maxWidth/Height aren't set small enough.
+            // Se a qualidade sozinha não chegar a 50kb, reduz também a
+            // resolução progressivamente (mantendo a melhor qualidade
+            // possível a cada passo) até caber no limite.
+            const scaleSteps = [0.75, 0.6, 0.45, 0.3, 0.2];
+            for (const scale of scaleSteps) {
+                if (webpBlob.size <= effectiveMaxBytes) break;
+                webpBlob = await convertToWebP(file, true, 0.6, scale);
             }
 
             // Final Check
-            if (webpBlob.size > maxSizeMB * 1024 * 1024) {
-                setError(`Não foi possível comprimir a imagem para menos de ${maxSizeMB}MB. Tente uma imagem, menor.`);
+            if (webpBlob.size > effectiveMaxBytes) {
+                setError(`Não foi possível comprimir a imagem para menos de ${Math.round(effectiveMaxBytes / 1024)}kb. Tente uma imagem menor.`);
                 setUploading(false);
                 return;
             }
@@ -368,7 +386,7 @@ export function ImageUpload({
                                 Imagem muito grande
                             </DialogTitle>
                             <DialogDescription className="text-slate-500 text-sm font-medium leading-relaxed pt-2">
-                                A imagem selecionada excede o limite de {maxSizeMB}MB ou as dimensões recomendadas. Deseja que optimizemos o tamanho automaticamente?
+                                A imagem selecionada excede o limite de {Math.round(effectiveMaxBytes / 1024)}kb ou as dimensões recomendadas. Deseja que optimizemos o tamanho automaticamente?
                             </DialogDescription>
                         </DialogHeader>
 
