@@ -60,13 +60,29 @@ export default function AdminNoticiasPage() {
         fetchPending();
     }, []);
 
+    // O robô guarda o corpo do artigo como texto simples (parágrafos
+    // separados por linha em branco) — o editor espera HTML, por isso sem
+    // isto o texto entrava tudo junto, sem parágrafos nem espaçamento.
+    const snippetToHtml = (snippet: string) => {
+        const escapeHtml = (s: string) => s
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        return snippet
+            .split(/\n\s*\n/)
+            .map((p) => p.trim())
+            .filter(Boolean)
+            .map((p) => `<p>${escapeHtml(p)}</p>`)
+            .join('');
+    };
+
     const handleReviewPending = (pending: any) => {
         setPublishingFromPendingId(pending.id);
         setEditingArticle({
             title: pending.title,
-            subtitle: pending.snippet || '',
+            subtitle: '',
             type: pending.category || 'Notícia',
-            content: pending.snippet || '',
+            content: pending.snippet ? snippetToHtml(pending.snippet) : '',
             image_url: pending.image_url || '',
             source: pending.source || '',
             source_url: pending.source_url || '',
@@ -412,6 +428,8 @@ export default function AdminNoticiasPage() {
                                         onDelete={() => setPendingToDiscard(pending)}
                                         ctaLabel="Rever e Publicar"
                                         onCtaClick={() => handleReviewPending(pending)}
+                                        sourceUrl={pending.source_url}
+                                        sourceLabel={pending.source ? `Fonte: ${pending.source}` : undefined}
                                     />
                                 ))}
                             </div>

@@ -24,6 +24,9 @@ interface NewsCardProps {
      * a imagem, o título e o botão principal passam a chamar isto. */
     ctaLabel?: string;
     onCtaClick?: () => void;
+    /** Link para a fonte original (ex: notícias pendentes vindas do robô). */
+    sourceUrl?: string;
+    sourceLabel?: string;
 }
 
 export function NewsCard({
@@ -43,6 +46,8 @@ export function NewsCard({
     onRestore,
     onArchive,
     ctaLabel,
+    sourceUrl,
+    sourceLabel,
     onCtaClick,
 }: NewsCardProps) {
     const formattedDate = new Date(date).toLocaleDateString('pt-PT', {
@@ -142,6 +147,18 @@ export function NewsCard({
                         >
                             {subtitle}
                         </p>
+                    )}
+                    {sourceUrl && (
+                        <a
+                            href={sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 hover:text-emerald-600 transition-colors mt-1 truncate"
+                        >
+                            <LinkIcon className="w-3 h-3 shrink-0" />
+                            {sourceLabel || 'Ver fonte original'}
+                        </a>
                     )}
                 </div>
 

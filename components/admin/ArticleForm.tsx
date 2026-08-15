@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Calendar } from "lucide-react";
+import { Loader2, ArrowLeft, Type, Link as LinkIcon, Calendar } from "lucide-react";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
@@ -226,21 +227,21 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
                                     <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-2">Multimédia</h3>
 
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase">URL da Imagem</label>
-                                        <div className="relative">
-                                            <ImageIcon className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                                            <Input
-                                                placeholder="https://..."
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase">Imagem de Destaque</label>
+                                        <div className="h-[160px]">
+                                            <ImageUpload
+                                                label="Imagem de Destaque"
                                                 value={formData.image_url}
-                                                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                                                className="pl-9"
+                                                onChange={(url) => setFormData({ ...formData, image_url: url })}
+                                                recommendedSize="1200x630"
+                                                maxWidth={1200}
+                                                maxHeight={630}
+                                                bucket="public-assets"
+                                                folder="artigos"
+                                                imageClassName="object-cover w-full h-full"
+                                                showRecommendedBadge={false}
                                             />
                                         </div>
-                                        {formData.image_url && (
-                                            <div className="mt-2 rounded-lg overflow-hidden border border-slate-200 aspect-video bg-slate-100">
-                                                <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" onError={(e) => e.currentTarget.style.display = 'none'} />
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
 
