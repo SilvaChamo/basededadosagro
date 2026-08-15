@@ -1,0 +1,45 @@
+name: Deploy para Hetzner
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-hetzner
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Preparar chave SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.HETZNER_SSH_KEY }}
+
+      - name: Aceitar a chave do servidor (known_hosts)
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p 2234 37.27.17.25 >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Enviar código para o servidor (rsync)
+        run: |
+          rsync -avz --delete -e "ssh -p 2234" \
+            --exclude node_modules \
+            --exclude .next \
+            --exclude .git \
+            --exclude .github \
+            --exclude '.env*' \
+            --exclude .DS_Store \
+            --exclude .claude \
+            --exclude '*.bak-*' \
+            ./ root@37.27.17.25:/opt/basededadosagro-site/
+
+      - name: Instalar, construir e reiniciar no servidor
+        run: |
+          ssh -p 2234 root@37.27.17.25 \
+            "cd /opt/basededadosagro-site && npm install && npm run build && pm2 restart basededadosagro-site && pm2 save"
