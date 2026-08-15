@@ -253,6 +253,7 @@ export default function AdminUsersPage() {
                                     >
                                         <option value="admin">Administrador</option>
                                         <option value="editor">Editor</option>
+                                        <option value="contribuidor">Contribuidor</option>
                                         <option value="user">Utilizador</option>
                                     </select>
                                 </div>

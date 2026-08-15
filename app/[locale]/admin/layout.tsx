@@ -1,9 +1,11 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { Shield } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { LogoutButton } from "@/components/LogoutButton";
+import { isAdminRole, isNewsTeamRole, getRoleLabel } from "@/lib/roles";
 
 export default async function AdminLayout({
     children,
@@ -27,7 +29,9 @@ export default async function AdminLayout({
         .eq('id', user.id)
         .single();
 
-    if (!profile || profile.role !== 'admin') {
+    const role = profile?.role;
+
+    if (!profile || (!isAdminRole(role) && !isNewsTeamRole(role))) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
                 <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl text-center border border-slate-100">
@@ -63,8 +67,21 @@ export default async function AdminLayout({
         );
     }
 
+    if (isNewsTeamRole(role)) {
+        const pathname = (await headers()).get('x-pathname') || '';
+        if (!pathname.includes('/admin/central-noticias')) {
+            redirect('/admin/central-noticias');
+        }
+
+        return (
+            <AdminShell userEmail={user.email} restricted roleLabel={getRoleLabel(role)}>
+                {children}
+            </AdminShell>
+        );
+    }
+
     return (
-        <AdminShell userEmail={user.email}>
+        <AdminShell userEmail={user.email} roleLabel={getRoleLabel(role)}>
             {children}
         </AdminShell>
     );

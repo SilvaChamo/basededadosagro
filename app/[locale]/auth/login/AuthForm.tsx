@@ -4,11 +4,13 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { prefetchDashboardStats } from "@/lib/adminDashboardCache";
+import { isAdminRole, isNewsTeamRole, getPostLoginPath } from "@/lib/roles";
 import { Mail, Lock, User, CheckCircle, AlertCircle, Loader2, ArrowRight, Eye, EyeOff, Phone, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/ui/spinner";
 
 interface AuthFormProps {
     searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
@@ -136,7 +138,7 @@ export function AuthForm(props: AuthFormProps) {
                             .eq('id', data.session.user.id)
                             .single();
 
-                        if (profile?.role === 'admin') {
+                        if (isAdminRole(profile?.role)) {
                             // Password/OTP já confirmada — prepara os dados do painel em
                             // segundo plano (até 4s) antes de navegar, para abrir sem loading.
                             await prefetchDashboardStats();
@@ -144,7 +146,7 @@ export function AuthForm(props: AuthFormProps) {
                             router.push("/admin");
                         } else {
                             setLoading(false);
-                            router.push("/usuario/dashboard");
+                            router.push(getPostLoginPath(profile?.role));
                         }
                     }
                 }
@@ -179,12 +181,15 @@ export function AuthForm(props: AuthFormProps) {
                         .eq('id', data.user.id)
                         .single();
 
-                    if (profile?.role === 'admin') {
+                    if (isAdminRole(profile?.role)) {
                         // Password já confirmada — prepara os dados do painel em segundo
                         // plano (até 4s) antes de navegar, para abrir sem mostrar loading.
                         await prefetchDashboardStats();
                         setLoading(false);
                         router.push("/admin");
+                    } else if (isNewsTeamRole(profile?.role)) {
+                        setLoading(false);
+                        router.push("/admin/central-noticias");
                     } else {
                         // Check for redirect param
                         const params = new URLSearchParams(window.location.search);
@@ -402,7 +407,7 @@ export function AuthForm(props: AuthFormProps) {
                                 disabled={loading}
                                 className="w-full bg-emerald-600 hover:bg-[#f97316] text-white font-black h-10 rounded-agro-btn shadow-lg transition-all text-[11px] uppercase tracking-wider"
                             >
-                                {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "Redefinir Senha"}
+                                {"Redefinir Senha"}
                             </Button>
                         </form>
                     ) : (
@@ -604,9 +609,7 @@ export function AuthForm(props: AuthFormProps) {
                                 disabled={loading}
                                 className="bg-emerald-600 hover:bg-[#f97316] text-white font-black h-10 rounded-agro-btn shadow-lg transition-all text-[11px] uppercase tracking-wider group"
                             >
-                                {loading ? (
-                                    <Loader2 className="w-5 h-5 animate-spin mx-auto" />
-                                ) : (
+                                {(
                                     <span className="flex items-center justify-center gap-1.5">
                                         {authMethod === 'phone'
                                             ? (showOtpInput ? "Confirmar Código" : "Enviar Código")

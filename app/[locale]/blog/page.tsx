@@ -14,6 +14,8 @@ import { createClient } from "@/utils/supabase/client";
 import { WeatherSidebar } from "@/components/WeatherSidebar";
 import { NewsletterCard } from "@/components/NewsletterCard";
 import { NewsCard } from "@/components/NewsCard";
+import { NewsHeroSlider } from "@/components/NewsHeroSlider";
+import { Spinner } from "@/components/ui/spinner";
 
 function BlogContent() {
     const searchParams = useSearchParams();
@@ -44,8 +46,8 @@ function BlogContent() {
     const newsTypes = ['Internacional', 'Guia', 'Evento', 'Oportunidade', 'Curiosidade', 'Recursos', 'Mulher Agro'];
 
     useEffect(() => {
-        const fetchContent = async () => {
-            setLoading(true);
+        const fetchContent = async (isInitialLoad: boolean) => {
+            if (isInitialLoad) setLoading(true);
             try {
 
                 // Fetch news articles (explicitly included types)
@@ -65,15 +67,15 @@ function BlogContent() {
             } catch (error) {
                 console.error("Error fetching content:", error);
             } finally {
-                setLoading(false);
+                if (isInitialLoad) setLoading(false);
                 setRefreshing(false);
             }
         };
 
-        fetchContent();
+        fetchContent(true);
 
-        // Add refresh interval to ensure data is current
-        const interval = setInterval(fetchContent, 30000); // Refresh every 30 seconds
+        // Add refresh interval to ensure data is current (background, no loading flash)
+        const interval = setInterval(() => fetchContent(false), 30000);
 
         return () => clearInterval(interval);
     }, []);
@@ -138,7 +140,7 @@ function BlogContent() {
         return (
             <div className="min-h-screen bg-white flex items-center justify-center pt-20">
                 <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                    <Spinner className="w-12 h-12" />
                     <p className="text-slate-400 font-black uppercase tracking-widest text-[10px]">Actualizando o Blog do Agro...</p>
                 </div>
             </div>
@@ -153,6 +155,7 @@ function BlogContent() {
                 { label: "Início", href: "/" },
                 { label: "Blog", href: undefined }
             ]}
+            topFullWidthContent={<NewsHeroSlider articles={articles} />}
             sidebarComponents={
                 <div className="space-y-5">
                     {/* 2. Clima */}

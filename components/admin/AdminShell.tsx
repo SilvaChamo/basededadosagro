@@ -35,14 +35,23 @@ import {
     Briefcase,
     Boxes,
     Settings,
+    Rss,
+    Tag,
+    FileEdit,
+    Archive,
+    Trash2,
 } from "lucide-react";
 
 interface AdminShellProps {
     children: React.ReactNode;
     userEmail: string | undefined;
+    /** Quando true, mostra apenas a Central de Notícias no menu — usado para
+     * as contas de Editor/Contribuidor, que só têm acesso a esse painel. */
+    restricted?: boolean;
+    roleLabel?: string;
 }
 
-export function AdminShell({ children, userEmail }: AdminShellProps) {
+export function AdminShell({ children, userEmail, restricted = false, roleLabel = "Administrador" }: AdminShellProps) {
     const pathname = usePathname();
     const router = useRouter();
     const supabase = createClient();
@@ -107,14 +116,15 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
         }
     }, [isOnline]);
 
-    const isActive = (path: string) => {
+    const isActive = (path: string, exact?: boolean) => {
+        if (exact) return pathname === path;
         if (path === "/admin" && pathname === "/admin") return true;
         if (path !== "/admin" && pathname.startsWith(path)) return true;
         return false;
     };
 
-    const LinkItem = memo(({ href, icon: Icon, label, isSub, isHeader }: { href: string; icon: any; label: string; isSub?: boolean; isHeader?: boolean }) => {
-        const active = isActive(href);
+    const LinkItem = memo(({ href, icon: Icon, label, isSub, isHeader, exact }: { href: string; icon: any; label: string; isSub?: boolean; isHeader?: boolean; exact?: boolean }) => {
+        const active = isActive(href, exact);
         const baseStyles = active
             ? "text-orange-600 bg-orange-50"
             : "text-slate-700 hover:text-slate-900 hover:bg-slate-100";
@@ -199,6 +209,17 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                     {/* Nav */}
                     <nav className="flex-1 py-2 flex flex-col gap-0 overflow-y-auto">
 
+                        {restricted ? (
+                            <div className="pt-2 flex flex-col gap-0.5">
+                                <LinkItem href="/admin/central-noticias" icon={Rss} label="Central de Notícias" isHeader />
+                                <LinkItem href="/admin/central-noticias/categorias" icon={Tag} label="Categorias" isSub />
+                                <LinkItem href="/admin/central-noticias" icon={FileText} label="Publicadas" isSub exact />
+                                <LinkItem href="/admin/central-noticias/rascunho" icon={FileEdit} label="Rascunho" isSub />
+                                <LinkItem href="/admin/central-noticias/arquivadas" icon={Archive} label="Arquivadas" isSub />
+                                <LinkItem href="/admin/central-noticias/lixo" icon={Trash2} label="Eliminadas" isSub />
+                            </div>
+                        ) : (
+                        <>
                         {/* Section 1: Dashboard */}
                         <div className="pt-2">
                             <LinkItem href="/admin" icon={LayoutDashboard} label="Dashboard" isHeader />
@@ -230,6 +251,7 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                                     <LinkItem href="/admin/profissionais" icon={Users} label="Profissionais" isSub />
                                     <LinkItem href="/admin/artigos" icon={Newspaper} label="Artigos" isSub />
                                     <LinkItem href="/admin/noticias" icon={FileText} label="Notícias" isSub />
+                                    <LinkItem href="/admin/central-noticias" icon={Rss} label="Central de Notícias" isSub />
                                     <LinkItem href="/admin/documentos" icon={FileText} label="Documentos" isSub />
                                     <LinkItem href="/admin/formacao" icon={GraduationCap} label="Formação" isSub />
                                     <LinkItem href="/admin/apresentacoes" icon={Presentation} label="Apresentações" isSub />
@@ -321,6 +343,8 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                                 </div>
                             )}
                         </div>
+                        </>
+                        )}
                     </nav>
 
                     {/* Footer - Identificação do Usuário */}
@@ -331,7 +355,7 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                                     AD
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-bold text-slate-900 truncate">Administrador</p>
+                                    <p className="text-sm font-bold text-slate-900 truncate">{roleLabel}</p>
                                     <p className="text-[11px] text-slate-500 truncate font-medium">{userEmail}</p>
                                 </div>
                             </div>
@@ -341,6 +365,15 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
                                 AD
                             </div>
                         )}
+                        <button
+                            onClick={handleSignOut}
+                            disabled={isSigningOut}
+                            title={isCollapsed ? "Sair" : undefined}
+                            className={`mt-2 flex items-center gap-2.5 py-2 rounded-lg text-[13px] font-bold text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all disabled:opacity-50 ${isCollapsed ? "w-10 h-10 mx-auto justify-center" : "w-full px-2"}`}
+                        >
+                            {isSigningOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
+                            {!isCollapsed && "Sair"}
+                        </button>
                     </div>
                 </div>
             </aside>

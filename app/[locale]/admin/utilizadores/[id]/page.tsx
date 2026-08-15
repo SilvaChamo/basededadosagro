@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SuccessModal } from "@/components/ui/SuccessModal";
+import { Spinner } from "@/components/ui/spinner";
 import {
     ChevronLeft,
     Save,
@@ -120,7 +121,7 @@ function EditUserForm({ userId }: { userId: string }) {
     if (loading) {
         return (
             <div className="h-96 flex flex-col items-center justify-center text-slate-400 gap-4">
-                <Loader2 className="w-8 h-8 animate-spin" />
+                <Spinner className="w-8 h-8 animate-spin" />
                 <p className="font-medium animate-pulse">A carregar perfil do utilizador...</p>
             </div>
         );
@@ -202,6 +203,7 @@ function EditUserForm({ userId }: { userId: string }) {
                             >
                                 <option value="admin">Administrador</option>
                                 <option value="editor">Editor</option>
+                                <option value="contribuidor">Contribuidor</option>
                                 <option value="user">Utilizador</option>
                             </select>
                         </div>
@@ -250,7 +252,7 @@ function EditUserForm({ userId }: { userId: string }) {
                             disabled={isUpdating}
                             className="bg-emerald-600 hover:bg-emerald-700 text-white font-black h-11 px-12 rounded-[8px] shadow-xl shadow-emerald-500/10 transition-all flex items-center gap-3 uppercase tracking-widest text-xs"
                         >
-                            {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                            {<Save className="w-5 h-5" />}
                             {isUpdating ? "Salvando..." : "Guardar Alterações"}
                         </Button>
                     </div>
