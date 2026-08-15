@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Button } from "@/components/ui/button";
-import { Plus, LayoutGrid, List, Pencil, Trash2, Calendar, Link as LinkIcon, Search, FileText, Globe, BookOpen, Lightbulb, RotateCcw, Trash, Bot, ExternalLink, CheckCircle2 } from "lucide-react";
+import { Plus, LayoutGrid, List, Pencil, Trash2, Calendar, Link as LinkIcon, Search, FileText, Globe, BookOpen, Lightbulb, RotateCcw, Trash, Bot } from "lucide-react";
 import { ArticleForm } from "@/components/admin/ArticleForm";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -30,6 +30,7 @@ export default function AdminNoticiasPage() {
     const [pendingLoading, setPendingLoading] = useState(true);
     const [publishingFromPendingId, setPublishingFromPendingId] = useState<string | null>(null);
     const [pendingToDiscard, setPendingToDiscard] = useState<any>(null);
+    const [pendingCategoryFilter, setPendingCategoryFilter] = useState('Todas');
 
     const tabs = [
         { id: 'Todas', label: 'Todas', icon: List },
@@ -37,8 +38,13 @@ export default function AdminNoticiasPage() {
         { id: 'Guia', label: 'Guias', icon: BookOpen },
         { id: 'Dicas', label: 'Dicas', icon: Lightbulb },
         { id: 'Internacional', label: 'Internacional', icon: Globe },
-        { id: 'Pendentes', label: `Pendentes do Robô${pendingArticles.length > 0 ? ` (${pendingArticles.length})` : ''}`, icon: Bot },
+        { id: 'Pendentes', label: `Notícias pendentes${pendingArticles.length > 0 ? ` (${pendingArticles.length})` : ''}`, icon: Bot },
     ];
+
+    const pendingCategories = ['Todas', ...Array.from(new Set(pendingArticles.map((p: any) => p.category || 'Notícia')))];
+    const filteredPending = pendingCategoryFilter === 'Todas'
+        ? pendingArticles
+        : pendingArticles.filter((p: any) => (p.category || 'Notícia') === pendingCategoryFilter);
 
     const fetchPending = async () => {
         setPendingLoading(true);
@@ -364,59 +370,41 @@ export default function AdminNoticiasPage() {
                         </div>
                     ) : pendingArticles.length === 0 ? (
                         <div className="text-center py-20 text-slate-400">
-                            <Bot className="w-10 h-10 mx-auto mb-3 text-slate-300" />
-                            Sem notícias pendentes de momento. O robô procura novidades automaticamente.
+                            Sem notícias pendentes de momento.
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                            {pendingArticles.map((pending: any) => (
-                                <div key={pending.id} className="bg-white rounded-[10px] shadow-md border border-slate-100 p-5 flex flex-col gap-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider">
-                                            {pending.category || 'Notícia'}
-                                        </span>
-                                        <span className="text-[10px] text-slate-400 font-bold">
-                                            {pending.date ? new Date(pending.date).toLocaleDateString() : ''}
-                                        </span>
-                                    </div>
-                                    <h3 className="font-black text-slate-800 text-sm leading-snug line-clamp-3">
-                                        {pending.title}
-                                    </h3>
-                                    {pending.snippet && (
-                                        <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">
-                                            {pending.snippet}
-                                        </p>
-                                    )}
-                                    {pending.source_url && (
-                                        <a
-                                            href={pending.source_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 hover:text-emerald-600 transition-colors"
-                                        >
-                                            <ExternalLink className="w-3 h-3" />
-                                            {pending.source || 'Ver fonte original'}
-                                        </a>
-                                    )}
-                                    <div className="mt-auto pt-3 border-t border-slate-50 flex items-center gap-2">
-                                        <button
-                                            onClick={() => handleReviewPending(pending)}
-                                            className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 rounded-lg transition-all"
-                                        >
-                                            <CheckCircle2 className="w-3.5 h-3.5" />
-                                            Rever e Publicar
-                                        </button>
-                                        <button
-                                            onClick={() => setPendingToDiscard(pending)}
-                                            className="w-9 h-9 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all border border-slate-100"
-                                            title="Descartar"
-                                        >
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                        <>
+                            <div className="flex items-center gap-1 bg-emerald-50 p-1 rounded-md border border-emerald-200 mb-6 w-fit flex-wrap">
+                                {pendingCategories.map((cat) => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => setPendingCategoryFilter(cat)}
+                                        className={`px-3 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${pendingCategoryFilter === cat
+                                            ? 'bg-emerald-600 text-white shadow-sm'
+                                            : 'text-slate-600 hover:bg-[#f97316] hover:text-white'
+                                            }`}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-6">
+                                {filteredPending.map((pending: any) => (
+                                    <NewsCard
+                                        key={pending.id}
+                                        title={pending.title}
+                                        subtitle={pending.snippet}
+                                        category={pending.category}
+                                        date={pending.date || pending.created_at}
+                                        image={pending.image_url || undefined}
+                                        slug={pending.id}
+                                        isAdmin={true}
+                                        onEdit={() => handleReviewPending(pending)}
+                                        onDelete={() => setPendingToDiscard(pending)}
+                                    />
+                                ))}
+                            </div>
+                        </>
                     )
                 ) : loading ? (
                     <div className="flex justify-center py-20">

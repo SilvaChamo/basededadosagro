@@ -46,19 +46,28 @@ export function NewsCard({
 
     return (
         <div className="group flex flex-col h-full bg-white rounded-[10px] shadow-lg border border-slate-100 hover:border-[#f97316]/50 transition-all overflow-hidden hover:shadow-xl">
-            {/* Image Section */}
-            <Link href={`/artigos/${slug}`} className="relative aspect-[16/10] overflow-hidden block border-b-4 border-[#f97316]">
-                <Image
-                    src={image || "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=800&auto=format&fit=crop"}
-                    alt={title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute top-4 left-4 bg-[#f97316] text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg">
-                    {category || "Artigo"}
+            {image ? (
+                /* Image Section */
+                <Link href={`/artigos/${slug}`} className="relative aspect-[16/10] overflow-hidden block border-b-4 border-[#f97316]">
+                    <Image
+                        src={image}
+                        alt={title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute top-4 left-4 bg-[#f97316] text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg">
+                        {category || "Artigo"}
+                    </div>
+                </Link>
+            ) : (
+                /* Sem imagem: badge de categoria substitui a faixa de imagem */
+                <div className="px-5 pt-5">
+                    <span className="inline-block bg-[#f97316] text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px]">
+                        {category || "Artigo"}
+                    </span>
                 </div>
-            </Link>
+            )}
 
             {/* Content Section */}
             <div className="p-5 flex flex-col flex-1">

@@ -8,25 +8,29 @@ const supabaseAdmin = createClient(
     { db: { schema: 'basededados' } }
 );
 
-// Pesquisas em português cobrindo os temas mais relevantes para o sector
-// agrário moçambicano. O robô só recolhe título/link/fonte/data/resumo
-// curto do RSS — não reescreve nem resume com IA (decisão do utilizador,
-// para não ter custos por notícia). O texto final do artigo fica sempre
-// a cargo de quem revê em /admin/noticias, separador "Pendentes do Robô".
-const QUERIES = [
-    'agricultura Moçambique',
-    'agronegócio Moçambique',
-    'produção agrícola Moçambique',
-    'chuvas culturas Moçambique',
-    'pecuária Moçambique',
+const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
+// Fontes com feed RSS directo (link real do artigo, não um redirect do
+// Google) — só assim conseguimos ir buscar o texto e a imagem reais.
+const FEEDS = [
+    'https://jornalnoticias.co.mz/feed/',
+    'https://clubofmozambique.com/feed/',
 ];
 
+// Só guardamos notícias destes últimos N dias (pedido do utilizador — as já
+// publicadas em `articles` nunca são tocadas por este filtro).
+const MAX_AGE_DAYS = 7;
+
+// Filtro de relevância por palavra-chave (as fontes são generalistas, não só
+// de agricultura).
+const RELEVANCE_PATTERN = /\b(agr[ií]cola|agricultura|agr[oó]nomo|agron[eé]gocio|agropecu[aá]ria|pecu[aá]ria|gado|milho|arroz|algod[aã]o|cajueiro|caju|semente|colheita|planta[çc][aã]o|irriga[çc][aã]o|fertilizante|adubo|praga|seca|chuvas?|clima\b.*cultura|iiam|camponeses?|agricultores?|farm(ing|er)?|crop|livestock|harvest|irrigation|agri(business|culture)?)\b/i;
+
 const CATEGORY_RULES: { pattern: RegExp; category: string }[] = [
-    { pattern: /\b(evento|feira|conferência|congresso|workshop|seminário)\b/i, category: 'Evento' },
-    { pattern: /\b(lei|legislação|decreto|regulamento|diploma)\b/i, category: 'Legislação' },
-    { pattern: /\b(financiamento|crédito|fundo|investimento|subsídio|empréstimo)\b/i, category: 'Oportunidade' },
-    { pattern: /\b(estudo|pesquisa científica|relatório)\b/i, category: 'Relatório' },
-    { pattern: /\b(áfrica do sul|zimbabué|zâmbia|malawi|tanzânia|internacional|mundial|global|onu|fao)\b/i, category: 'Internacional' },
+    { pattern: /\b(evento|feira|conferência|congresso|workshop|seminário|conference|summit)\b/i, category: 'Evento' },
+    { pattern: /\b(lei|legislação|decreto|regulamento|diploma|law|regulation)\b/i, category: 'Legislação' },
+    { pattern: /\b(financiamento|crédito|fundo|investimento|subsídio|empréstimo|investment|funding|loan)\b/i, category: 'Oportunidade' },
+    { pattern: /\b(estudo|pesquisa científica|relatório|report|study)\b/i, category: 'Relatório' },
+    { pattern: /\b(áfrica do sul|zimbabué|zâmbia|malawi|tanzânia|internacional|mundial|global|onu|fao|international)\b/i, category: 'Internacional' },
 ];
 
 function guessCategory(text: string): string {
@@ -43,6 +47,12 @@ function decodeHtmlEntities(text: string): string {
         .replace(/&gt;/g, '>')
         .replace(/&quot;/g, '"')
         .replace(/&#39;/g, "'")
+        .replace(/&#8217;/g, "'")
+        .replace(/&#8216;/g, "'")
+        .replace(/&#8220;/g, '"')
+        .replace(/&#8221;/g, '"')
+        .replace(/&#8211;/g, '-')
+        .replace(/&#8230;/g, '…')
         .replace(/&nbsp;/g, ' ');
 }
 
@@ -59,16 +69,14 @@ interface RssItem {
     link: string;
     pubDate: string;
     description: string;
-    source: string;
 }
 
-async function fetchRss(query: string): Promise<RssItem[]> {
-    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=pt-MZ&gl=MZ&ceid=MZ:pt`;
-    const res = await fetch(url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BaseAgroDataBot/1.0)' },
+async function fetchFeed(feedUrl: string): Promise<RssItem[]> {
+    const res = await fetch(feedUrl, {
+        headers: { 'User-Agent': BROWSER_UA },
         cache: 'no-store',
     });
-    if (!res.ok) throw new Error(`RSS ${res.status} para "${query}"`);
+    if (!res.ok) throw new Error(`Feed ${res.status} para "${feedUrl}"`);
     const xml = await res.text();
 
     const items: RssItem[] = [];
@@ -79,11 +87,51 @@ async function fetchRss(query: string): Promise<RssItem[]> {
         const link = extractTag(chunk, 'link');
         const pubDate = extractTag(chunk, 'pubDate');
         const description = extractTag(chunk, 'description').replace(/<[^>]+>/g, '').trim();
-        const sourceMatch = chunk.match(/<source[^>]*>([\s\S]*?)<\/source>/);
-        const source = sourceMatch ? decodeHtmlEntities(sourceMatch[1].trim()) : '';
-        if (title && link) items.push({ title, link, pubDate, description, source });
+        if (title && link) items.push({ title, link, pubDate, description });
     }
     return items;
+}
+
+interface ArticleContent {
+    image: string | null;
+    snippet: string | null;
+}
+
+// Vai buscar a página real do artigo (link directo da fonte, não um
+// redirect do Google) e extrai a imagem principal (og:image) e um resumo
+// substancial do texto — sem IA, só extracção directa dos parágrafos.
+async function fetchArticleContent(url: string): Promise<ArticleContent> {
+    try {
+        const res = await fetch(url, {
+            headers: { 'User-Agent': BROWSER_UA },
+            cache: 'no-store',
+            signal: AbortSignal.timeout(10000),
+        });
+        if (!res.ok) return { image: null, snippet: null };
+        const html = await res.text();
+
+        const imageMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+            || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+        const image = imageMatch ? decodeHtmlEntities(imageMatch[1]) : null;
+
+        const paraMatches = [...html.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)];
+        const paragraphs = paraMatches
+            .map((m) => decodeHtmlEntities(m[1].replace(/<[^>]+>/g, '').trim()))
+            .filter((p) => p.length > 40 && !/^(share|leia também|leia mais|related|publicidade)/i.test(p));
+
+        if (paragraphs.length === 0) return { image, snippet: null };
+
+        // "Pelo menos metade do texto original": ficamos com a primeira
+        // metade dos parágrafos do corpo do artigo (arredondado para cima),
+        // com um tecto para não guardar artigos inteiros gigantes.
+        const half = Math.max(1, Math.ceil(paragraphs.length / 2));
+        const snippet = paragraphs.slice(0, half).join('\n\n').slice(0, 4000);
+
+        return { image, snippet };
+    } catch (err) {
+        console.error(`news-fetch: falha a extrair conteúdo de ${url}:`, err);
+        return { image: null, snippet: null };
+    }
 }
 
 async function sendAlertEmail(count: number) {
@@ -99,9 +147,9 @@ async function sendAlertEmail(count: number) {
             from: `"Base Agro Data" <${process.env.SMTP_USER}>`,
             to: process.env.SMTP_USER,
             subject: `${count} nova(s) notícia(s) à espera de revisão`,
-            html: `<p>O robô de notícias encontrou <strong>${count}</strong> notícia(s) nova(s) sobre o sector agrário.</p>
+            html: `<p>Foram encontradas <strong>${count}</strong> notícia(s) nova(s) sobre o sector agrário.</p>
                    <p>Reveja, edite o texto e publique em:
-                   <a href="https://basededadosagro.com/pt/admin/noticias">Painel &rarr; Notícias &rarr; Pendentes do Robô</a>.</p>`,
+                   <a href="https://basededadosagro.com/pt/admin/noticias">Painel &rarr; Notícias &rarr; Notícias pendentes</a>.</p>`,
         });
     } catch (err) {
         console.error('news-fetch: erro ao enviar email de alerta (não crítico):', err);
@@ -125,24 +173,41 @@ export async function GET(req: Request) {
             ...(existingPending || []).map((a: any) => a.source_url).filter(Boolean),
         ]);
 
+        const cutoff = Date.now() - MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
         const candidates: any[] = [];
-        for (const query of QUERIES) {
+
+        for (const feedUrl of FEEDS) {
+            let items: RssItem[] = [];
             try {
-                const items = await fetchRss(query);
-                for (const item of items.slice(0, 8)) {
-                    if (!item.link || knownUrls.has(item.link)) continue;
-                    knownUrls.add(item.link);
-                    candidates.push({
-                        title: item.title,
-                        snippet: item.description || null,
-                        source: item.source || null,
-                        source_url: item.link,
-                        date: item.pubDate ? new Date(item.pubDate).toISOString().slice(0, 10) : null,
-                        category: guessCategory(`${item.title} ${item.description}`),
-                    });
-                }
+                items = await fetchFeed(feedUrl);
             } catch (err) {
-                console.error(`news-fetch: falha na pesquisa "${query}":`, err);
+                console.error(`news-fetch: falha no feed "${feedUrl}":`, err);
+                continue;
+            }
+
+            for (const item of items) {
+                if (!item.link || knownUrls.has(item.link)) continue;
+                if (!RELEVANCE_PATTERN.test(`${item.title} ${item.description}`)) continue;
+
+                const ts = item.pubDate ? new Date(item.pubDate).getTime() : NaN;
+                if (!isNaN(ts) && ts < cutoff) continue;
+
+                knownUrls.add(item.link);
+                const sourceHost = (() => {
+                    try { return new URL(item.link).hostname.replace(/^www\./, ''); } catch { return null; }
+                })();
+
+                const { image, snippet } = await fetchArticleContent(item.link);
+
+                candidates.push({
+                    title: item.title,
+                    snippet: snippet || item.description || null,
+                    source: sourceHost,
+                    source_url: item.link,
+                    image_url: image,
+                    date: !isNaN(ts) ? new Date(ts).toISOString().slice(0, 10) : null,
+                    category: guessCategory(`${item.title} ${item.description}`),
+                });
             }
         }
 
