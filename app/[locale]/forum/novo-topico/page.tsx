@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Send } from 'lucide-react';
 import { Database } from '@/lib/database.types';
+import { Spinner } from "@/components/ui/spinner";
 
 function NewTopicContent() {
     const router = useRouter();
@@ -123,7 +124,7 @@ export default function NewTopicPage() {
         <div className="min-h-screen bg-zinc-50 dark:bg-black pt-20">
             <Suspense fallback={
                 <div className="flex items-center justify-center p-20">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-emerald-500" />
+                    <Spinner className="h-12 w-12" />
                 </div>
             }>
                 <NewTopicContent />

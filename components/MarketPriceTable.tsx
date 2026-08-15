@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { ArrowUp, ArrowDown, Minus, Search, Calendar, Info } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import { Spinner } from "@/components/ui/spinner";
 
 interface MarketItem {
     id: string;
@@ -74,7 +75,7 @@ export function MarketPriceTable() {
     if (loading) {
         return (
             <div className="w-full h-64 flex items-center justify-center bg-white rounded-[24px] shadow-sm border border-slate-100">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#f97316]"></div>
+                <Spinner className="h-8 w-8" />
             </div>
         );
     }

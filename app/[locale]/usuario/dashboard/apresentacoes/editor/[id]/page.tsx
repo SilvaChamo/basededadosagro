@@ -6,6 +6,7 @@ import { usePlanPermissions } from "@/hooks/usePlanPermissions";
 import Image from "next/image";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function UserPresentationEditorPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -14,7 +15,7 @@ export default function UserPresentationEditorPage({ params }: { params: Promise
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-slate-50">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                <Spinner className="w-8 h-8 animate-spin text-emerald-600" />
             </div>
         );
     }

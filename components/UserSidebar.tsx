@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
     LayoutDashboard,
     User,
-    LogOut,
     Crown,
     ChevronLeft,
     ChevronRight,
@@ -51,7 +50,6 @@ interface UserSidebarProps {
 
 export function UserSidebar({ isCollapsed, toggleSidebar }: UserSidebarProps) {
     const pathname = usePathname();
-    const router = useRouter();
     const [user, setUser] = useState<any>(null);
 
     // Plan permissions
@@ -75,15 +73,6 @@ export function UserSidebar({ isCollapsed, toggleSidebar }: UserSidebarProps) {
 
     // Create Supabase client
     const supabase = createClient();
-
-    const handleLogout = async () => {
-        try {
-            await supabase.auth.signOut();
-            router.push('/');
-        } catch (error) {
-            console.error('Erro ao fazer logout:', error);
-        }
-    };
 
     useEffect(() => {
         const getUser = async () => {
@@ -210,16 +199,6 @@ export function UserSidebar({ isCollapsed, toggleSidebar }: UserSidebarProps) {
                             </Link>
                         </div>
                     )}
-
-                    {/* Logout Button */}
-                    <button
-                        onClick={handleLogout}
-                        className={`mt-4 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-orange-500 hover:bg-orange-500/10 hover:text-orange-400 transition-all group ${isCollapsed ? 'justify-center' : 'w-full text-left'}`}
-                        title={isCollapsed ? "Sair da Sessão" : undefined}
-                    >
-                        <LogOut className="w-5 h-5" />
-                        {!isCollapsed && "Sair da Sessão"}
-                    </button>
                 </div>
             </nav>
 

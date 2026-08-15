@@ -5,6 +5,7 @@ import { Upload, X, File as FileIcon, Loader2, Paperclip, Trash2, FileText, File
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 interface MultiFileUploadProps {
     value: string[];
@@ -109,9 +110,7 @@ export function MultiFileUpload({
                         onClick={() => !uploading && fileInputRef.current?.click()}
                         title="Adicionar Anexo"
                     >
-                        {uploading ? (
-                            <Loader2 className="w-5 h-5 text-emerald-600 animate-spin" />
-                        ) : (
+                        {(
                             <Paperclip className="w-5 h-5 text-slate-500" />
                         )}
                     </button>
@@ -135,9 +134,7 @@ export function MultiFileUpload({
                     onClick={() => !uploading && fileInputRef.current?.click()}
                 >
                     <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100 mb-3 group-hover:scale-110 transition-transform">
-                        {uploading ? (
-                            <Loader2 className="w-6 h-6 text-emerald-600 animate-spin" />
-                        ) : (
+                        {(
                             <Paperclip className="w-6 h-6 text-slate-400 group-hover:text-emerald-500" />
                         )}
                     </div>

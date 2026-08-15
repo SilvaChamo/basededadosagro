@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
 import { FileText, Loader2, ArrowRight, Download, Calendar, User } from "lucide-react";
 import Link from "next/link";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function RelatoriosPage() {
     const [reports, setReports] = useState<any[]>([]);
@@ -46,7 +47,7 @@ export default function RelatoriosPage() {
             <div className="container-site py-16">
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-20">
-                        <Loader2 className="w-10 h-10 animate-spin text-emerald-600 mb-4" />
+                        <Spinner className="w-10 h-10 animate-spin text-emerald-600 mb-4" />
                         <p className="text-sm font-black uppercase tracking-widest text-slate-400">Carregando relatórios...</p>
                     </div>
                 ) : reports.length > 0 ? (

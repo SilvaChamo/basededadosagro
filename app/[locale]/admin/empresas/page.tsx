@@ -14,6 +14,7 @@ import { SECTORS } from "@/lib/agro-data";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function AdminEmpresasPage() {
     const supabase = createClient();
@@ -449,7 +450,7 @@ export default function AdminEmpresasPage() {
                 /* GRID VIEW */
                 loading ? (
                     <div className="flex justify-center py-20">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+                        <Spinner className="h-8 w-8" />
                     </div>
                 ) : filteredData.length === 0 ? (
                     <div className="text-center py-20 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">

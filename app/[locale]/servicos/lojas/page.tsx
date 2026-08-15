@@ -7,6 +7,7 @@ import { Store, MapPin, Search, ArrowRight, Filter, Phone, Hammer, Tractor, Spro
 import { ContactCTA } from "@/components/ContactCTA";
 import { createClient } from "@/utils/supabase/client";
 import { Loader2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function LojasPage() {
     const [stores, setStores] = useState<any[]>([]);
@@ -174,7 +175,7 @@ export default function LojasPage() {
                 {/* Stores Grid */}
                 {isLoading ? (
                     <div className="flex justify-center py-20">
-                        <Loader2 className="w-10 h-10 animate-spin text-orange-500" />
+                        <Spinner className="w-10 h-10 animate-spin text-orange-500" />
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 4xl:grid-cols-7 gap-6 mb-12">

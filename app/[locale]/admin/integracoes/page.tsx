@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Facebook, Linkedin, Save, Loader2, Info, Lock } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function IntegracoesPage() {
     const [loading, setLoading] = useState(true);
@@ -110,7 +111,7 @@ export default function IntegracoesPage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                <Spinner className="w-8 h-8 animate-spin text-emerald-600" />
             </div>
         );
     }
@@ -195,7 +196,7 @@ export default function IntegracoesPage() {
                             disabled={saving === 'facebook'}
                             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-11"
                         >
-                            {saving === 'facebook' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                            {<Save className="w-4 h-4 mr-2" />}
                             Guardar Configurações
                         </Button>
                     </div>
@@ -271,7 +272,7 @@ export default function IntegracoesPage() {
                             disabled={saving === 'linkedin'}
                             className="w-full bg-sky-700 hover:bg-sky-800 text-white font-bold h-11"
                         >
-                            {saving === 'linkedin' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                            {<Save className="w-4 h-4 mr-2" />}
                             Guardar Configurações
                         </Button>
                     </div>

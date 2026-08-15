@@ -10,6 +10,7 @@ import { Loader2, Send, FileText, FileArchive, File as FileIcon, X, LayoutTempla
 import { MultiFileUpload } from "@/components/admin/MultiFileUpload";
 import { SenderEmailSelector } from "@/components/admin/SenderEmailSelector";
 import { EmailTemplates } from "@/components/admin/EmailTemplates";
+import { Spinner } from "@/components/ui/spinner";
 
 const PLANS = [
     "Gratuito",
@@ -372,12 +373,7 @@ export default function AdminMessagesPage() {
                         disabled={isSending}
                         className="bg-emerald-600 hover:bg-[#f97316] text-white px-8 h-12 rounded-lg font-bold uppercase tracking-wider shadow-xl shadow-emerald-500/20 transition-all"
                     >
-                        {isSending ? (
-                            <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Enviando...
-                            </>
-                        ) : (
+                        {(
                             <>
                                 <Send className="w-4 h-4 mr-2" />
                                 Enviar Mensagem

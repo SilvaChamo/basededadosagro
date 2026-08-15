@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, ShieldCheck, AlertCircle } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { Spinner } from "@/components/ui/spinner";
 
 interface PasswordChangeModalProps {
     isOpen: boolean;
@@ -131,7 +132,7 @@ export function PasswordChangeModal({ isOpen, onClose }: PasswordChangeModalProp
                                 disabled={loading}
                                 className="flex-1 bg-slate-900 hover:bg-[#f97316] text-white font-black uppercase text-[9px] tracking-widest h-10 rounded-lg transition-all shadow-lg"
                             >
-                                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Actualizar Senha"}
+                                {"Actualizar Senha"}
                             </Button>
                         </DialogFooter>
                     </form>

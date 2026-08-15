@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ImageUpload } from "./ImageUpload";
 import { Loader2, User, Briefcase, Award, MapPin, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ProfessionalEditorProps {
     initialData?: any;
@@ -181,7 +182,7 @@ export function ProfessionalEditor({ initialData, isNew = false }: ProfessionalE
                         disabled={loading}
                         className="px-10 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-lg"
                     >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (isNew ? "Adicionar Profissional" : "Guardar Alterações")}
+                        {(isNew ? "Adicionar Profissional" : "Guardar Alterações")}
                     </Button>
                 </div>
             </form>

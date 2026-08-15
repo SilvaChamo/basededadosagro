@@ -5,6 +5,7 @@ import { Loader2, ChevronLeft, ChevronRight, Maximize2, X, Clock, ArrowRight } f
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function PresentationViewerPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = use(params);
@@ -103,7 +104,7 @@ export default function PresentationViewerPage({ params }: { params: Promise<{ s
     if (loading) {
         return (
             <div className="fixed inset-0 bg-slate-950 flex items-center justify-center">
-                <Loader2 className="w-10 h-10 animate-spin text-orange-500" />
+                <Spinner className="w-10 h-10 animate-spin text-orange-500" />
             </div>
         );
     }
@@ -316,7 +317,7 @@ export default function PresentationViewerPage({ params }: { params: Promise<{ s
                                                                     style={{ height: `${slide.image_height || 550}px` }}
                                                                 >
                                                                     <div className="text-center">
-                                                                        <Loader2 className="w-8 h-8 text-white/10 animate-spin mx-auto mb-3" />
+                                                                        <Spinner className="w-8 h-8 text-white/10 animate-spin mx-auto mb-3" />
                                                                         <p className="text-[10px] font-bold text-white/10 uppercase tracking-widest">Sem recurso visual</p>
                                                                     </div>
                                                                 </div>

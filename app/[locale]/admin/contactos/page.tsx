@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
+import { Spinner } from "@/components/ui/spinner";
 
 interface Contact {
     id: string;
@@ -496,7 +497,7 @@ export default function AdminContactosPage() {
             {importStatus && (
                 <div className={`p-4 rounded-lg text-sm font-bold flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300 ${importStatus.includes("Erro") ? "bg-red-50 text-red-600 border border-red-100" : "bg-emerald-50 text-emerald-600 border border-emerald-100"
                     }`}>
-                    {importing && <Loader2 className="w-4 h-4 animate-spin" />}
+                    
                     {importStatus}
                 </div>
             )}

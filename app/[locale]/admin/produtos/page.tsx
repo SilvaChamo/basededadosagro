@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function AdminProductsPage() {
     const router = useRouter();
@@ -507,7 +508,7 @@ export default function AdminProductsPage() {
                 /* GRID VIEW */
                 loading ? (
                     <div className="flex justify-center py-20">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+                        <Spinner className="h-8 w-8" />
                     </div>
                 ) : data.length === 0 ? (
                     <div className="text-center py-20 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-100">

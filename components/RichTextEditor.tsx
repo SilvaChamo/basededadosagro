@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Bold, Italic, List, ListOrdered, Indent, Outdent, Image as ImageIcon, Loader2, Trash2, ZoomIn, ZoomOut, AlignCenter, AlignLeft, AlignRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,6 +12,8 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
+
+const FONT_SIZES = [10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48];
 
 interface RichTextEditorProps {
     value: string;
@@ -24,9 +25,13 @@ interface RichTextEditorProps {
     onLineHeightChange?: (value: number) => void;
     paragraphSpacing?: number;
     onParagraphSpacingChange?: (value: number) => void;
+    /** Quando definido, imagens carregadas ficam registadas na galeria (media_library) com este scope. */
+    galleryScope?: string;
+    /** Notícia associada (opcional) — liga as imagens carregadas ao artigo na galeria. */
+    articleId?: string;
 }
 
-export function RichTextEditor({ value, onChange, placeholder, className, style, lineHeight, onLineHeightChange, paragraphSpacing, onParagraphSpacingChange }: RichTextEditorProps) {
+export function RichTextEditor({ value, onChange, placeholder, className, style, lineHeight, onLineHeightChange, paragraphSpacing, onParagraphSpacingChange, galleryScope, articleId }: RichTextEditorProps) {
     const editorRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [activeStyles, setActiveStyles] = useState({
@@ -42,7 +47,6 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
     const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [selectedImage, setSelectedImage] = useState<HTMLImageElement | null>(null);
-    const supabase = createClient();
 
     // Initial value sync (only once to avoid cursor jumping)
     useEffect(() => {
@@ -78,6 +82,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
 
     const restoreSelection = () => {
         if (typeof window === 'undefined') return;
+        editorRef.current?.focus();
         const selection = window.getSelection();
         if (selection && selectionRangeRef.current) {
             selection.removeAllRanges();
@@ -241,22 +246,21 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
             const ext = 'jpg';
             const fileName = `content-images/${timestamp}-${randomStr}.${ext}`;
 
-            // Upload to Supabase Storage
-            const { data, error } = await supabase.storage
-                .from('public-assets')
-                .upload(fileName, fileToUpload, {
-                    cacheControl: '3600',
-                    contentType: 'image/jpeg'
-                });
+            // Upload via a rota admin (usa a service role no servidor) — o
+            // upload directo do browser falha com "row-level security policy"
+            // porque o bucket não tem políticas de INSERT para o cliente anon/authenticated.
+            const form = new FormData();
+            form.append("file", fileToUpload, fileName);
+            form.append("bucket", "public-assets");
+            form.append("path", fileName);
+            if (galleryScope) form.append("scope", galleryScope);
+            if (articleId) form.append("articleId", articleId);
 
-            if (error) throw error;
+            const res = await fetch("/api/admin/upload-image", { method: "POST", body: form });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || "Erro ao carregar imagem.");
 
-            // Get public URL
-            const { data: urlData } = supabase.storage
-                .from('public-assets')
-                .getPublicUrl(fileName);
-
-            const imageUrl = urlData.publicUrl;
+            const imageUrl = result.publicUrl as string;
 
             // Create image element and insert it
             if (editorRef.current) {
@@ -385,9 +389,11 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
 
                 {/* Heading Selector */}
                 <select
+                    onMouseDown={saveSelection}
                     onChange={(e) => {
                         const val = e.target.value;
                         if (val) {
+                            restoreSelection();
                             execCommand("formatBlock", val);
                             e.target.value = ""; // Reset
                         }
@@ -406,28 +412,16 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
 
                 <div className="w-px h-4 bg-slate-300 mx-1" />
 
-                {/* Font Size Input */}
+                {/* Font Size Selector — escolhe entre tamanhos pré-definidos, não digitável */}
                 <div className="flex items-center gap-1 border border-slate-200 rounded px-1 bg-white h-7 hover:border-emerald-500 transition-colors">
                     <span className="text-[10px] font-bold text-slate-400">PX</span>
-                    <Input
-                        type="number"
-                        placeholder="--"
-                        value={localFontSize}
-                        className="w-12 h-6 text-xs text-slate-600 bg-white border-none shadow-none focus-visible:ring-0 text-center p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    <select
+                        value={FONT_SIZES.includes(Number(localFontSize)) ? localFontSize : ""}
+                        onMouseDown={saveSelection}
                         onChange={(e) => {
                             const val = e.target.value;
                             setLocalFontSize(val);
-                        }}
-                        onMouseDown={(e) => {
-                            // Capture selection before input gets focus
-                            saveSelection();
-                        }}
-                        onFocus={() => {
-                            setIsInputFocused(true);
-                        }}
-                        onBlur={() => {
-                            setIsInputFocused(false);
-                            if (localFontSize) {
+                            if (val) {
                                 restoreSelection();
                                 document.execCommand('fontSize', false, '7');
                                 if (editorRef.current) {
@@ -435,7 +429,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
                                     Array.from(fontElements).forEach(el => {
                                         if (el.size === "7") {
                                             el.removeAttribute("size");
-                                            el.style.fontSize = `${localFontSize}px`;
+                                            el.style.fontSize = `${val}px`;
                                         }
                                     });
                                 }
@@ -443,13 +437,13 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
                                 handleInput();
                             }
                         }}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                e.preventDefault();
-                                e.currentTarget.blur(); // Trigger onBlur to apply
-                            }
-                        }}
-                    />
+                        className="h-6 text-xs text-slate-600 bg-white border-none outline-none w-12 text-center cursor-pointer"
+                    >
+                        <option value="">--</option>
+                        {FONT_SIZES.map((size) => (
+                            <option key={size} value={size}>{size}</option>
+                        ))}
+                    </select>
                 </div>
 
                 <div className="w-px h-4 bg-slate-300 mx-1" />
@@ -478,7 +472,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
                     <DropdownMenuTrigger asChild>
                         <button className="flex items-center gap-1 border border-slate-200 rounded px-2 bg-white h-7 hover:border-emerald-500 transition-colors outline-none group">
                             <span className="text-[10px] font-bold text-slate-400 group-hover:text-emerald-600 transition-colors">PS</span>
-                            <span className="text-xs font-bold text-slate-600 min-w-[20px]">{paragraphSpacing || 1.5}</span>
+                            <span className="text-xs font-bold text-slate-600 min-w-[20px]">{(paragraphSpacing ?? 0.5).toFixed(1)}</span>
                             <ChevronDown className="w-3 h-3 text-slate-400" />
                         </button>
                     </DropdownMenuTrigger>
@@ -488,7 +482,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
                                 key={val}
                                 className={cn(
                                     "text-xs font-bold py-1.5 px-2 cursor-pointer hover:bg-emerald-50 hover:text-emerald-700 rounded-sm transition-colors",
-                                    (paragraphSpacing || 1.5) === val ? "bg-emerald-50 text-emerald-700" : "text-slate-600"
+                                    (paragraphSpacing ?? 0.5) === val ? "bg-emerald-50 text-emerald-700" : "text-slate-600"
                                 )}
                                 onClick={() => onParagraphSpacingChange && onParagraphSpacingChange(val)}
                             >
@@ -543,6 +537,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
                                         c.border && "border border-slate-200"
                                     )}
                                     style={{ backgroundColor: c.color }}
+                                    onMouseDown={(e) => e.preventDefault()}
                                     onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
@@ -561,7 +556,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
                 {/* Image Upload Button */}
                 <ToolbarButton
                     onClick={() => fileInputRef.current?.click()}
-                    icon={isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                    icon={<ImageIcon className="w-4 h-4" />}
                     title="Inserir Imagem"
                     disabled={isUploading}
                 />
@@ -613,7 +608,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
             <div
                 ref={editorRef}
                 contentEditable
-                className="flex-1 px-0 py-2 pb-0 min-h-[150px] outline-none text-black text-base overflow-y-visible prose prose-base max-w-none prose-headings:my-2 [&_b]:font-black [&_strong]:font-black prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 marker:text-emerald-600 [&_.rich-text-image-selected]:ring-2 [&_.rich-text-image-selected]:ring-emerald-500 [&_.rich-text-image-selected]:ring-offset-2"
+                className="flex-1 px-4 py-4 min-h-[150px] outline-none text-black text-base overflow-y-visible prose prose-base max-w-none prose-headings:my-2 [&_b]:font-black [&_strong]:font-black prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 marker:text-emerald-600 [&_.rich-text-image-selected]:ring-2 [&_.rich-text-image-selected]:ring-emerald-500 [&_.rich-text-image-selected]:ring-offset-2"
                 onInput={handleInput}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
@@ -625,14 +620,14 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
                     ...style,
                     fontWeight: 400,
                     '--line-height': lineHeight ?? 1.6,
-                    '--paragraph-spacing': `${paragraphSpacing ?? 1.5}em`
+                    '--paragraph-spacing': `${paragraphSpacing ?? 0.5}em`
                 } as React.CSSProperties} // Apply variables here
             />
             {/* Dynamic CSS for Paragraph Spacing */}
             <style jsx>{`
                 :global([contenteditable] p), :global([contenteditable] div) {
                     line-height: var(--line-height, 1.6) !important;
-                    margin-bottom: var(--paragraph-spacing, 1.5em) !important;
+                    margin-bottom: var(--paragraph-spacing, 0.5em) !important;
                 }
                 :global([contenteditable] p:last-child), :global([contenteditable] div:last-child) {
                     margin-bottom: 0 !important;
@@ -644,16 +639,6 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
                     {placeholder}
                 </div>
             )}
-
-            {/* Upload Progress Overlay */}
-            {isUploading && (
-                <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-20">
-                    <div className="flex items-center gap-3 bg-emerald-50 px-6 py-3 rounded-lg border border-emerald-200 shadow-lg">
-                        <Loader2 className="w-5 h-5 animate-spin text-emerald-600" />
-                        <span className="text-sm font-bold text-emerald-700">A carregar imagem...</span>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
@@ -662,6 +647,7 @@ function ToolbarButton({ onClick, icon, title, disabled, isActive }: { onClick: 
     return (
         <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={(e) => {
                 e.preventDefault();
                 if (!disabled) onClick();

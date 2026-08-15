@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
 
 interface Subscriber {
     id: string;
@@ -232,7 +233,7 @@ export default function SubscribersPage() {
                     <div className="flex justify-end gap-3">
                         <Button variant="outline" size="sm" onClick={() => setShowBulkImport(false)}>Cancelar</Button>
                         <Button size="sm" onClick={handleBulkImport} disabled={adding} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
-                            {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                            {<Plus className="w-4 h-4" />}
                             Importar Emails
                         </Button>
                     </div>
@@ -253,7 +254,7 @@ export default function SubscribersPage() {
                         />
                     </div>
                     <Button type="submit" disabled={adding} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-xs font-bold uppercase">
-                        {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                        {<Plus className="w-4 h-4" />}
                         Adicionar
                     </Button>
                 </form>
@@ -270,11 +271,7 @@ export default function SubscribersPage() {
 
             {/* Table */}
             <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-                {loading ? (
-                    <div className="p-12 flex items-center justify-center">
-                        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
-                    </div>
-                ) : filteredSubscribers.length === 0 ? (
+                {filteredSubscribers.length === 0 ? (
                     <div className="p-12 text-center">
                         <Users className="w-10 h-10 text-slate-300 mx-auto mb-3" />
                         <p className="text-sm text-slate-400 font-medium">Nenhum subscritor encontrado.</p>

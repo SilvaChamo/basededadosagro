@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, X, Globe, Phone, Mail, MapPin, Building2, FileText, Target, Eye, Heart, List } from "lucide-react";
 import { MOZ_DATA, SECTORS, SECTOR_CATEGORIES, VALUE_CHAINS, COMPANY_DESIGNATIONS, COMPANY_SIZES } from "@/lib/agro-data";
 import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
 
 interface CompanyFormProps {
     onClose: () => void;
@@ -500,7 +501,7 @@ export function CompanyForm({ onClose, onSuccess, initialData }: CompanyFormProp
                         disabled={loading}
                         className="px-10 h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg"
                     >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (initialData ? "Guardar Alterações" : "Adicionar Empresa")}
+                        {(initialData ? "Guardar Alterações" : "Adicionar Empresa")}
                     </Button>
                 </div>
             </div>

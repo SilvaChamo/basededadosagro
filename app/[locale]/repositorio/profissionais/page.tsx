@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { User, Search, LayoutGrid, List, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import {
     Select,
     SelectContent,
@@ -138,7 +139,7 @@ export default function RepositorioProfissionaisPage() {
                     /* LIST VIEW */
                     loading ? (
                         <div className="flex justify-center py-20">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+                            <Spinner className="h-8 w-8" />
                         </div>
                     ) : filteredData.length === 0 ? (
                         <div className="text-center py-20 text-slate-400 italic">
@@ -191,7 +192,7 @@ export default function RepositorioProfissionaisPage() {
                     /* GRID VIEW */
                     loading ? (
                         <div className="flex justify-center py-20">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+                            <Spinner className="h-8 w-8" />
                         </div>
                     ) : filteredData.length === 0 ? (
                         <div className="text-center py-20 text-slate-400 italic">

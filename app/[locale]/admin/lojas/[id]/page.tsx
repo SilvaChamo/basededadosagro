@@ -7,6 +7,7 @@ import { CompanyEditor } from "@/components/admin/CompanyEditor";
 import { Loader2, Store, ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function EditStorePage() {
     const { id } = useParams();
@@ -51,7 +52,7 @@ export default function EditStorePage() {
     if (isLoading) {
         return (
             <div className="flex justify-center items-center py-20">
-                <Loader2 className="w-10 h-10 animate-spin text-orange-500" />
+                <Spinner className="w-10 h-10 animate-spin text-orange-500" />
             </div>
         );
     }

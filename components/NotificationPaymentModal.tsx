@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Phone, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import Image from "next/image";
+import { Spinner } from "@/components/ui/spinner";
 
 interface NotificationPaymentModalProps {
     isOpen: boolean;
@@ -81,27 +82,7 @@ export function NotificationPaymentModal({ isOpen, onClose, onSuccess }: Notific
                         </div>
                     )}
 
-                    {step === 'confirm' && (
-                        <div className="text-center space-y-6">
-                            <div className="animate-pulse">
-                                <Loader2 className="w-12 h-12 text-emerald-600 animate-spin mx-auto mb-4" />
-                            </div>
-                            <h3 className="text-xl font-bold text-slate-900">Confirme no seu Telemóvel</h3>
-                            <p className="text-slate-500 text-sm">
-                                Enviamos um pedido de pagamento para <span className="font-bold">{phone}</span>. Por favor, introduza o seu PIN M-Pesa.
-                            </p>
-                            <Button variant="ghost" className="text-slate-400 text-xs" onClick={() => setStep('input')}>
-                                Cancelar ou mudar número
-                            </Button>
-                            <Button
-                                className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-black"
-                                onClick={handlePay}
-                                disabled={loading}
-                            >
-                                {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Já confirmei o pagamento"}
-                            </Button>
-                        </div>
-                    )}
+                    
 
                     {step === 'success' && (
                         <div className="text-center py-4 space-y-4">

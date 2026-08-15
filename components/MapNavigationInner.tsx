@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css';
 import { Navigation, MapPin, MousePointer2, Car, Maximize, Target, ArrowRight, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import { Spinner } from "@/components/ui/spinner";
 
 // Fix for Leaflet default icon issues in Next.js
 const DefaultIcon = L.icon({
@@ -319,7 +320,7 @@ export default function MapNavigationInner({ companyCoords: initialCoords, compa
 
     if (!finalCompanyCoords) return (
         <div className="w-full h-full bg-slate-50 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#f97316]"></div>
+            <Spinner className="h-8 w-8" />
         </div>
     );
 
@@ -389,7 +390,7 @@ export default function MapNavigationInner({ companyCoords: initialCoords, compa
                             onChange={(e) => setUserSearchQuery(e.target.value)}
                             className="h-full border-none bg-transparent shadow-none focus-visible:ring-0 text-[11px] font-bold p-0 placeholder:font-normal"
                         />
-                        {isGeocodingUser && <div className="w-3 h-3 border-2 border-orange-500 border-t-transparent animate-spin rounded-full"></div>}
+                        
                     </form>
 
                     {/* Right: Map Controls */}

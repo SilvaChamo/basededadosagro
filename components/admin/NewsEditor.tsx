@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { syncManager } from "@/lib/syncManager";
 import { shareToFacebook, shareToLinkedin } from "@/app/[locale]/admin/noticias/share-actions";
+import { Spinner } from "@/components/ui/spinner";
 
 interface NewsEditorProps {
     initialData?: any;
@@ -346,7 +347,7 @@ export function NewsEditor({ initialData, isNew = false }: NewsEditorProps) {
                         disabled={loading}
                         className="px-10 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-lg"
                     >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                        {<Save className="w-4 h-4 mr-2" />}
                         {isNew ? "Publicar Artigo" : "Guardar Alterações"}
                     </Button>
                 </div>

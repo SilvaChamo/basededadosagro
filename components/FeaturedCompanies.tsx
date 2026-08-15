@@ -6,6 +6,7 @@ import { Company } from '@/lib/constants';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { createClient } from '@/utils/supabase/client';
+import { Spinner } from "@/components/ui/spinner";
 
 export function FeaturedCompanies() {
     const [companies, setCompanies] = useState<Company[]>([]);
@@ -58,7 +59,7 @@ export function FeaturedCompanies() {
 
     if (loading) return (
         <div className="w-full h-40 flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            <Spinner className="w-8 h-8" />
         </div>
     );
 

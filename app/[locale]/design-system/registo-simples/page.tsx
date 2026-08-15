@@ -29,6 +29,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { COMPANY_CATEGORIES, PROVINCES } from "@/lib/constants";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { PageHeader } from "@/components/PageHeader";
+import { Spinner } from "@/components/ui/spinner";
 
 const PlanBadge = ({ plan }: { plan: 'Básico' | 'Premium' | 'Parceiro' }) => {
     const styles = {
@@ -529,7 +530,7 @@ export default function SimpleRegistrationPage() {
                             className="w-auto px-8 h-10 bg-emerald-600 hover:bg-[#f97316] text-white font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 transition-colors duration-300 disabled:opacity-50"
                             style={{ borderRadius: '8px' }}
                         >
-                            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                            
                             {isSubmitting ? "Salvando..." : "Salvar"}
                         </Button>
                     </div>
@@ -808,12 +809,7 @@ export default function SimpleRegistrationPage() {
                     </DialogHeader>
 
                     <div className="py-4">
-                        {isCompressing ? (
-                            <div className="flex flex-col items-center justify-center space-y-3 py-4">
-                                <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
-                                <p className="text-sm font-semibold text-slate-600">A comprimir imagem... Por favor aguarde.</p>
-                            </div>
-                        ) : (
+                        {(
                             <div className="p-4 bg-orange-50 rounded-lg border border-orange-100">
                                 <p className="text-xs text-orange-800 font-medium">
                                     Nota: A qualidade visual será mantida, mas o tamanho do ficheiro será reduzido para cumprir os requisitos.

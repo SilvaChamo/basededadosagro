@@ -10,6 +10,7 @@ import { MOZ_DATA, SECTORS, VALUE_CHAINS } from "@/lib/agro-data";
 import { usePlanPermissions } from "@/hooks/usePlanPermissions";
 import { UpgradeModal, LockedFieldOverlay, PlanFieldWrapper } from "@/components/UpgradeModal";
 import { getRequiredPlan, type PlanType } from "@/lib/plan-fields";
+import { Spinner } from "@/components/ui/spinner";
 
 interface CompanyEditorProps {
     user: User | null;
@@ -346,7 +347,7 @@ export function CompanyEditor({ user }: CompanyEditorProps) {
                                         <div className="w-40 h-40 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden p-[20px] relative group">
                                             {isUploadingLogo && (
                                                 <div className="absolute inset-0 bg-black/10 flex items-center justify-center z-10">
-                                                    <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                                                    <Spinner className="w-6 h-6" />
                                                 </div>
                                             )}
 
@@ -406,7 +407,7 @@ export function CompanyEditor({ user }: CompanyEditorProps) {
                                             <div className="relative h-40 bg-slate-100 rounded-lg border-2 border-dashed border-slate-200 overflow-hidden group">
                                                 {isUploadingBanner && (
                                                     <div className="absolute inset-0 bg-black/10 flex items-center justify-center z-10">
-                                                        <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                                                        <Spinner className="w-8 h-8" />
                                                     </div>
                                                 )}
 

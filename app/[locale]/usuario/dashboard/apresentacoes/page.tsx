@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import jsPDF from "jspdf";
+import { Spinner } from "@/components/ui/spinner";
 
 
 export default function UserPresentationsPage() {
@@ -304,7 +305,7 @@ export default function UserPresentationsPage() {
 
     if (loading || permissionsLoading) return (
         <div className="flex items-center justify-center min-h-[400px]">
-            <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+            <Spinner className="w-8 h-8 text-emerald-600 animate-spin" />
         </div>
     );
 

@@ -6,6 +6,7 @@ import { Charts } from "./Charts";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
 import { Tractor, TrendingUp, Building2, Users, BarChart3, Loader2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 
 interface StatsDashboardProps {
@@ -212,12 +213,7 @@ export function StatsDashboard({ slug }: StatsDashboardProps) {
                             onClick={handleDownloadReport}
                             disabled={downloading}
                         >
-                            {downloading ? (
-                                <>
-                                    <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-                                    A preparar...
-                                </>
-                            ) : (
+                            {(
                                 "Baixar Relatórios"
                             )}
                         </Button>

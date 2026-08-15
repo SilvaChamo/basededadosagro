@@ -14,6 +14,7 @@ import { ChevronRight, Check } from "lucide-react";
 import { SuccessModal } from "@/components/ui/SuccessModal";
 import { PasswordChangeModal } from "@/components/PasswordChangeModal";
 import { KeywordsManagementModal } from "@/components/KeywordsManagementModal";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function MinhaContaPage() {
     const supabase = createClient();
@@ -270,11 +271,7 @@ export default function MinhaContaPage() {
                                 </div>
                             )}
 
-                            {uploading && (
-                                <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
-                                    <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
-                                </div>
-                            )}
+                            
                         </div>
                         <input
                             type="file"
@@ -365,7 +362,7 @@ export default function MinhaContaPage() {
                                         disabled={loading || uploading}
                                         className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm font-bold text-[10px] uppercase tracking-widest"
                                     >
-                                        {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3 mr-1.5" />}
+                                        {<Save className="w-3 h-3 mr-1.5" />}
                                         Salvar
                                     </Button>
                                 </>

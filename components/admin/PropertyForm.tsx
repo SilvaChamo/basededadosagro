@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Loader2, X, MapPin, Building2, Tag, Ruler, Archive, Coins } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 interface PropertyFormProps {
     onClose: () => void;
@@ -197,7 +198,7 @@ export function PropertyForm({ onClose, onSuccess, initialData }: PropertyFormPr
                         disabled={loading}
                         className="px-10 h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg"
                     >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (initialData ? "Guardar Alterações" : "Adicionar Propriedade")}
+                        {(initialData ? "Guardar Alterações" : "Adicionar Propriedade")}
                     </Button>
                 </div>
             </div>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LogOut, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 interface LogoutButtonProps {
     variant?: "default" | "outline" | "ghost" | "destructive";
@@ -43,9 +44,7 @@ export function LogoutButton({
             disabled={loading}
             className={className}
         >
-            {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-            ) : (
+            {(
                 showIcon && <LogOut className="w-4 h-4 mr-2" />
             )}
             {label}

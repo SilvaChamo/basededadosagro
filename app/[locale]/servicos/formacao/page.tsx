@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { toast } from "sonner";
 import { PermissionModal } from "@/components/modals/PermissionModal";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function FormacaoPage() {
     const [programs, setPrograms] = useState<any[]>([]);
@@ -177,7 +178,7 @@ export default function FormacaoPage() {
                         <div className="flex flex-col gap-6">
                             {isLoadingTrainings ? (
                                 <div className="flex justify-center py-10">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#f97316]"></div>
+                                    <Spinner className="h-8 w-8" />
                                 </div>
                             ) : upcomingTrainings.length === 0 ? (
                                 <div className="text-center py-10 text-slate-400 font-medium bg-white rounded-xl border border-dashed border-slate-200">

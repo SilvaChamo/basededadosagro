@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Loader2, Save, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+import { Spinner } from "@/components/ui/spinner";
 
 const formSchema = z.object({
     title: z.string().min(2, "O título deve ter pelo menos 2 caracteres"),
@@ -145,7 +146,7 @@ export function ServiceForm({ initialData, isEditing = false }: ServiceFormProps
                             <Button variant="ghost" type="button">Cancelar</Button>
                         </Link>
                         <Button type="submit" disabled={loading} className="bg-emerald-600 hover:bg-emerald-700">
-                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            
                             <Save className="mr-2 h-4 w-4" />
                             Guardar
                         </Button>

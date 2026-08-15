@@ -21,6 +21,7 @@ import { NotificationPaymentModal } from "@/components/NotificationPaymentModal"
 
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { usePlanPermissions } from "@/hooks/usePlanPermissions";
+import { Spinner } from "@/components/ui/spinner";
 
 // Helper to convert settings object to CSSProperties
 const getStyles = (startKey: string, settings: any): React.CSSProperties => {
@@ -104,8 +105,8 @@ export default function DashboardPage() {
     }, [router, supabase]);
 
     if (loading || settingsLoading || permissionsLoading) return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#f97316]"></div>
+        <div className="flex items-center justify-center py-24">
+            <Spinner className="h-12 w-12" />
         </div>
     );
 

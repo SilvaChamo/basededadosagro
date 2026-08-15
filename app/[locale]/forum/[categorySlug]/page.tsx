@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Plus, ArrowLeft } from 'lucide-react';
 import { Database } from '@/lib/database.types';
+import { Spinner } from "@/components/ui/spinner";
 
 export default function CategoryPage() {
     const { categorySlug } = useParams();
@@ -52,7 +53,7 @@ export default function CategoryPage() {
 
     if (loading) return (
         <div className="min-h-screen bg-zinc-50 dark:bg-black pt-20 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+            <Spinner className="h-12 w-12" />
         </div>
     );
 

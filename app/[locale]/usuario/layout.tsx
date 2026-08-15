@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react";
 import { UserSidebar } from "@/components/UserSidebar";
 import { LogOut, Menu, ArrowLeftFromLine, ArrowRightFromLine, Loader2 } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
 import { createClient } from "@/utils/supabase/client";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { hasDashboardAccess, normalizePlanName } from "@/lib/plan-fields";
+import { Spinner } from "@/components/ui/spinner";
+import { isNewsTeamRole } from "@/lib/roles";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
@@ -36,6 +37,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     .select('plan, role')
                     .eq('id', user.id)
                     .single();
+
+                // Editor/Contribuidor não têm painel de cliente — o deles é a
+                // Central de Notícias. Sem isto, uma conta promovida a estes
+                // papéis ficava presa no painel de cliente sempre que chegasse
+                // aqui directamente (sessão antiga, marcador, etc.).
+                if (isNewsTeamRole(profile?.role)) {
+                    router.push("/admin/central-noticias");
+                    return;
+                }
 
                 // Admins always have access
                 if (profile?.role === 'admin') {
@@ -78,7 +88,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }, [pathname, router]);
 
     const handleLogout = async () => {
-        await supabase.auth.signOut();
+        await supabaseClient.auth.signOut();
+        router.refresh();
         router.push("/auth/login");
     };
 
@@ -87,7 +98,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         return (
             <div className="flex h-screen bg-slate-50 items-center justify-center">
                 <div className="text-center">
-                    <Loader2 className="w-10 h-10 animate-spin text-orange-500 mx-auto mb-4" />
+                    <Spinner className="w-10 h-10 animate-spin text-orange-500 mx-auto mb-4" />
                     <p className="text-sm font-medium text-slate-500">A verificar acesso...</p>
                 </div>
             </div>

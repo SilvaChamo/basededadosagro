@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2, X, Grid2X2, Type, Link as LinkIcon, Palette } from "lucide-react";
 import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
 
 interface CategoryFormProps {
     onClose: () => void;
@@ -147,7 +148,7 @@ export function CategoryForm({ onClose, onSuccess, initialData }: CategoryFormPr
                         disabled={loading}
                         className="px-10 h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg"
                     >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (initialData ? "Actualizar" : "Criar Categoria")}
+                        {(initialData ? "Actualizar" : "Criar Categoria")}
                     </Button>
                 </div>
             </div>

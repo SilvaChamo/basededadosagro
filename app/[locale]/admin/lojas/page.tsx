@@ -10,6 +10,7 @@ import {
     Archive, ArchiveRestore
 } from "lucide-react";
 import { STORE_CATEGORIES } from "@/lib/agro-data";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function AdminLojasPage() {
     const [stores, setStores] = useState<any[]>([]);
@@ -267,7 +268,7 @@ export default function AdminLojasPage() {
             {/* Content */}
             {isLoading ? (
                 <div className="flex justify-center py-20">
-                    <Loader2 className="w-10 h-10 animate-spin text-orange-500" />
+                    <Spinner className="w-10 h-10 animate-spin text-orange-500" />
                 </div>
             ) : filteredStores.length === 0 ? (
                 <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-300">

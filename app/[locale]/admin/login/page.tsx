@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle, Lock, Mail, Eye, EyeOff } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function AdminLoginPage() {
     const router = useRouter();
@@ -139,7 +140,7 @@ export default function AdminLoginPage() {
                         >
                             {loading ? (
                                 <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    <Spinner className="w-4 h-4" />
                                     Processando...
                                 </div>
                             ) : (

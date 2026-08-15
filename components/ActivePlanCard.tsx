@@ -7,6 +7,7 @@ import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { usePlanPermissions } from "@/hooks/usePlanPermissions";
 import { PLAN_PRIVILEGES, normalizePlanName } from "@/lib/plan-fields";
+import { Spinner } from "@/components/ui/spinner";
 
 export function ActivePlanCard() {
     const { plan, planDisplayName, loading: permissionsLoading } = usePlanPermissions();
@@ -134,7 +135,7 @@ export function ActivePlanCard() {
                             disabled={isCancelling}
                             className="w-full flex items-center justify-center gap-2 text-[10px] font-bold text-red-400 hover:text-red-300 uppercase tracking-widest transition-colors py-2 disabled:opacity-50"
                         >
-                            {isCancelling ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />}
+                            {<XCircle className="w-3 h-3" />}
                             {isCancelling ? "Cancelando..." : "Cancelar Subscrição"}
                         </button>
                     )}

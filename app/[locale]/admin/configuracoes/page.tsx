@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Save, LayoutTemplate, Type, MousePointerClick, Menu as MenuIcon, PanelTop, PaintBucket, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Spinner } from "@/components/ui/spinner";
 
 interface StyleSettings {
     color?: string;
@@ -211,7 +212,7 @@ export default function AdminSettingsPage() {
     if (loading) {
         return (
             <div className="flex h-[50vh] items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                <Spinner className="w-8 h-8 animate-spin text-emerald-600" />
             </div>
         );
     }

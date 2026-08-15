@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function EditTrainingPage() {
     const params = useParams();
@@ -32,7 +33,7 @@ export default function EditTrainingPage() {
     if (loading) {
         return (
             <div className="flex h-full items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                <Spinner className="w-8 h-8 animate-spin text-emerald-600" />
             </div>
         );
     }

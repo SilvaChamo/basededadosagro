@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Loader2, Mail, CheckCircle, Bell } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { Spinner } from "@/components/ui/spinner";
 import {
     Dialog,
     DialogContent,
@@ -77,7 +78,7 @@ export default function UserMessagesPage() {
 
             {loading ? (
                 <div className="flex justify-center py-12">
-                    <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+                    <Spinner className="w-8 h-8 text-emerald-600 animate-spin" />
                 </div>
             ) : messages.length === 0 ? (
                 <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">

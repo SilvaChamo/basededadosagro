@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import { ListingCard } from "@/components/ListingCard";
 import { DashboardPageHeader } from "@/components/DashboardPageHeader";
 import { Loader2, Inbox } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function ContactosPage() {
     const [leads, setLeads] = useState<any[]>([]);
@@ -37,7 +38,7 @@ export default function ContactosPage() {
 
             {loading ? (
                 <div className="flex justify-center py-12">
-                    <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+                    <Spinner className="w-8 h-8 text-emerald-600 animate-spin" />
                 </div>
             ) : leads.length === 0 ? (
                 <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">

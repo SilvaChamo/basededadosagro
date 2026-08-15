@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Loader2, X, ShoppingBag, MapPin } from "lucide-react";
 import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
 
 interface MarketProductFormProps {
     onClose: () => void;
@@ -172,7 +173,7 @@ export function MarketProductForm({ onClose, onSuccess, initialData }: MarketPro
                         disabled={loading}
                         className="px-10 h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg"
                     >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (initialData ? "Guardar" : "Adicionar")}
+                        {(initialData ? "Guardar" : "Adicionar")}
                     </Button>
                 </div>
             </div>

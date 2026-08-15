@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { NewsCard } from "@/components/NewsCard";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function AdminNoticiasPage() {
     const supabase = createClient();
@@ -134,24 +135,24 @@ export default function AdminNoticiasPage() {
         try {
             if (showBin) {
                 // Hard Delete (Permanent) for items already in Bin
-                const { error, count } = await supabase
-                    .from('articles')
-                    .delete({ count: 'exact' })
-                    .eq('id', articleToDelete.id);
-
-                if (error) throw error;
-                if (count === 0) throw new Error("Permissão negada ou item não encontrado.");
+                const res = await fetch('/api/admin/articles', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: [articleToDelete.id] }),
+                });
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.error || "Erro ao eliminar.");
 
                 toast.success("Artigo eliminado permanentemente!");
             } else {
                 // Soft Delete (Move to Bin) for active items
-                const { error, count } = await supabase
-                    .from('articles')
-                    .update({ deleted_at: new Date().toISOString() }, { count: 'exact' })
-                    .eq('id', articleToDelete.id);
-
-                if (error) throw error;
-                if (count === 0) throw new Error("Permissão negada ou item não encontrado.");
+                const res = await fetch('/api/admin/articles', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: articleToDelete.id, payload: { deleted_at: new Date().toISOString() } }),
+                });
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.error || "Erro ao mover para a lixeira.");
 
                 toast.success("Artigo movido para a lixeira!");
             }
@@ -167,13 +168,13 @@ export default function AdminNoticiasPage() {
 
     const handleRestore = async (article: any) => {
         try {
-            const { error, count } = await supabase
-                .from('articles')
-                .update({ deleted_at: null }, { count: 'exact' })
-                .eq('id', article.id);
-
-            if (error) throw error;
-            if (count === 0) throw new Error("Permissão negada ou item não encontrado.");
+            const res = await fetch('/api/admin/articles', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: article.id, payload: { deleted_at: null } }),
+            });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || "Erro ao restaurar.");
 
             toast.success("Artigo restaurado com sucesso!");
             await fetchArticles();
@@ -184,14 +185,18 @@ export default function AdminNoticiasPage() {
 
     const handleEmptyBin = async () => {
         try {
-            const { error, count } = await supabase
-                .from('articles')
-                .delete({ count: 'exact' })
-                .not('deleted_at', 'is', null);
+            const binIds = articles.filter((a: any) => a.deleted_at).map((a: any) => a.id);
+            if (binIds.length === 0) return;
 
-            if (error) throw error;
+            const res = await fetch('/api/admin/articles', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: binIds }),
+            });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || "Erro ao esvaziar lixeira.");
 
-            toast.success(`Lixeira esvaziada! ${count} artigo(s) eliminado(s) permanentemente.`);
+            toast.success(`Lixeira esvaziada! ${result.count} artigo(s) eliminado(s) permanentemente.`);
             await fetchArticles();
         } catch (error: any) {
             toast.error(error.message || "Erro ao esvaziar lixeira");
@@ -204,12 +209,13 @@ export default function AdminNoticiasPage() {
             // Optimistic update
             setArticles(prev => prev.filter((a: any) => !selectedIds.includes(a.id)));
 
-            const { error } = await supabase
-                .from('articles')
-                .delete()
-                .in('id', selectedIds);
-
-            if (error) throw error;
+            const res = await fetch('/api/admin/articles', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: selectedIds }),
+            });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || "Erro na eliminação em massa.");
 
             toast.success(`${selectedIds.length} artigos eliminados!`);
             setSelectedIds([]);
@@ -392,7 +398,7 @@ export default function AdminNoticiasPage() {
                 {activeTab === 'Pendentes' ? (
                     pendingLoading ? (
                         <div className="flex justify-center py-20">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+                            <Spinner className="h-8 w-8" />
                         </div>
                     ) : pendingArticles.length === 0 ? (
                         <div className="text-center py-20 text-slate-400">
@@ -437,7 +443,7 @@ export default function AdminNoticiasPage() {
                     )
                 ) : loading ? (
                     <div className="flex justify-center py-20">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+                        <Spinner className="h-8 w-8" />
                     </div>
                 ) : filteredArticles.length === 0 ? (
                     <div className="text-center py-20 text-slate-400">

@@ -7,6 +7,7 @@ import { DashboardPageHeader } from "@/components/DashboardPageHeader";
 import { supabase } from "@/lib/supabaseClient";
 import { toast } from "sonner";
 import { ChevronLeft, Loader2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function EditTrainingPage() {
     const router = useRouter();
@@ -42,7 +43,7 @@ export default function EditTrainingPage() {
     if (loading) {
         return (
             <div className="h-[400px] flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                <Spinner className="w-8 h-8 animate-spin text-emerald-600" />
             </div>
         );
     }

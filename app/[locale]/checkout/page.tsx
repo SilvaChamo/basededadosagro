@@ -23,6 +23,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { normalizePlanName } from "@/lib/plan-fields";
+import { Spinner } from "@/components/ui/spinner";
 
 function CheckoutContent() {
     const searchParams = useSearchParams();
@@ -458,7 +459,7 @@ function CheckoutContent() {
                                 >
                                     {loading ? (
                                         <>
-                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                            <Spinner className="w-5 h-5" />
                                             Processando...
                                         </>
                                     ) : (
@@ -602,7 +603,7 @@ export default function CheckoutPage() {
 
             <Suspense fallback={
                 <div className="min-h-screen flex items-center justify-center">
-                    <div className="w-12 h-12 border-4 border-slate-200 border-t-orange-600 rounded-full animate-spin"></div>
+                    <Spinner className="w-12 h-12" />
                 </div>
             }>
                 <CheckoutContent />

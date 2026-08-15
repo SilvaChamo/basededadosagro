@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
 
 interface Campaign {
     id: string;
@@ -94,7 +95,7 @@ export default function CampaignsPage() {
             enviada: <CheckCircle2 className="w-3 h-3" />,
             falhada: <XCircle className="w-3 h-3" />,
             agendada: <Clock className="w-3 h-3" />,
-            enviando: <Loader2 className="w-3 h-3 animate-spin" />,
+            enviando: <Spinner className="w-3 h-3 animate-spin" />,
             rascunho: <Mail className="w-3 h-3" />,
         };
         return (
@@ -185,7 +186,7 @@ export default function CampaignsPage() {
             <div className="space-y-3">
                 {loading ? (
                     <div className="bg-white rounded-xl p-12 flex items-center justify-center border border-slate-100">
-                        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                        <Spinner className="w-6 h-6 animate-spin text-slate-400" />
                     </div>
                 ) : filteredCampaigns.length === 0 ? (
                     <div className="bg-white rounded-xl p-12 text-center border border-slate-100">
@@ -247,7 +248,7 @@ export default function CampaignsPage() {
                                 <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-3">Log de Entrega</h4>
                                 {logsLoading ? (
                                     <div className="p-6 flex items-center justify-center">
-                                        <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+                                        <Spinner className="w-5 h-5 animate-spin text-slate-400" />
                                     </div>
                                 ) : logs.length === 0 ? (
                                     <p className="text-xs text-slate-400 italic py-4">Sem registos de entrega detalhados para esta campanha.</p>

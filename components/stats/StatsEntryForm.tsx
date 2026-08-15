@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 export function StatsEntryForm() {
     const supabase = createClient();
@@ -193,12 +194,7 @@ export function StatsEntryForm() {
                     disabled={loading}
                     className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-bold py-6 rounded-xl transition-all shadow-md shadow-green-200"
                 >
-                    {loading ? (
-                        <>
-                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                            A Gravar...
-                        </>
-                    ) : (
+                    {(
                         "Registar Dados Estatísticos"
                     )}
                 </Button>

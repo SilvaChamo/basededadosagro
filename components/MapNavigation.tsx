@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import React from 'react';
+import { Spinner } from "@/components/ui/spinner";
 
 // Dynamically import the map logic to prevent SSR errors
 const MapInner = dynamic(() => import('./MapNavigationInner'), {
@@ -9,7 +10,7 @@ const MapInner = dynamic(() => import('./MapNavigationInner'), {
     loading: () => (
         <div className="w-full h-full bg-slate-100 animate-pulse flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">
-                <div className="w-10 h-10 border-4 border-[#f97316] border-t-transparent rounded-full animate-spin"></div>
+                <Spinner className="w-10 h-10" />
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Carregando Mapa...</p>
             </div>
         </div>

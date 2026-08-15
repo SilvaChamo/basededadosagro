@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
+import { Spinner } from "@/components/ui/spinner";
 
 function RegistroContent() {
     const searchParams = useSearchParams();
@@ -323,7 +324,7 @@ function RegistroContent() {
                                 >
                                     {loading ? (
                                         <>
-                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                            <Spinner className="w-5 h-5" />
                                             Criando conta...
                                         </>
                                     ) : (
@@ -415,7 +416,7 @@ export default function RegistroPage() {
 
             <Suspense fallback={
                 <div className="min-h-screen flex items-center justify-center">
-                    <div className="w-12 h-12 border-4 border-slate-200 border-t-emerald-600 rounded-full animate-spin"></div>
+                    <Spinner className="w-12 h-12" />
                 </div>
             }>
                 <RegistroContent />

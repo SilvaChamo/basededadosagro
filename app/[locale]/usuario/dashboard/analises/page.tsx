@@ -4,6 +4,7 @@ import { BarChart3, TrendingUp, Users, Loader2 } from "lucide-react";
 import { DashboardPageHeader } from "@/components/DashboardPageHeader";
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function AnalisesPage() {
     const [loading, setLoading] = useState(true);
@@ -55,7 +56,7 @@ export default function AnalisesPage() {
 
             {loading ? (
                 <div className="flex items-center justify-center p-20">
-                    <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+                    <Spinner className="w-8 h-8 text-emerald-500 animate-spin" />
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

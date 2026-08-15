@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { NewsCard } from "@/components/NewsCard";
+import { Spinner } from "@/components/ui/spinner";
 
 // DEMO FALLBACK DATA
 const FALLBACK_ARTICLES = [
@@ -296,9 +297,7 @@ export default function ArticlesArchivePage() {
                         className="pl-6 text-gray-400 hover:text-emerald-600 transition-colors"
                         disabled={isScanningGlobal}
                     >
-                        {isScanningGlobal ? (
-                            <div className="animate-spin rounded-full h-5 w-5 border-2 border-emerald-500 border-t-transparent" />
-                        ) : (
+                        {(
                             <Search className="h-5 w-5" />
                         )}
                     </button>
@@ -458,14 +457,7 @@ export default function ArticlesArchivePage() {
                                 )}
 
                                 {/* Automatic Load More Sentinel */}
-                                {visibleCount < articles.length && (
-                                    <div ref={loaderRef} className="py-20 flex flex-col items-center justify-center gap-4 text-slate-400">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-emerald-500 border-t-transparent" />
-                                        <p className="text-xs font-bold uppercase tracking-widest animate-pulse">
-                                            Carregando mais documentos científicos...
-                                        </p>
-                                    </div>
-                                )}
+                                
                             </>
                         )}
                     </div>

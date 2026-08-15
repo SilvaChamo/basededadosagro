@@ -30,6 +30,7 @@ import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { Spinner } from "@/components/ui/spinner";
 
 const formSchema = z.object({
     name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -639,12 +640,7 @@ export function ProfessionalRegistrationForm({ initialData, isAdmin }: Professio
                         className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-14 rounded-agro-btn px-12 text-lg shadow-lg shadow-emerald-600/20"
                         disabled={loading}
                     >
-                        {loading ? (
-                            <>
-                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                A enviar...
-                            </>
-                        ) : (
+                        {(
                             initialData ? "Guardar Alterações" : "Registar Perfil Profissional"
                         )}
                     </Button>

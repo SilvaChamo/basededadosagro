@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ImageUpload } from "./ImageUpload";
 import { Loader2, ShoppingBag, Tag, DollarSign, Image as ImageIcon, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ProductEditorProps {
     initialData?: any;
@@ -196,7 +197,7 @@ export function ProductEditor({ initialData, isNew = false }: ProductEditorProps
                         disabled={loading}
                         className="px-10 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-lg"
                     >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ShoppingBag className="w-4 h-4 mr-2" />}
+                        {<ShoppingBag className="w-4 h-4 mr-2" />}
                         {isNew ? "Adicionar Produto" : "Guardar Alterações"}
                     </Button>
                 </div>

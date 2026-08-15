@@ -10,6 +10,7 @@ import { ArrowLeft, Send, Clock, User as UserIcon } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Database } from '@/lib/database.types';
+import { Spinner } from "@/components/ui/spinner";
 
 export default function TopicPage() {
     const { topicId } = useParams();
@@ -92,7 +93,7 @@ export default function TopicPage() {
 
     if (loading) return (
         <div className="min-h-screen bg-zinc-50 dark:bg-black pt-20 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+            <Spinner className="h-12 w-12" />
         </div>
     );
 

@@ -313,7 +313,7 @@ export default function AdminApresentacoesPage() {
 
             {loading ? (
                 <div className="flex justify-center py-20">
-                    <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                    <Spinner className="w-8 h-8 animate-spin text-emerald-600" />
                 </div>
             ) : filtered.length === 0 ? (
                 <div className="bg-white rounded-3xl border-2 border-dashed border-slate-200 p-20 text-center flex flex-col items-center gap-4">
@@ -542,3 +542,4 @@ function Loader2({ className }: { className?: string }) {
 }
 
 import { RefreshCw } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";

@@ -6,6 +6,7 @@ import { createClient } from "@/utils/supabase/client";
 import { usePlanPermissions } from "@/hooks/usePlanPermissions";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 export function RecruitCTA() {
     const router = useRouter();
@@ -51,7 +52,7 @@ export function RecruitCTA() {
         >
             {isLoading ? (
                 <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Spinner className="w-5 h-5 animate-spin" />
                     A processar...
                 </>
             ) : (

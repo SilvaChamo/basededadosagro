@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Database, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function MigratePresentationsPage() {
     const [loading, setLoading] = useState(false);
@@ -94,12 +95,7 @@ export default function MigratePresentationsPage() {
                             disabled={loading}
                             className="w-full bg-emerald-600 hover:bg-emerald-700 h-12 text-base font-bold"
                         >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                                    A verificar...
-                                </>
-                            ) : (
+                            {(
                                 "Verificar e Migrar"
                             )}
                         </Button>

@@ -10,6 +10,7 @@ import {
     CheckCircle, Notebook, Info, ArrowLeft
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/ui/spinner";
 
 interface TrainingEditorProps {
     initialData?: any;
@@ -386,7 +387,7 @@ export function TrainingEditor({ initialData, isNew = false, isPage = false, onC
                         disabled={loading}
                         className="px-10 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-lg"
                     >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (isNew ? "Adicionar Formação" : "Guardar Alterações")}
+                        {(isNew ? "Adicionar Formação" : "Guardar Alterações")}
                     </Button>
                 </div>
             </form>

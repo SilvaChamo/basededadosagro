@@ -28,6 +28,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { COMPANY_CATEGORIES, PROVINCES } from "@/lib/constants";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { PageHeader } from "@/components/PageHeader";
+import { Spinner } from "@/components/ui/spinner";
 
 const PlanBadge = ({ plan }: { plan: 'Free' | 'Básico' | 'Premium' | 'Business Vendedor' | 'Parceiro' }) => {
     const styles = {
@@ -255,7 +256,7 @@ export default function SimpleRegistrationPage() {
     if (loadingAuth) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-100">
-                <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+                <Spinner className="w-8 h-8 text-emerald-600 animate-spin" />
             </div>
         );
     }
@@ -691,7 +692,7 @@ export default function SimpleRegistrationPage() {
                     <div className="py-4">
                         {isCompressing ? (
                             <div className="flex flex-col items-center justify-center space-y-3 py-4">
-                                <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+                                <Spinner className="w-8 h-8 text-emerald-600 animate-spin" />
                                 <p className="text-sm font-semibold text-slate-600">A comprimir imagem... Por favor aguarde.</p>
                             </div>
                         ) : (

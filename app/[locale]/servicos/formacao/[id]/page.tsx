@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import React, { useState, use, useEffect } from "react";
 import { TrainingEnrollmentForm } from "@/components/TrainingEnrollmentForm";
 import { supabase } from "@/lib/supabaseClient";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function TrainingDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = React.use(params);
@@ -34,7 +35,7 @@ export default function TrainingDetailPage({ params }: { params: Promise<{ id: s
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#f97316]"></div>
+                <Spinner className="h-12 w-12" />
             </div>
         );
     }

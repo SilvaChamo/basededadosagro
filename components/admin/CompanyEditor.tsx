@@ -10,6 +10,7 @@ import { MOZ_DATA, SECTORS, SECTOR_CATEGORIES, VALUE_CHAINS, COMPANY_DESIGNATION
 import { useRouter } from "next/navigation";
 import { ImageUpload } from "./ImageUpload";
 import { toSentenceCase } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
 
 
 
@@ -855,7 +856,7 @@ export function CompanyEditor({ initialData, isNew = false, defaultType }: Compa
                                             disabled={productLoading}
                                             className="px-8 py-2.5 text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors flex items-center gap-2 uppercase tracking-widest shadow-lg shadow-emerald-900/10"
                                         >
-                                            {productLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : (editingProductId ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />)}
+                                            {(editingProductId ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />)}
                                             {editingProductId ? 'Actualizar Produto' : 'Salvar Produto'}
                                         </button>
                                     </div>
@@ -971,7 +972,7 @@ export function CompanyEditor({ initialData, isNew = false, defaultType }: Compa
                         disabled={loading}
                         className="px-10 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-lg"
                     >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (isNew ? "Adicionar Empresa" : "Guardar Alterações")}
+                        {(isNew ? "Adicionar Empresa" : "Guardar Alterações")}
                     </Button>
                 </div>
 

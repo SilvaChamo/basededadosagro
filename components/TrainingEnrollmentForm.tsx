@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabaseClient";
+import { Spinner } from "@/components/ui/spinner";
 
 interface TrainingEnrollmentFormProps {
     trainingId: string;
@@ -197,9 +198,7 @@ export function TrainingEnrollmentForm({ trainingId, trainingTitle, onClose }: T
                             disabled={loading}
                             className="w-full h-14 bg-[#f97316] hover:bg-[#ea6a0a] text-white font-black text-lg rounded-xl shadow-lg shadow-orange-200 transition-all flex items-center justify-center gap-2 group"
                         >
-                            {loading ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                            ) : (
+                            {(
                                 <>
                                     Confirmar Inscrição
                                     <Send className="w-5 h-5 transition-transform group-hover:translate-x-1" />

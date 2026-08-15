@@ -18,6 +18,7 @@ const generateId = () => Math.random().toString(36).substring(2, 9) + Date.now()
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { cn } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
 
 interface PresentationEditorComponentProps {
     id: string;
@@ -410,7 +411,7 @@ export function PresentationEditorComponent({ id, backPath }: PresentationEditor
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                <Spinner className="w-8 h-8 animate-spin text-emerald-600" />
             </div>
         );
     }
@@ -535,7 +536,7 @@ export function PresentationEditorComponent({ id, backPath }: PresentationEditor
                         disabled={saving}
                         className="bg-emerald-600 hover:bg-emerald-700 text-white font-black h-9 px-6 rounded-lg shadow-sm gap-2 uppercase tracking-widest text-[10px]"
                     >
-                        {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                        {<Save className="w-3.5 h-3.5" />}
                         {isNew ? "Criar" : "Guardar"}
                     </Button>
                 </div>

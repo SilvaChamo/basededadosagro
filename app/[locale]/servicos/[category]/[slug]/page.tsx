@@ -17,6 +17,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { IconMap } from "@/lib/icons";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function ServiceSubCategoryPage() {
     const params = useParams();
@@ -132,7 +133,7 @@ export default function ServiceSubCategoryPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+                <Spinner className="h-12 w-12" />
             </div>
         );
     }

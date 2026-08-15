@@ -9,6 +9,7 @@ import { ArrowLeft, Loader2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function MeuPerfilProfissionalPage() {
     const router = useRouter();
@@ -48,7 +49,7 @@ export default function MeuPerfilProfissionalPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <Loader2 className="h-10 w-10 animate-spin text-emerald-600" />
+                <Spinner className="h-10 w-10 animate-spin text-emerald-600" />
             </div>
         );
     }

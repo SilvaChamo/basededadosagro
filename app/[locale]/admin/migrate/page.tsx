@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 
 import { toast } from "sonner";
 import { Loader2, FileText, ArrowRight } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function MigratePage() {
     const supabase = createClient();
@@ -80,18 +81,14 @@ export default function MigratePage() {
                         disabled={selectedIds.length === 0 || classifying}
                         className="bg-emerald-600 hover:bg-emerald-700"
                     >
-                        {classifying && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                        
                         Mover para Documentos
                     </Button>
                 </div>
             </div>
 
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                {loading ? (
-                    <div className="p-8 flex justify-center">
-                        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-                    </div>
-                ) : (
+                {(
                     <div className="divide-y divide-slate-100">
                         {articles.map((article) => (
                             <div

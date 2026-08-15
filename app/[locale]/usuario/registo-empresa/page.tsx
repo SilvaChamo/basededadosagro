@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn, compressImage } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
 
 // Definindo os passos do Wizard
 const STEPS = [
@@ -327,7 +328,7 @@ export default function RegisterCompanyPage() {
                                             ) : (
                                                 <Upload className="w-8 h-8 text-slate-400" />
                                             )}
-                                            {uploading && <div className="absolute inset-0 bg-white/80 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-emerald-600" /></div>}
+                                            
                                         </div>
                                         <div className="flex-1">
                                             <Button
@@ -830,7 +831,7 @@ export default function RegisterCompanyPage() {
                                                         disabled={loading || formData.paymentConfirmed}
                                                         className={`w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase tracking-widest rounded-xl transition-all ${formData.paymentConfirmed ? 'bg-slate-400' : ''}`}
                                                     >
-                                                        {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                                        
                                                         {formData.paymentConfirmed ? "PAGAMENTO CONFIRMADO" : `CONFIRMAR PAGAMENTO ${formData.paymentMethod.toUpperCase()}`}
                                                     </Button>
                                                 </div>
@@ -879,7 +880,7 @@ export default function RegisterCompanyPage() {
                                 className="h-12 px-10 bg-orange-500 hover:bg-orange-600 text-white font-black uppercase tracking-widest shadow-lg shadow-orange-500/20"
                                 style={{ borderRadius: '12px' }}
                             >
-                                {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                                {<Save className="w-4 h-4 mr-2" />}
                                 Finalizar Cadastro
                             </Button>
                         )}
