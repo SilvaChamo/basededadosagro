@@ -1,24 +1,36 @@
-import { type NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import createIntlMiddleware from 'next-intl/middleware';
 import { updateSession } from '@/utils/supabase/middleware';
- 
+
 const handleI18nRouting = createIntlMiddleware({
   locales: ['pt', 'en'],
   defaultLocale: 'pt',
   localeCookie: false,
 });
- 
+
 export async function middleware(request: NextRequest) {
   // 1. Executar lógica do Supabase (Sessão/Auth)
   const response = await updateSession(request);
- 
+
   // 2. Se for uma resposta de redirecionamento do Supabase, retornar imediatamente
   if (response.status >= 300 && response.status < 400) {
     return response;
   }
- 
+
   // 3. Executar lógica de roteamento i18n
-  return handleI18nRouting(request);
+  const intlResponse = handleI18nRouting(request);
+
+  // Se o next-intl também redirecionar (ex: falta o prefixo de idioma), nada a renderizar.
+  if (intlResponse.headers.get('location')) {
+    return intlResponse;
+  }
+
+  // 4. Disponibiliza o pathname actual aos Server Components (ex: para o
+  // admin/layout.tsx saber restringir Editor/Contribuidor à Central de Notícias),
+  // já que o App Router não tem forma nativa de o ler fora de Client Components.
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-pathname', request.nextUrl.pathname);
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
  
 export const config = {

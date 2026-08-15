@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { getPostLoginPath } from '@/lib/roles'
 
 interface Cookie {
     name: string
@@ -25,6 +26,7 @@ export async function updateSession(request: NextRequest) {
         supabaseUrl,
         supabaseAnonKey,
         {
+            db: { schema: 'basededados' },
             cookies: {
                 getAll() {
                     return request.cookies.getAll()
@@ -56,10 +58,22 @@ export async function updateSession(request: NextRequest) {
         }
     }
 
-    // IMPORTANT: DO NOT REMOVE auth.getUser()
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    // IMPORTANT: DO NOT REMOVE auth.getUser() — só evitamos CHAMÁ-LO quando não
+    // há nenhuma cookie de sessão Supabase no pedido. Sem cookie não há sessão
+    // possível (user seria sempre null de qualquer forma), por isso poupamos o
+    // pedido de rede lento ao servidor de auth (~1.5-2.5s neste projecto) em
+    // todas as páginas públicas visitadas por visitantes anónimos. Quando a
+    // cookie existe (visitante com sessão), continuamos a validar/renovar
+    // normalmente como antes.
+    const hasAuthCookie = request.cookies.getAll().some(
+        (c) => c.name.startsWith('sb-') && c.name.includes('auth-token')
+    );
+
+    let user = null;
+    if (hasAuthCookie) {
+        const { data } = await supabase.auth.getUser();
+        user = data.user;
+    }
 
     // 1. Obscuridade: Em vez de redirecionar para login, damos rewrite para 404
     const isProtectedRoute = pathname.startsWith('/usuario') || pathname.startsWith('/admin');
@@ -84,11 +98,20 @@ export async function updateSession(request: NextRequest) {
     }
 
     if (pathname === '/auth/login' && user) {
+        // Sessão já activa neste navegador (não é um login "de raiz") — tem de
+        // respeitar o role tal como o formulário de login respeita, senão um
+        // admin/editor/contribuidor com sessão guardada acaba sempre a cair
+        // no painel de cliente em vez do painel certo.
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
         const url = request.nextUrl.clone();
-        url.pathname = '/usuario/dashboard';
+        url.pathname = getPostLoginPath(profile?.role);
         return NextResponse.redirect(url);
     }
-
 
     return supabaseResponse
 }

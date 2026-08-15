@@ -4,14 +4,18 @@ import { CategoriesShowcase } from "@/components/CategoriesShowcase";
 import { CommunityBanner } from "@/components/CommunityBanner";
 import { WhyChooseUs } from "@/components/WhyChooseUs";
 import { MobileAppSection } from "@/components/MobileAppSection";
-import { createClient } from "@/utils/supabase/server";
+import { supabase } from "@/lib/supabaseClient";
 import { getTranslations } from 'next-intl/server';
 
+// A homepage não mostra nada específico do utilizador (só dados públicos:
+// estatísticas, empresas em destaque, notícias). Usar o cliente Supabase
+// simples (sem cookies()) em vez do cliente de sessão evita que o Next.js
+// force esta página a renderizar de novo em CADA pedido — com cookies() a
+// página ficava sempre 100% dinâmica, ignorando este `revalidate`, e cada
+// visita pagava sempre a latência de rede até ao Supabase.
 export const revalidate = 60; // Revalidate every 60 seconds
-export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  const supabase = await createClient();
   const t = await getTranslations('CategoriesShowcase');
 
   // Parallel Data Fetching with error resilience
