@@ -430,7 +430,7 @@ export default function ArticlesArchivePage() {
                 ) : (
                     <div className="space-y-10">
                         {loading ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-6">
                                 {Array(6).fill(0).map((_, i) => (
                                     <div key={i} className="animate-pulse bg-white rounded-[20px] h-[400px] border border-slate-100 shadow-sm" />
                                 ))}
@@ -438,7 +438,7 @@ export default function ArticlesArchivePage() {
                         ) : (
                             <>
                                 {displayedArticles.length > 0 ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-[30px]">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-6 px-[30px]">
                                         {displayedArticles.map((article) => (
                                             <NewsCard
                                                 key={article.id}

@@ -16,6 +16,13 @@ const config: Config = {
             },
         },
         extend: {
+            screens: {
+                // Ecrãs grandes/gigantes (iMac, monitores 21"+, 4K/5K) — usados para
+                // grelhas de conteúdo ganharem mais colunas à medida que o ecrã cresce,
+                // além do que os breakpoints padrão (até 2xl=1536px) já cobrem.
+                "3xl": "1920px",
+                "4xl": "2560px",
+            },
             colors: {
                 border: "var(--border)",
                 input: "var(--input)",

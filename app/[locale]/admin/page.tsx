@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { getCachedDashboardStats, fetchAndCacheDashboardStats } from "@/lib/adminDashboardCache";
 import {
     FileText,
     BarChart3,
@@ -28,26 +28,19 @@ export default function AdminDashboardPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        async function fetchCounts() {
-            const counts = await Promise.all([
-                supabase.from('articles').select('*', { count: 'exact', head: true }),
-                supabase.from('companies').select('*', { count: 'exact', head: true }),
-                supabase.from('products').select('*', { count: 'exact', head: true }),
-                supabase.from('professionals').select('*', { count: 'exact', head: true }),
-                supabase.from('agricultural_stats').select('*', { count: 'exact', head: true })
-            ]);
-
-            setStats({
-                articles: counts[0].count || 0,
-                companies: counts[1].count || 0,
-                products: counts[2].count || 0,
-                professionals: counts[3].count || 0,
-                statsRows: counts[4].count || 0
-            });
+        // Dados prontos em cache (ex: pré-carregados no login) aparecem de imediato,
+        // sem espera nem "..." — cache válido por 8 horas, ver lib/adminDashboardCache.ts.
+        const cached = getCachedDashboardStats();
+        if (cached) {
+            setStats(cached);
             setLoading(false);
+            return;
         }
 
-        fetchCounts();
+        fetchAndCacheDashboardStats().then((data) => {
+            setStats(data);
+            setLoading(false);
+        });
     }, []);
 
     const cards = [

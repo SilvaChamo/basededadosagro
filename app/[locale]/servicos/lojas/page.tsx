@@ -177,7 +177,7 @@ export default function LojasPage() {
                         <Loader2 className="w-10 h-10 animate-spin text-orange-500" />
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 4xl:grid-cols-7 gap-6 mb-12">
                         {filteredStores.map((store, i) => {
                             const Icon = store.icon || getIcon(store.category);
                             return (

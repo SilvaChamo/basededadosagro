@@ -465,7 +465,7 @@ export default function AdminProfessionalsPage() {
                         {statusFilter === 'deleted' ? "A reciclagem está vazia." : "Nenhum profissional encontrado."}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-6">
                         {filteredData.map((item) => (
                             <div
                                 key={item.id}

@@ -52,6 +52,14 @@ const nextConfig: NextConfig = {
         hostname: "supabase.visualdesignmoz.com",
         pathname: "/**",
       },
+      // Notícias pendentes (robô) trazem a imagem do artigo original, que
+      // pode vir de qualquer site de notícias — não dá para listar hostname
+      // a hostname aqui.
+      {
+        protocol: "https",
+        hostname: "**",
+        pathname: "/**",
+      },
     ],
   },
   outputFileTracingRoot: path.join(__dirname),

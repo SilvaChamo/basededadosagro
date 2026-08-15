@@ -470,7 +470,7 @@ export default function MeuConteudoPage() {
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
                                     </div>
                                 ) : filteredPartners.length > 0 ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-4">
                                         {filteredPartners.map(partner => (
                                             <div key={partner.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow group">
                                                 <div className="flex items-start justify-between mb-3">
