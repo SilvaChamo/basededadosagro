@@ -19,6 +19,11 @@ interface NewsCardProps {
     onRestore?: () => void;
     onArchive?: () => void;
     isArchived?: boolean;
+    /** Quando definido, o card deixa de ligar para /artigos/[slug] (usado
+     * para candidatos ainda sem página própria, ex: notícias pendentes) —
+     * a imagem, o título e o botão principal passam a chamar isto. */
+    ctaLabel?: string;
+    onCtaClick?: () => void;
 }
 
 export function NewsCard({
@@ -36,7 +41,9 @@ export function NewsCard({
     onEdit,
     onDelete,
     onRestore,
-    onArchive
+    onArchive,
+    ctaLabel,
+    onCtaClick,
 }: NewsCardProps) {
     const formattedDate = new Date(date).toLocaleDateString('pt-PT', {
         day: '2-digit',
@@ -48,21 +55,36 @@ export function NewsCard({
         <div className="group flex flex-col h-full bg-white rounded-[10px] shadow-lg border border-slate-100 hover:border-[#f97316]/50 transition-all overflow-hidden hover:shadow-xl">
             {image ? (
                 /* Image Section */
-                <Link href={`/artigos/${slug}`} className="relative aspect-[16/10] overflow-hidden block border-b-4 border-[#f97316]">
-                    <Image
-                        src={image}
-                        alt={title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute top-4 left-4 bg-[#f97316] text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg">
-                        {category || "Artigo"}
-                    </div>
-                </Link>
+                onCtaClick ? (
+                    <button type="button" onClick={onCtaClick} className="relative aspect-[16/10] overflow-hidden block border-b-4 border-[#f97316] w-full text-left">
+                        <Image
+                            src={image}
+                            alt={title}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        <div className="absolute top-4 left-4 bg-[#f97316] text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg">
+                            {category || "Artigo"}
+                        </div>
+                    </button>
+                ) : (
+                    <Link href={`/artigos/${slug}`} className="relative aspect-[16/10] overflow-hidden block border-b-4 border-[#f97316]">
+                        <Image
+                            src={image}
+                            alt={title}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        <div className="absolute top-4 left-4 bg-[#f97316] text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg">
+                            {category || "Artigo"}
+                        </div>
+                    </Link>
+                )
             ) : (
-                /* Sem imagem: badge de categoria substitui a faixa de imagem */
-                <div className="px-5 pt-5">
+                /* Sem imagem: faixa com o badge de categoria, mesma linha laranja da imagem */
+                <div className="px-5 py-4 border-b-4 border-[#f97316]">
                     <span className="inline-block bg-[#f97316] text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px]">
                         {category || "Artigo"}
                     </span>
@@ -79,9 +101,38 @@ export function NewsCard({
                     </div>
 
                     {/* Title */}
-                    <Link href={`/artigos/${slug}`} className="block">
-                        <h3
-                            className="text-[17px] font-black text-slate-800 group-hover:text-[#f97316] transition-colors leading-[1.25] tracking-tighter first-letter:uppercase my-0 mb-[10px]"
+                    {onCtaClick ? (
+                        <button type="button" onClick={onCtaClick} className="block text-left">
+                            <h3
+                                className="text-[17px] font-bold text-slate-800 group-hover:text-[#f97316] transition-colors leading-[1.25] tracking-tighter first-letter:uppercase my-0 mb-1"
+                                style={{
+                                    display: '-webkit-box',
+                                    WebkitBoxOrient: 'vertical',
+                                    WebkitLineClamp: 3,
+                                    overflow: 'hidden',
+                                }}
+                            >
+                                {title}
+                            </h3>
+                        </button>
+                    ) : (
+                        <Link href={`/artigos/${slug}`} className="block">
+                            <h3
+                                className="text-[17px] font-bold text-slate-800 group-hover:text-[#f97316] transition-colors leading-[1.25] tracking-tighter first-letter:uppercase my-0 mb-1"
+                                style={{
+                                    display: '-webkit-box',
+                                    WebkitBoxOrient: 'vertical',
+                                    WebkitLineClamp: 3,
+                                    overflow: 'hidden',
+                                }}
+                            >
+                                {title}
+                            </h3>
+                        </Link>
+                    )}
+                    {subtitle && (
+                        <p
+                            className="text-xs text-slate-500 leading-relaxed my-0"
                             style={{
                                 display: '-webkit-box',
                                 WebkitBoxOrient: 'vertical',
@@ -89,19 +140,29 @@ export function NewsCard({
                                 overflow: 'hidden',
                             }}
                         >
-                            {title}
-                        </h3>
-                    </Link>
+                            {subtitle}
+                        </p>
+                    )}
                 </div>
 
                 {/* Footer/Actions */}
                 <div className="mt-auto pt-4 flex items-center justify-between border-t border-slate-50">
-                    <Link
-                        href={`/artigos/${slug}`}
-                        className="flex items-center gap-2 text-sm font-bold text-emerald-600 group-hover:text-[#f97316] transition-colors"
-                    >
-                        Explorar <ArrowRight className="h-4 w-4" />
-                    </Link>
+                    {onCtaClick ? (
+                        <button
+                            type="button"
+                            onClick={onCtaClick}
+                            className="flex items-center gap-2 text-sm font-bold text-emerald-600 group-hover:text-[#f97316] transition-colors"
+                        >
+                            {ctaLabel || 'Explorar'} <ArrowRight className="h-4 w-4" />
+                        </button>
+                    ) : (
+                        <Link
+                            href={`/artigos/${slug}`}
+                            className="flex items-center gap-2 text-sm font-bold text-emerald-600 group-hover:text-[#f97316] transition-colors"
+                        >
+                            {ctaLabel || 'Explorar'} <ArrowRight className="h-4 w-4" />
+                        </Link>
+                    )}
 
                     {isAdmin && (
                         <div className="flex gap-2">

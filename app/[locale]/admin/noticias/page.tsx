@@ -401,6 +401,8 @@ export default function AdminNoticiasPage() {
                                         isAdmin={true}
                                         onEdit={() => handleReviewPending(pending)}
                                         onDelete={() => setPendingToDiscard(pending)}
+                                        ctaLabel="Rever e Publicar"
+                                        onCtaClick={() => handleReviewPending(pending)}
                                     />
                                 ))}
                             </div>
