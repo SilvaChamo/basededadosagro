@@ -4,16 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Upload, X, ImageIcon, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ImageUploadProps {
     value: string;
@@ -69,7 +60,6 @@ export function ImageUpload({
     const [uploading, setUploading] = useState(false);
     const [userId, setUserId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [showResizeModal, setShowResizeModal] = useState(false);
 
     useEffect(() => {
         const getSession = async () => {
@@ -80,12 +70,11 @@ export function ImageUpload({
         };
         getSession();
     }, []);
-    const [pendingFile, setPendingFile] = useState<File | null>(null);
-    const [resizeDetails, setResizeDetails] = useState<{ width: number, height: number } | null>(null);
-    const [resolveResize, setResolveResize] = useState<((value: boolean | null) => void) | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const checkAndResize = (file: File): Promise<boolean | null> => {
+    // Decide silenciosamente se a imagem precisa de ser reduzida — sem
+    // interromper o upload a pedir confirmação ao utilizador.
+    const checkNeedsResize = (file: File): Promise<boolean> => {
         return new Promise((resolve) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -96,15 +85,7 @@ export function ImageUpload({
                     const width = img.width;
                     const height = img.height;
                     const needsResizing = (effectiveMaxWidth && width > effectiveMaxWidth) || (effectiveMaxHeight && height > effectiveMaxHeight) || (file.size > effectiveMaxBytes);
-
-                    if (needsResizing) {
-                        setResizeDetails({ width, height });
-                        setPendingFile(file);
-                        setShowResizeModal(true);
-                        setResolveResize(() => resolve);
-                    } else {
-                        resolve(false);
-                    }
+                    resolve(needsResizing);
                 };
             };
         });
@@ -199,14 +180,7 @@ export function ImageUpload({
             return;
         }
 
-        const shouldResize = await checkAndResize(file);
-
-        // If null, user cancelled
-        if (shouldResize === null) {
-            if (fileInputRef.current) fileInputRef.current.value = "";
-            return;
-        }
-
+        const shouldResize = await checkNeedsResize(file);
         await startUpload(file, shouldResize);
     };
 
@@ -243,37 +217,26 @@ export function ImageUpload({
             const userPrefix = userId ? `${userId}-` : "";
             const fileName = `${folder}/${userPrefix}${Date.now()}.webp`;
 
-            const { data, error: uploadError } = await supabase.storage
-                .from(bucket)
-                .upload(fileName, webpBlob, {
-                    contentType: 'image/webp',
-                    cacheControl: '3600',
-                    upsert: false
-                });
+            const uploadForm = new FormData();
+            uploadForm.append("file", webpBlob, fileName);
+            uploadForm.append("bucket", bucket);
+            uploadForm.append("path", fileName);
 
-            if (uploadError) throw uploadError;
+            const res = await fetch("/api/admin/upload-image", {
+                method: "POST",
+                body: uploadForm,
+            });
 
-            const { data: { publicUrl } } = supabase.storage
-                .from(bucket)
-                .getPublicUrl(data.path);
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || "Erro ao carregar imagem.");
 
-            onChange(publicUrl);
+            onChange(result.publicUrl);
         } catch (err: any) {
             console.error("Upload error:", err);
             setError("Erro ao carregar imagem: " + (err.message || "Tente novamente."));
         } finally {
             setUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = "";
-        }
-    };
-
-    const handleResizeConfirm = (confirm: boolean) => {
-        setShowResizeModal(false);
-        if (resolveResize) {
-            resolveResize(confirm ? true : null);
-            setPendingFile(null);
-            setResizeDetails(null);
-            setResolveResize(null);
         }
     };
 
@@ -298,7 +261,7 @@ export function ImageUpload({
             >
                 {uploading ? (
                     <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+                        <Spinner className="w-8 h-8 text-emerald-600 animate-spin" />
                         <span className="text-xs font-bold text-emerald-600 uppercase tracking-tight">Processando...</span>
                     </div>
                 ) : value ? (
@@ -378,42 +341,6 @@ export function ImageUpload({
                 )
             }
 
-            <Dialog open={showResizeModal} onOpenChange={(open) => !open && handleResizeConfirm(false)}>
-                <DialogContent className="max-w-md p-0 overflow-hidden border-none rounded-2xl shadow-2xl">
-                    <div className="p-8 space-y-6">
-                        <DialogHeader>
-                            <DialogTitle className="text-2xl font-black text-slate-800 tracking-tight">
-                                Imagem muito grande
-                            </DialogTitle>
-                            <DialogDescription className="text-slate-500 text-sm font-medium leading-relaxed pt-2">
-                                A imagem selecionada excede o limite de {Math.round(effectiveMaxBytes / 1024)}kb ou as dimensões recomendadas. Deseja que optimizemos o tamanho automaticamente?
-                            </DialogDescription>
-                        </DialogHeader>
-
-                        <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl">
-                            <p className="text-xs font-bold text-orange-700 leading-relaxed">
-                                Nota: A qualidade visual será mantida, mas o tamanho do ficheiro será reduzido para cumprir os requisitos.
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-3 pt-2">
-                            <Button
-                                variant="outline"
-                                onClick={() => handleResizeConfirm(false)}
-                                className="flex-1 h-12 rounded-xl text-sm font-black text-slate-600 uppercase tracking-widest border-slate-200 hover:bg-slate-50"
-                            >
-                                Cancelar
-                            </Button>
-                            <Button
-                                onClick={() => handleResizeConfirm(true)}
-                                className="flex-1 h-12 rounded-xl text-sm font-black text-white uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200"
-                            >
-                                Sim
-                            </Button>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
         </div >
     );
 }

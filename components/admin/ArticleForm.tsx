@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { syncManager } from "@/lib/syncManager";
 import { useEffect } from "react";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ArticleFormProps {
     onClose: () => void;
@@ -91,7 +92,6 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
         setLoading(true);
 
         try {
-            let error;
             const payload = { ...formData };
 
             // Auto-generate slug from title if new
@@ -99,24 +99,14 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
                 payload.slug = payload.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
             }
 
-            if (initialData?.id) {
-                const { error: err, count } = await supabase
-                    .from('articles')
-                    .update(payload, { count: 'exact' })
-                    .eq('id', initialData.id);
+            const res = await fetch('/api/admin/articles', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: initialData?.id, payload }),
+            });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || 'Erro ao guardar o artigo.');
 
-                if (!err && count === 0) {
-                    throw new Error("Permissão negada: Não foi possível actualizar o artigo. Verifique as suas permissões.");
-                }
-                error = err;
-            } else {
-                const { error: err } = await supabase
-                    .from('articles')
-                    .insert([payload]);
-                error = err;
-            }
-
-            if (error) throw error;
             if (!initialData) localStorage.removeItem("agro_article_draft");
             toast.success(initialData?.id ? "Artigo actualizado!" : "Artigo publicado!");
             onSuccess();
@@ -148,7 +138,7 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
                         Cancelar
                     </Button>
                     <Button type="submit" form="article-form" disabled={loading} className="bg-emerald-600 hover:bg-emerald-700 min-w-[120px]">
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+
                         {initialData ? "Actualizar" : "Publicar"}
                     </Button>
                 </div>
