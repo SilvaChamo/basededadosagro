@@ -1,0 +1,67 @@
+name: Diag — configuração de cache no Cloudflare (só leitura)
+
+# Execução manual, só leitura na API do Cloudflare — não altera nada.
+# Objectivo: confirmar como está configurada a cache do domínio
+# basededadosagro.com (Cache Rules, plano da zona) para perceber por que
+# um pedido de navegação interna do Next.js (RSC) pode ficar guardado na
+# mesma "caixa" de cache que uma página normal.
+on:
+  workflow_dispatch:
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consultar Cloudflare
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN_ACCOUNT }}
+          CF_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+          CF_KEY: ${{ secrets.CLOUDFLARE_GLOBAL_API_KEY }}
+        run: |
+          set -e
+          echo "=== zona ==="
+          ZONE_JSON=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=basededadosagro.com" \
+            -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json")
+          echo "$ZONE_JSON" | python3 -m json.tool | head -5
+          OK=$(echo "$ZONE_JSON" | python3 -c "import json,sys;print(json.load(sys.stdin).get('success'))")
+
+          if [ "$OK" != "True" ]; then
+            echo "--- token Bearer falhou, a tentar Global API Key ---"
+            ZONE_JSON=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=basededadosagro.com" \
+              -H "X-Auth-Email: $CF_EMAIL" -H "X-Auth-Key: $CF_KEY" -H "Content-Type: application/json")
+            AUTH_HEADER_TOKEN="-H \"X-Auth-Email: $CF_EMAIL\" -H \"X-Auth-Key: $CF_KEY\""
+            USE_TOKEN=0
+          else
+            USE_TOKEN=1
+          fi
+
+          ZONE_ID=$(echo "$ZONE_JSON" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d['result'][0]['id'] if d.get('result') else '')")
+          PLAN=$(echo "$ZONE_JSON" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d['result'][0].get('plan',{}).get('name','?') if d.get('result') else '?')")
+          echo "zone_id: $ZONE_ID"
+          echo "plano: $PLAN"
+
+          if [ -z "$ZONE_ID" ]; then
+            echo "Não consegui obter zone_id. Resposta completa:"
+            echo "$ZONE_JSON"
+            exit 1
+          fi
+
+          echo ""
+          echo "=== Cache Rules (ruleset http_request_cache_settings) ==="
+          if [ "$USE_TOKEN" = "1" ]; then
+            curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/rulesets/phases/http_request_cache_settings/entrypoint" \
+              -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json" | python3 -m json.tool
+          else
+            curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/rulesets/phases/http_request_cache_settings/entrypoint" \
+              -H "X-Auth-Email: $CF_EMAIL" -H "X-Auth-Key: $CF_KEY" -H "Content-Type: application/json" | python3 -m json.tool
+          fi
+
+          echo ""
+          echo "=== Page Rules (legado, pode não existir) ==="
+          if [ "$USE_TOKEN" = "1" ]; then
+            curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/pagerules" \
+              -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json" | python3 -m json.tool
+          else
+            curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/pagerules" \
+              -H "X-Auth-Email: $CF_EMAIL" -H "X-Auth-Key: $CF_KEY" -H "Content-Type: application/json" | python3 -m json.tool
+          fi
