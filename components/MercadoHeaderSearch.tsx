@@ -1,15 +1,38 @@
 "use client";
 
-import React, { useState } from "react";
-import { ShoppingBag, Search, X } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ShoppingBag, Search, X, TrendingUp } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
-import { SearchSection } from "@/components/SearchSection";
+import { SearchSection, type ExtraSearchItem } from "@/components/SearchSection";
+import { createClient } from "@/utils/supabase/client";
 
 /** Cabeçalho + botão flutuante de pesquisa da página Mercado. Isolado num
  * componente cliente pequeno (só isto precisa de estado no browser) para o
- * resto da página poder ser preparado no servidor. */
+ * resto da página poder ser preparado no servidor.
+ *
+ * A pesquisa geral do site (SearchSection) só cobre empresas/produtos/
+ * profissionais/propriedades/artigos — nunca incluía as cotações, que são
+ * o próprio conteúdo desta página. Por isso busca-as aqui à parte e passa-as
+ * como categoria extra. */
 export function MercadoHeaderSearch() {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [priceItems, setPriceItems] = useState<ExtraSearchItem[]>([]);
+
+    useEffect(() => {
+        const supabase = createClient();
+        supabase
+            .from('market_prices')
+            .select('product, unit, location, category, price')
+            .then(({ data }: { data: any[] | null }) => {
+                setPriceItems(
+                    (data || []).map((p: any) => ({
+                        title: p.product,
+                        sub: `${p.location} · ${p.price?.toLocaleString('pt-MZ')} MT/${p.unit}`,
+                        href: '/mercado',
+                    }))
+                );
+            });
+    }, []);
 
     return (
         <>
@@ -40,7 +63,11 @@ export function MercadoHeaderSearch() {
                 </div>
             </div>
 
-            <SearchSection isOpen={isSearchOpen} withBottomBorder={true} />
+            <SearchSection
+                isOpen={isSearchOpen}
+                withBottomBorder={true}
+                extraCategory={{ id: "cotacoes", label: "Cotações", icon: TrendingUp, items: priceItems }}
+            />
         </>
     );
 }
