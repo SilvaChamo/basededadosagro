@@ -65,18 +65,16 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
   async headers() {
     return [
-      {
-        source: '/:locale',
-        headers: [
-          { key: 'Cache-Control', value: 'public, s-maxage=60, stale-while-revalidate=300' },
-        ],
-      },
-      {
-        source: '/:locale/(mercado|servicos|artigos|estatisticas|sobre-nos|contactos|blog|inovacao|termos|politica-privacidade|repositorio|apresentacoes|apresentacao|ajuda|planos|carreiras|documentos|relatorios|produtos|propriedades|empresas|agrocast|destaque|parceria|forum)/:path*',
-        headers: [
-          { key: 'Cache-Control', value: 'public, s-maxage=60, stale-while-revalidate=300' },
-        ],
-      },
+      // NOTA (17 ago): removida a regra que forçava 'Cache-Control: public'
+      // em bloco nestas páginas. Essa regra aplicava-se por igual aos
+      // pedidos de página normal E aos pedidos internos de navegação do
+      // Next.js (RSC) — como o Cloudflare não os distingue por defeito,
+      // por vezes guardava a versão "em bruto" (dados internos, não a
+      // página) e servia-a a visitantes normais, aparecendo como ecrã
+      // preto com texto técnico. Ver histórico do PR que trouxe esta nota
+      // para o diagnóstico completo. A cache volta a ser reintroduzida
+      // página a página, via `export const revalidate`, que já não tem
+      // este problema.
       {
         source: '/:path*',
         headers: [
