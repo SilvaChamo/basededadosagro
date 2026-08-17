@@ -95,18 +95,6 @@ const serviceCategories: ServiceCategory[] = [
         ]
     },
     {
-        id: "emprego",
-        title: "Vagas de emprego",
-        icon: Briefcase,
-        description: "Hub de talentos e oportunidades de carreira focado exclusivamente no setor agrário, conectando profissionais qualificados às melhores vagas nas maiores empresas de agronegócio de Moçambique.",
-        items: [
-            { title: "Talento Agrário", link: "/servicos/emprego", slug: "talento", description: "Candidate-se a vagas nas maiores empresas do país.", icon: Briefcase },
-            { title: "Recrutamento Especializado", link: "/servicos/emprego", slug: "recrutamento", description: "Serviços de RH focados em perfis técnicos agrícolas.", icon: Users },
-            { title: "Estágios Profissionais", link: "/servicos/emprego", slug: "estagios", description: "Programas de entrada no mercado para jovens licenciados.", icon: GraduationCap },
-            { title: "Consultoria de Carreira", link: "/servicos/emprego", slug: "carreira", description: "Apoio na elaboração de CV e preparação para entrevistas.", icon: FileText }
-        ]
-    },
-    {
         id: "consultoria",
         title: "Consultoria digital",
         icon: Users,
@@ -116,16 +104,6 @@ const serviceCategories: ServiceCategory[] = [
             { title: "Otimização de Processos", link: "/servicos/consultoria", slug: "otimizacao", description: "Análise e melhoria de processos operacionais através de tecnologia.", icon: Zap },
             { title: "Análise de Dados", link: "/servicos/consultoria", slug: "dados", description: "Insights baseados em dados para melhor tomada de decisão.", icon: TrendingUp },
             { title: "Implementação Tecnológica", link: "/servicos/consultoria", slug: "implementacao", description: "Suporte na adoção e integração de novas tecnologias.", icon: Smartphone }
-        ]
-    },
-    {
-        id: "formacao",
-        title: "Formações e capacitações",
-        icon: GraduationCap,
-        description: "Programas educativos e workshops práticos voltados para a capacitação técnica em novas tecnologias agrícolas, gestão de negócios rurais e certificações de qualidade reconhecidas internacionalmente.",
-        items: [
-            { title: "Academia Agro", link: "/servicos/formacao", slug: "academia", description: "Cursos certificados online para capacitação técnica.", icon: GraduationCap },
-            { title: "Capacitação Rural", link: "/servicos/formacao", slug: "capacitacao", description: "Treinos práticos de campo para melhoria de produtividade.", icon: Truck }
         ]
     },
     {

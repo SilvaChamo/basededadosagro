@@ -12,12 +12,32 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 
+export interface ExtraSearchItem {
+    title: string;
+    sub?: string;
+    href?: string;
+    image?: string;
+}
+
+export interface ExtraSearchCategory {
+    id: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    items: ExtraSearchItem[];
+}
+
 interface SearchSectionProps {
     isOpen: boolean;
     withBottomBorder?: boolean;
+    /** Conteúdo específico da página onde este componente está montado (ex:
+     * cotações do Mercado, eventos da página de Eventos) — sem isto, a
+     * pesquisa só cobre o índice geral do site (empresas/produtos/
+     * profissionais/propriedades/artigos), que não inclui o conteúdo
+     * próprio de páginas como o Mercado. */
+    extraCategory?: ExtraSearchCategory;
 }
 
-export function SearchSection({ isOpen, withBottomBorder = false }: SearchSectionProps) {
+export function SearchSection({ isOpen, withBottomBorder = false, extraCategory }: SearchSectionProps) {
     const supabase = createClient();
     const t = useTranslations('SearchSection');
     const [searchQuery, setSearchQuery] = useState("");
@@ -111,6 +131,7 @@ export function SearchSection({ isOpen, withBottomBorder = false }: SearchSectio
 
     const categories = [
         { id: "all", label: t("categories.all"), icon: Search },
+        ...(extraCategory ? [{ id: extraCategory.id, label: extraCategory.label, icon: extraCategory.icon }] : []),
         { id: "empresas", label: t("categories.empresas"), icon: Building2 },
         { id: "produtos", label: t("categories.produtos"), icon: ShoppingBag },
         { id: "profissionais", label: t("categories.profissionais"), icon: Users },
@@ -136,12 +157,15 @@ export function SearchSection({ isOpen, withBottomBorder = false }: SearchSectio
             profissionais: activeCategory === "all" || activeCategory === "profissionais" ? filterData(dbData.profissionais) : [],
             empresas: activeCategory === "all" || activeCategory === "empresas" ? filterData(dbData.empresas) : [],
             artigos: activeCategory === "all" || activeCategory === "artigos" ? filterData(dbData.artigos) : [],
-            propriedades: activeCategory === "all" || activeCategory === "propriedades" ? filterData(dbData.propriedades) : []
+            propriedades: activeCategory === "all" || activeCategory === "propriedades" ? filterData(dbData.propriedades) : [],
+            extra: extraCategory && (activeCategory === "all" || activeCategory === extraCategory.id)
+                ? filterData(extraCategory.items)
+                : []
         };
 
-        const totalCount = result.produtos.length + result.profissionais.length + result.empresas.length + result.artigos.length + result.propriedades.length;
+        const totalCount = result.produtos.length + result.profissionais.length + result.empresas.length + result.artigos.length + result.propriedades.length + result.extra.length;
         return totalCount > 0 ? result : null;
-    }, [searchQuery, activeCategory, dbData]);
+    }, [searchQuery, activeCategory, dbData, extraCategory]);
 
     return (
         <section className={`w-full bg-slate-50 relative overflow-hidden transition-all duration-700 ease-in-out ${isOpen ? "max-h-[2000px] opacity-100 py-6" : "max-h-0 opacity-0 py-0"}`}>
@@ -215,6 +239,15 @@ export function SearchSection({ isOpen, withBottomBorder = false }: SearchSectio
                             </div>
                         ) : (
                             <div className="space-y-16">
+                                {filteredResults.extra.length > 0 && (
+                                    <div className="space-y-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-5">
+                                            {filteredResults.extra.map((item: any, i: number) => (
+                                                <SearchResultCard key={i} item={{ ...item, icon: extraCategory?.icon }} colorClass="bg-orange-50 text-[#f97316]" />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                                 {filteredResults.empresas.length > 0 && (
                                     <div className="space-y-6">
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-5">
@@ -280,9 +313,11 @@ function SearchResultCard({ item, colorClass, isRound = false }: { item: any, co
     // Determine the link based on category or item type.
     // There is no generic /detalhes/[id] page in this app, so items without a
     // real destination fall back to the closest listing page instead of a dead link.
-    let href: string | null = null;
+    let href: string | null = item.href || null;
 
-    if (item.type === 'company' && item.slug) {
+    if (href) {
+        // já vem com destino definido (categorias específicas de página)
+    } else if (item.type === 'company' && item.slug) {
         href = `/empresas/${item.slug}`;
     } else if (item.type === 'product' && item.slug && item.company_slug && item.company_slug !== 'geral') {
         href = `/empresas/${item.company_slug}/produto/${item.slug}`;

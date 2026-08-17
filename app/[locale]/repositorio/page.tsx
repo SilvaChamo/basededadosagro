@@ -7,7 +7,7 @@ import { SearchSection } from "@/components/SearchSection";
 import {
     Search, X, Building2,
     User, LandPlot, ShoppingBag, ArrowRight,
-    FileText, BookOpen
+    FileText, BookOpen, GraduationCap, Briefcase
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { ContactCTA } from "@/components/ContactCTA";
@@ -23,7 +23,8 @@ export default function RepositorioPage() {
         products: 0,
         professionals: 0,
         properties: 0,
-        documents: 0
+        documents: 0,
+        trainings: 0
     });
     const [loading, setLoading] = useState(true);
 
@@ -36,14 +37,16 @@ export default function RepositorioPage() {
                     productsCount,
                     prosCount,
                     propsCount,
-                    docsCount
+                    docsCount,
+                    trainingsCount
                 ] = await Promise.all([
                     supabase.from('articles').select('*', { count: 'exact', head: true }).eq('type', 'article'),
                     supabase.from('companies').select('*', { count: 'exact', head: true }).eq('is_archived', false),
                     supabase.from('products').select('*', { count: 'exact', head: true }),
                     supabase.from('professionals').select('*', { count: 'exact', head: true }),
                     supabase.from('properties').select('*', { count: 'exact', head: true }),
-                    supabase.from('articles').select('*', { count: 'exact', head: true }).or('type.eq.document,type.eq.Relatório')
+                    supabase.from('articles').select('*', { count: 'exact', head: true }).or('type.eq.document,type.eq.Relatório'),
+                    supabase.from('trainings').select('*', { count: 'exact', head: true })
                 ]);
 
                 setCounts({
@@ -52,7 +55,8 @@ export default function RepositorioPage() {
                     products: productsCount.count || 0,
                     professionals: prosCount.count || 0,
                     properties: propsCount.count || 0,
-                    documents: docsCount.count || 0
+                    documents: docsCount.count || 0,
+                    trainings: trainingsCount.count || 0
                 });
             } catch (error) {
                 console.error("Error fetching repository counts:", error);
@@ -147,6 +151,34 @@ export default function RepositorioPage() {
             price: 50000,
             relevance: 3,
             href: "/propriedades"
+        },
+        {
+            title: "Formações e Capacitações",
+            description: "Programas educativos e workshops práticos voltados para a capacitação técnica em novas tecnologias agrícolas, gestão de negócios rurais e certificações de qualidade reconhecidas internacionalmente.",
+            count: `${counts.trainings} Arquivos`,
+            icon: GraduationCap,
+            bg: "bg-teal-50",
+            color: "text-teal-600",
+            border: "border-teal-100",
+            category: "Formação",
+            date: "2024-02-01",
+            price: 0,
+            relevance: 4,
+            href: "/servicos/formacao"
+        },
+        {
+            title: "Vagas de Emprego",
+            description: "Hub de talentos e oportunidades de carreira focado exclusivamente no setor agrário, conectando profissionais qualificados às melhores vagas nas maiores empresas de agronegócio de Moçambique.",
+            count: "Ver vagas",
+            icon: Briefcase,
+            bg: "bg-indigo-50",
+            color: "text-indigo-600",
+            border: "border-indigo-100",
+            category: "Emprego",
+            date: "2024-02-01",
+            price: 0,
+            relevance: 4,
+            href: "/servicos/emprego"
         }
     ];
 
@@ -222,7 +254,9 @@ export default function RepositorioPage() {
                                         "Profissionais",
                                         "Propriedades",
                                         "Artigos Científicos",
-                                        "Documentos"
+                                        "Documentos",
+                                        "Formações e Capacitações",
+                                        "Vagas de Emprego"
                                     ].map((cat, i) => (
                                         <label key={i} className="flex items-center gap-3 cursor-pointer group">
                                             <input
