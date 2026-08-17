@@ -17,9 +17,16 @@ const FEEDS = [
     'https://clubofmozambique.com/feed/',
 ];
 
-// Só guardamos notícias destes últimos N dias (pedido do utilizador — as já
-// publicadas em `articles` nunca são tocadas por este filtro).
-const MAX_AGE_DAYS = 7;
+// Só guardamos notícias do mês em curso (pedido do utilizador, 17 ago — as
+// já publicadas em `articles` nunca são tocadas por este filtro). Calculado
+// no fuso de Moçambique (UTC+2) para o "1º do mês" bater certo com o que o
+// utilizador vê, não com a meia-noite UTC do servidor.
+const MOZAMBIQUE_OFFSET_MS = 2 * 60 * 60 * 1000;
+function startOfCurrentMonthMaputo(): number {
+    const nowMaputo = new Date(Date.now() + MOZAMBIQUE_OFFSET_MS);
+    const startMaputo = Date.UTC(nowMaputo.getUTCFullYear(), nowMaputo.getUTCMonth(), 1);
+    return startMaputo - MOZAMBIQUE_OFFSET_MS;
+}
 
 // Filtro de relevância por palavra-chave (as fontes são generalistas, não só
 // de agricultura).
@@ -171,7 +178,7 @@ export async function GET(req: Request) {
             ...(existingPending || []).map((a: any) => a.source_url).filter(Boolean),
         ]);
 
-        const cutoff = Date.now() - MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
+        const cutoff = startOfCurrentMonthMaputo();
         const candidates: any[] = [];
 
         for (const feedUrl of FEEDS) {

@@ -52,7 +52,7 @@ export default function AdminNoticiasPage() {
         const { data } = await supabase
             .from('articles_pending')
             .select('*')
-            .order('created_at', { ascending: false });
+            .order('date', { ascending: false, nullsFirst: false });
         setPendingArticles(data || []);
         setPendingLoading(false);
     };
