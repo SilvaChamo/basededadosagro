@@ -23,6 +23,7 @@ interface NewsItem {
     title: string;
     slug: string | null;
     type: string | null;
+    categories?: string[] | null;
     date: string | null;
     created_at: string;
     image_url: string | null;
@@ -158,7 +159,20 @@ export default function CentralNoticiasPage() {
 
     const handleQuickEdit = (item: NewsItem) => {
         setQuickEditId(item.id);
-        setEditForm({ ...item });
+        setEditForm({ ...item, categories: item.categories && item.categories.length > 0 ? item.categories : (item.type ? [item.type] : []) });
+    };
+
+    // Múltiplas categorias por notícia: a primeira selecionada continua a ser
+    // gravada em `type` (categoria principal — usada nos badges e filtros
+    // antigos), enquanto `categories` guarda o conjunto completo.
+    const toggleEditCategory = (name: string) => {
+        setEditForm((prev) => {
+            const current = prev.categories || [];
+            const has = current.includes(name);
+            const next = has ? current.filter((c) => c !== name) : [...current, name];
+            const safeNext = next.length > 0 ? next : [name];
+            return { ...prev, categories: safeNext, type: safeNext[0] };
+        });
     };
 
     const saveQuickEdit = async () => {
@@ -168,6 +182,7 @@ export default function CentralNoticiasPage() {
                 title: editForm.title,
                 slug: editForm.slug,
                 type: editForm.type,
+                categories: editForm.categories,
                 status: editForm.status,
                 date: editForm.date,
                 subtitle: editForm.subtitle,
@@ -409,14 +424,14 @@ export default function CentralNoticiasPage() {
 
                                                         <div className="space-y-4">
                                                             <div>
-                                                                <label className="block text-[12px] font-bold mb-1">Categoria</label>
+                                                                <label className="block text-[12px] font-bold mb-1">Categorias</label>
                                                                 <div className="max-h-32 overflow-y-auto p-2 border border-[#8c8f94] bg-white rounded-[3px]">
                                                                     {categories.map((cat) => (
                                                                         <label key={cat.id} className="flex items-center gap-2 text-sm py-0.5">
                                                                             <input
                                                                                 type="checkbox"
-                                                                                checked={editForm.type === cat.name}
-                                                                                onChange={() => setEditForm({ ...editForm, type: cat.name })}
+                                                                                checked={(editForm.categories || []).includes(cat.name)}
+                                                                                onChange={() => toggleEditCategory(cat.name)}
                                                                             />
                                                                             {cat.name}
                                                                         </label>

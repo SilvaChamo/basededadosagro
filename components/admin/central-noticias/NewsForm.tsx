@@ -44,6 +44,9 @@ export function NewsForm({ initialData, isEdit = false }: NewsFormProps) {
         content: initialData?.content || "",
         subtitle: initialData?.subtitle || "",
         type: initialData?.type || "Notícia",
+        categories: (initialData?.categories && initialData.categories.length > 0)
+            ? initialData.categories
+            : [initialData?.type || "Notícia"],
         image_url: initialData?.image_url || "",
         source: initialData?.source || "",
         source_url: initialData?.source_url || "",
@@ -92,6 +95,18 @@ export function NewsForm({ initialData, isEdit = false }: NewsFormProps) {
 
     const handleSaveDraft = () => {
         submitArticle("draft");
+    };
+
+    // Múltiplas categorias por notícia: a primeira selecionada continua a ser
+    // gravada em `type` (categoria principal — usada nos badges e filtros
+    // antigos), enquanto `categories` guarda o conjunto completo.
+    const toggleCategory = (name: string) => {
+        setFormData((prev) => {
+            const has = prev.categories.includes(name);
+            const next = has ? prev.categories.filter((c: string) => c !== name) : [...prev.categories, name];
+            const safeNext = next.length > 0 ? next : [name];
+            return { ...prev, categories: safeNext, type: safeNext[0] };
+        });
     };
 
     return (
@@ -239,7 +254,7 @@ export function NewsForm({ initialData, isEdit = false }: NewsFormProps) {
 
                     <div className="bg-white border border-[#ccd0d4] rounded-[8px] overflow-hidden shadow-sm">
                         <div className="p-2.5 border-b border-[#ccd0d4] bg-white flex justify-between items-center">
-                            <h2 className="font-semibold text-[14px] text-[#1d2327]">Categoria</h2>
+                            <h2 className="font-semibold text-[14px] text-[#1d2327]">Categorias</h2>
                             <ChevronUp className="w-4 h-4 text-gray-500" />
                         </div>
                         <div className="p-3 bg-white max-h-48 overflow-y-auto">
@@ -249,13 +264,14 @@ export function NewsForm({ initialData, isEdit = false }: NewsFormProps) {
                                         <input
                                             type="checkbox"
                                             className="mt-0.5 rounded border-[#8c8f94] text-[#2271b1] focus:ring-[#2271b1]"
-                                            checked={formData.type === cat.name}
-                                            onChange={() => setFormData({ ...formData, type: cat.name })}
+                                            checked={formData.categories.includes(cat.name)}
+                                            onChange={() => toggleCategory(cat.name)}
                                         />
                                         <span className="text-[#2c3338]">{cat.name}</span>
                                     </label>
                                 ))}
                             </div>
+                            <p className="text-[11px] text-[#787c82] mt-2 pt-2 border-t border-[#f0f0f1]">Principal: <strong>{formData.type}</strong></p>
                         </div>
                     </div>
                 </div>

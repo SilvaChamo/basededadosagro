@@ -12,7 +12,9 @@ interface StandardBlogTemplateProps {
     isSidebarLeft?: boolean;
     topFullWidthContent?: ReactNode;
     bottomFullWidthContent?: ReactNode;
+    stickyBar?: ReactNode;
     titleClassName?: string;
+    hideHeader?: boolean;
 }
 
 export function StandardBlogTemplate({
@@ -24,22 +26,31 @@ export function StandardBlogTemplate({
     isSidebarLeft = false,
     topFullWidthContent,
     bottomFullWidthContent,
-    titleClassName
+    stickyBar,
+    titleClassName,
+    hideHeader = false
 }: StandardBlogTemplateProps) {
     return (
         <div className="min-h-screen bg-background text-slate-900 font-sans">
-            <PageHeader
-                title={title}
-                backgroundImage={backgroundImage}
-                breadcrumbs={breadcrumbs}
-                titleClassName={titleClassName}
-            />
+            {!hideHeader && (
+                <PageHeader
+                    title={title}
+                    backgroundImage={backgroundImage}
+                    breadcrumbs={breadcrumbs}
+                    titleClassName={titleClassName}
+                />
+            )}
 
             {topFullWidthContent && (
                 <div className="w-full">
                     {topFullWidthContent}
                 </div>
             )}
+
+            {/* Fora do wrapper acima de propósito: para o `sticky` funcionar ao
+                longo de todo o scroll, o "containing block" tem de se estender
+                até ao fim do <main>, não só até ao fim do banner. */}
+            {stickyBar}
 
             <main className="container-site pt-12 pb-[70px]">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-agro items-start">

@@ -20,6 +20,7 @@ interface ImageUploadProps {
     showRecommendedBadge?: boolean;
     maxWidth?: number;
     maxHeight?: number;
+    hardCapMB?: number; // Tecto absoluto de KB — só para casos onde a imagem é exibida em grande (ex: banner de destaque). Por defeito 0.05 (50kb) em todo o site.
     className?: string; // Container class override
     useBackgroundImage?: boolean; // If true, use background-image instead of img element
     backgroundSize?: "cover" | "contain"; // Background size mode when useBackgroundImage is true
@@ -40,17 +41,19 @@ export function ImageUpload({
     showRecommendedBadge = true,
     maxWidth,
     maxHeight,
+    hardCapMB = 0.05,
     className,
     useBackgroundImage = false,
     backgroundSize = "cover",
     disabled = false
 }: ImageUploadProps) {
     const supabase = createClient();
-    // Tecto absoluto de 50kb por imagem (mantendo a melhor qualidade possível
-    // dentro desse limite) — aplica-se sempre, independentemente do que for
-    // passado em maxSizeMB, para garantir que nenhuma imagem do site ultrapassa
-    // este tamanho.
-    const effectiveMaxBytes = Math.min(maxSizeMB, 0.05) * 1024 * 1024;
+    // Tecto absoluto por imagem (mantendo a melhor qualidade possível dentro
+    // desse limite) — aplica-se sempre, independentemente do que for passado
+    // em maxSizeMB, para garantir que nenhuma imagem do site ultrapassa este
+    // tamanho. Por defeito 50kb; só sobe via hardCapMB nos casos (como o
+    // banner de destaque de artigos) em que a imagem é exibida em grande.
+    const effectiveMaxBytes = Math.min(maxSizeMB, hardCapMB) * 1024 * 1024;
     // Se quem chama este componente não definir dimensões máximas, aplicamos
     // um tecto de resolução por defeito — sem isto, imagens grandes só eram
     // comprimidas por qualidade (mantendo a resolução original), o que torna

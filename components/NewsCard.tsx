@@ -109,7 +109,7 @@ export function NewsCard({
                     {onCtaClick ? (
                         <button type="button" onClick={onCtaClick} className="block text-left">
                             <h3
-                                className="text-[17px] font-bold text-slate-800 group-hover:text-[#f97316] transition-colors leading-[1.4] tracking-tighter first-letter:uppercase my-0 mb-1"
+                                className="text-[15px] font-bold text-slate-800 group-hover:text-[#f97316] transition-colors leading-[1.4] tracking-tighter first-letter:uppercase my-0 mb-1"
                                 style={{
                                     display: '-webkit-box',
                                     WebkitBoxOrient: 'vertical',
@@ -123,7 +123,7 @@ export function NewsCard({
                     ) : (
                         <Link href={`/artigos/${slug}`} className="block">
                             <h3
-                                className="text-[17px] font-bold text-slate-800 group-hover:text-[#f97316] transition-colors leading-[1.4] tracking-tighter first-letter:uppercase my-0 mb-1"
+                                className="text-[15px] font-bold text-slate-800 group-hover:text-[#f97316] transition-colors leading-[1.4] tracking-tighter first-letter:uppercase my-0 mb-1"
                                 style={{
                                     display: '-webkit-box',
                                     WebkitBoxOrient: 'vertical',

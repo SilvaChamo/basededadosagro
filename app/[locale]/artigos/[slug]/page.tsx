@@ -205,7 +205,7 @@ export default function ArticleReadingPage() {
                                 </div>
 
                                 {/* Title */}
-                                <h1 className="text-2xl md:text-4xl font-black text-slate-800 leading-tight mb-4 tracking-tight">
+                                <h1 className="font-sans text-2xl md:text-4xl font-black text-slate-800 leading-tight mb-4 tracking-tight">
                                     {article.title}
                                 </h1>
 
@@ -267,7 +267,7 @@ export default function ArticleReadingPage() {
                                 </div>
 
                                 {/* Body Content */}
-                                <div className="prose prose-slate max-w-none prose-p:text-[17px] prose-p:leading-[1.7] prose-p:text-slate-500 prose-headings:text-slate-800 prose-headings:font-black prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-blockquote:border-l-4 prose-blockquote:border-[#f97316] prose-blockquote:bg-orange-50/30 prose-blockquote:p-6 prose-blockquote:rounded-r-[10px] prose-blockquote:italic prose-blockquote:text-lg prose-strong:text-slate-700">
+                                <div className="article-content prose prose-slate max-w-none prose-p:text-[17px] prose-p:leading-[1.7] prose-p:text-slate-500 prose-headings:text-slate-800 prose-headings:font-black prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-blockquote:border-l-4 prose-blockquote:border-[#f97316] prose-blockquote:bg-orange-50/30 prose-blockquote:p-6 prose-blockquote:rounded-r-[10px] prose-blockquote:italic prose-blockquote:text-lg prose-strong:text-slate-700">
                                     <div dangerouslySetInnerHTML={{ __html: article.content || article.subtitle }} />
                                 </div>
                             </div>
@@ -414,7 +414,6 @@ export default function ArticleReadingPage() {
 
                         {/* 4. Espaço Publicitário */}
                         <div className="relative aspect-[4/5] rounded-[15px] overflow-hidden group shadow-xl border border-emerald-500/20 bg-emerald-600 p-5">
-                            <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
                             <div className="absolute top-0 right-0 size-32 bg-emerald-400/20 blur-3xl rounded-full -mr-16 -mt-16"></div>
 
                             <div className="absolute inset-0 p-5 flex flex-col justify-end">

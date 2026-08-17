@@ -7,8 +7,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { StandardBlogTemplate } from "@/components/StandardBlogTemplate";
 import {
     Calendar, Clock, ArrowRight, Search,
-    Filter, ChevronRight, Tag, Newspaper,
-    ThumbsUp, MessageCircle, RefreshCw, FileText, FolderOpen
+    ChevronRight, Tag, Newspaper,
+    ThumbsUp, MessageCircle, FileText, FolderOpen
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { WeatherSidebar } from "@/components/WeatherSidebar";
@@ -26,7 +26,7 @@ function BlogContent() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("Todos");
-    const [refreshing, setRefreshing] = useState(false);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
 
     const ITEMS_PER_PAGE = 12;
     const [currentPage, setCurrentPage] = useState(1);
@@ -43,7 +43,7 @@ function BlogContent() {
         }
     }, [searchParams]);
 
-    const newsTypes = ['Internacional', 'Guia', 'Evento', 'Oportunidade', 'Curiosidade', 'Recursos', 'Mulher Agro'];
+    const newsTypes = ['Notícia', 'Internacional', 'Guia', 'Evento', 'Oportunidade', 'Curiosidade', 'Recursos', 'Mulher Agro', 'Ambiente', 'Mercado'];
 
     useEffect(() => {
         const fetchContent = async (isInitialLoad: boolean) => {
@@ -53,22 +53,26 @@ function BlogContent() {
                 // Fetch news articles (explicitly included types)
                 const { data: articlesData, error: articlesError } = await supabase
                     .from('articles')
+                    // NOTA: 'categories' só pode entrar aqui depois de aplicada a migração
+                    // 20260817_add_article_categories.sql (a coluna ainda não existe em
+                    // produção) — pedi-la antes disso parte esta query inteira.
                     .select('id, title, subtitle, image_url, date, slug, type')
                     .is('deleted_at', null)
                     .in('type', newsTypes)
                     .order('date', { ascending: false });
 
                 if (articlesError) {
-                    console.error("Articles error:", articlesError);
+                    console.error("Articles error:", articlesError.message || articlesError.code || JSON.stringify(articlesError));
                     throw articlesError;
                 }
 
                 setArticles(articlesData || []);
-            } catch (error) {
-                console.error("Error fetching content:", error);
+            } catch (error: any) {
+                // Falhas de rede pontuais (ex: servidor de dev a reiniciar) não devem
+                // limpar a lista já carregada — mantém o último estado válido.
+                console.error("Error fetching content:", error?.message || error);
             } finally {
                 if (isInitialLoad) setLoading(false);
-                setRefreshing(false);
             }
         };
 
@@ -80,37 +84,11 @@ function BlogContent() {
         return () => clearInterval(interval);
     }, []);
 
-    const manualRefresh = async () => {
-        setRefreshing(true);
-        try {
-
-            // Refresh articles
-            const { data: articlesData, error: articlesError } = await supabase
-                .from('articles')
-                .select('id, title, subtitle, image_url, date, slug, type')
-                .is('deleted_at', null)
-                .in('type', newsTypes)
-                .order('date', { ascending: false })
-                .abortSignal(new AbortController().signal);
-
-            if (articlesError) {
-                console.error("Manual refresh articles error:", articlesError);
-                throw articlesError;
-            }
-
-            setArticles(articlesData || []);
-        } catch (error) {
-            console.error("Manual refresh failed:", error);
-        } finally {
-            setRefreshing(false);
-        }
-    };
-
     const filteredArticles = articles.filter(article => {
         const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             article.subtitle.toLowerCase().includes(searchQuery.toLowerCase());
 
-        const matchesCategory = activeCategory === "Todos" || article.type === activeCategory;
+        const matchesCategory = activeCategory === "Todos" || article.type === activeCategory || (article.categories || []).includes(activeCategory);
 
         return matchesSearch && matchesCategory;
     });
@@ -121,8 +99,7 @@ function BlogContent() {
         currentPage * ITEMS_PER_PAGE
     );
 
-    const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const cat = e.target.value;
+    const handleCategoryChange = (cat: string) => {
         setActiveCategory(cat);
         // Update URL without reloading
         const params = new URLSearchParams(window.location.search);
@@ -155,18 +132,64 @@ function BlogContent() {
                 { label: "Início", href: "/" },
                 { label: "Blog", href: undefined }
             ]}
-            topFullWidthContent={<NewsHeroSlider articles={articles} />}
+            hideHeader
+            topFullWidthContent={
+                <NewsHeroSlider
+                    articles={articles}
+                    onToggleSearch={() => setIsSearchOpen((o) => !o)}
+                    isSearchOpen={isSearchOpen}
+                />
+            }
+            stickyBar={
+                <>
+                    <div className="sticky top-[70px] md:top-[78px] z-30 bg-emerald-950/95 backdrop-blur-sm border-t border-b border-white/10 shadow-lg">
+                        <div className="container-site mx-auto overflow-x-auto no-scrollbar">
+                            <div className="flex items-stretch justify-start min-w-max h-11">
+                                {["Todos", ...newsTypes].map((cat) => (
+                                    <button
+                                        key={cat}
+                                        type="button"
+                                        onClick={() => handleCategoryChange(cat)}
+                                        className={`flex items-center px-4 text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all ${activeCategory === cat
+                                            ? "bg-[#f97316] text-white"
+                                            : "text-emerald-100/70 hover:text-white hover:bg-white/10"
+                                            }`}
+                                    >
+                                        {cat === "Todos" ? "Todas notícias" : cat === "Notícia" ? "Informação" : cat}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <section className={`w-full bg-slate-50 overflow-hidden transition-all duration-700 ease-in-out ${isSearchOpen ? "max-h-[300px] opacity-100 py-6" : "max-h-0 opacity-0 py-0"}`}>
+                        <div className="container-site">
+                            <div className="relative bg-white rounded-[8px] shadow-sm h-12 flex items-center border border-gray-200 overflow-hidden">
+                                <div className="pl-6 text-gray-400">
+                                    <Search className="h-5 w-5" />
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Pesquisar notícias..."
+                                    className="border-none shadow-none focus:outline-none focus:ring-0 text-base h-full bg-transparent placeholder:text-gray-400 flex-1 px-4 my-1 ml-2 rounded-[8px]"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    autoFocus={isSearchOpen}
+                                />
+                            </div>
+                        </div>
+                    </section>
+                </>
+            }
             sidebarComponents={
                 <div className="space-y-5">
-                    {/* 2. Clima */}
+                    {/* 1. Clima */}
                     <WeatherSidebar />
 
-                    {/* 3. Newsletter */}
+                    {/* 2. Newsletter */}
                     <NewsletterCard />
 
-                    {/* 4. Publicidade */}
+                    {/* 3. Publicidade */}
                     <div className="relative aspect-[4/5] rounded-[10px] overflow-hidden group shadow-xl border border-emerald-500/20 bg-emerald-600 p-5">
-                        <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
                         <div className="absolute top-0 right-0 size-32 bg-emerald-400/20 blur-3xl rounded-full -mr-16 -mt-16"></div>
 
                         <div className="absolute inset-0 p-5 flex flex-col justify-end">
@@ -180,51 +203,8 @@ function BlogContent() {
                 </div>
             }
         >
-            <div className="flex flex-col md:flex-row gap-4 mb-10 items-center justify-between">
-
-                <div className="flex flex-1 w-full gap-4">
-                    <div className="relative flex-1 group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#f97316] transition-colors" />
-                        <input
-                            type="text"
-                            placeholder="Pesquisar notícias..."
-                            className="w-full bg-white border border-slate-200 rounded-[10px] pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-[#f97316] focus:ring-1 focus:ring-[#f97316] shadow-sm transition-all"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="relative w-full md:w-64">
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                            <Filter className="w-4 h-4" />
-                        </div>
-                        <select
-                            value={activeCategory}
-                            onChange={handleCategoryChange}
-                            className="w-full appearance-none bg-white border border-slate-200 rounded-[10px] pl-4 pr-10 py-3 text-sm focus:outline-none focus:border-[#f97316] focus:ring-1 focus:ring-[#f97316] shadow-sm transition-all text-slate-600 font-medium cursor-pointer"
-                        >
-                            <option value="Todos">Todas as Categorias</option>
-                            {newsTypes.map((type) => (
-                                <option key={type} value={type}>{type}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                <div className="hidden md:flex gap-3 items-center">
-                    <button
-                        onClick={manualRefresh}
-                        disabled={refreshing}
-                        className="bg-white border border-slate-200 rounded-[8px] p-3 text-slate-500 hover:border-[#f97316] hover:text-[#f97316] transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Atualizar conteúdo"
-                    >
-                        <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-                    </button>
-                </div>
-            </div>
-
             {/* News Articles Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {displayedArticles.map((article, i) => (
                     <NewsCard
                         key={i}
