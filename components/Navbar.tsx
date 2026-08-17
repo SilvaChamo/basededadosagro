@@ -118,6 +118,7 @@ export function Navbar() {
         { label: t("navbar.innovation"), link: "/inovacao" },
         { label: t("navbar.market"), link: "/mercado" },
         { label: t("navbar.forum"), link: "/forum" },
+        { label: t("navbar.news"), link: "/blog" },
     ];
 
     const baseItems = [

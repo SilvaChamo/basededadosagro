@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Search, X, ArrowRight } from "lucide-react";
 
 interface HeroArticle {
     id: string;
@@ -17,9 +17,15 @@ interface HeroArticle {
 
 interface NewsHeroSliderProps {
     articles: HeroArticle[];
+    onToggleSearch?: () => void;
+    isSearchOpen?: boolean;
 }
 
-export function NewsHeroSlider({ articles }: NewsHeroSliderProps) {
+export function NewsHeroSlider({
+    articles,
+    onToggleSearch,
+    isSearchOpen = false,
+}: NewsHeroSliderProps) {
     const slides = articles.filter((a) => a.image_url).slice(0, 5);
     const [current, setCurrent] = useState(0);
     const [paused, setPaused] = useState(false);
@@ -38,7 +44,7 @@ export function NewsHeroSlider({ articles }: NewsHeroSliderProps) {
 
     return (
         <div
-            className="relative w-full h-[420px] md:h-[480px] overflow-hidden bg-slate-900"
+            className="relative w-full h-[600px] md:h-[650px] overflow-hidden bg-slate-900"
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
         >
@@ -59,25 +65,25 @@ export function NewsHeroSlider({ articles }: NewsHeroSliderProps) {
                 </div>
             ))}
 
-            <div className="relative z-20 h-full container-site flex flex-col justify-end pb-14">
+            <div className="relative z-20 h-full container-site flex flex-col justify-center pt-28 pb-20 md:pt-32">
                 <div className="max-w-2xl">
                     <div className="flex items-center gap-2 mb-4">
-                        <span className="bg-[#f97316] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-[6px]">
+                        <span className="bg-[#f97316] text-white text-xs font-black uppercase tracking-widest px-3.5 py-2 rounded-[6px]">
                             {active.type || "Notícia"}
                         </span>
-                        <span className="bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-[6px]">
+                        <span className="bg-emerald-600 text-white text-xs font-black uppercase tracking-widest px-3.5 py-2 rounded-[6px]">
                             Destaque
                         </span>
                     </div>
 
                     <Link href={`/artigos/${active.slug}`}>
-                        <h2 className="text-white text-2xl md:text-4xl font-black leading-tight mb-3 hover:text-[#f97316] transition-colors line-clamp-3">
+                        <h2 className="text-white text-2xl md:text-[42px] font-black leading-tight mb-3 hover:text-[#f97316] transition-colors">
                             {active.title}
                         </h2>
                     </Link>
 
                     {active.subtitle && (
-                        <p className="hidden md:block text-slate-200 text-sm mb-4 line-clamp-2">
+                        <p className="hidden md:block text-slate-200 text-base mb-4 line-clamp-2">
                             {active.subtitle}
                         </p>
                     )}
@@ -93,39 +99,67 @@ export function NewsHeroSlider({ articles }: NewsHeroSliderProps) {
                 </div>
             </div>
 
-            {slides.length > 1 && (
-                <div className="absolute z-20 bottom-6 right-6 flex items-center gap-3">
-                    <button
-                        type="button"
-                        onClick={() => setCurrent((prev) => (prev - 1 + slides.length) % slides.length)}
-                        className="w-9 h-9 bg-white/15 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition-colors"
-                        aria-label="Notícia anterior"
+            {/* Explorar artigo + navegação do slide + botão de pesquisa: mesma linha, fixa no fundo do banner em todas as notícias */}
+            <div className="absolute bottom-6 inset-x-0 w-full z-20 pointer-events-none">
+                <div className="container-site mx-auto flex items-center justify-between gap-3">
+                    <Link
+                        href={`/artigos/${active.slug}`}
+                        className="flex items-center gap-2 text-sm font-bold text-emerald-600 hover:text-[#f97316] transition-colors pointer-events-auto"
                     >
-                        <ChevronLeft className="w-4 h-4 text-white" />
-                    </button>
+                        Explorar artigo <ArrowRight className="h-4 w-4" />
+                    </Link>
 
-                    <div className="flex gap-1.5">
-                        {slides.map((slide, i) => (
+                    <div className="flex items-center gap-[22px]">
+                        {slides.length > 1 && (
+                            <div className="flex items-center gap-2 pointer-events-auto">
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrent((prev) => (prev - 1 + slides.length) % slides.length)}
+                                    className="w-10 h-10 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/30 shadow-lg rounded-full flex items-center justify-center transition-colors"
+                                    aria-label="Notícia anterior"
+                                >
+                                    <ChevronLeft className="w-5 h-5 text-white" />
+                                </button>
+
+                                <div className="flex items-center gap-1.5">
+                                    {slides.map((slide, i) => (
+                                        <button
+                                            key={slide.id}
+                                            type="button"
+                                            onClick={() => setCurrent(i)}
+                                            aria-label={`Ir para notícia ${i + 1}`}
+                                            className={`h-2 rounded-full transition-all ${i === current ? "w-7 bg-[#f97316]" : "w-2 bg-white/50 hover:bg-white/80"}`}
+                                        />
+                                    ))}
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrent((prev) => (prev + 1) % slides.length)}
+                                    className="w-10 h-10 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/30 shadow-lg rounded-full flex items-center justify-center transition-colors"
+                                    aria-label="Próxima notícia"
+                                >
+                                    <ChevronRight className="w-5 h-5 text-white" />
+                                </button>
+                            </div>
+                        )}
+
+                        {onToggleSearch && (
                             <button
-                                key={slide.id}
                                 type="button"
-                                onClick={() => setCurrent(i)}
-                                aria-label={`Ir para notícia ${i + 1}`}
-                                className={`h-1.5 rounded-full transition-all ${i === current ? "w-6 bg-[#f97316]" : "w-1.5 bg-white/50 hover:bg-white/80"}`}
-                            />
-                        ))}
+                                onClick={onToggleSearch}
+                                className={`w-12 h-12 rounded-[7px] flex items-center justify-center transition-all duration-300 shadow-xl pointer-events-auto animate-in fade-in slide-in-from-bottom-8 duration-700 ${isSearchOpen
+                                    ? "bg-transparent text-[#f97316] rotate-90 border-0 shadow-none"
+                                    : "bg-[#22c55e] text-white hover:bg-[#f97316] hover:scale-110"
+                                    }`}
+                                aria-label={isSearchOpen ? "Fechar pesquisa" : "Abrir pesquisa"}
+                            >
+                                {isSearchOpen ? <X className="w-6 h-6" /> : <Search className="w-6 h-6" />}
+                            </button>
+                        )}
                     </div>
-
-                    <button
-                        type="button"
-                        onClick={() => setCurrent((prev) => (prev + 1) % slides.length)}
-                        className="w-9 h-9 bg-white/15 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition-colors"
-                        aria-label="Próxima notícia"
-                    >
-                        <ChevronRight className="w-4 h-4 text-white" />
-                    </button>
                 </div>
-            )}
+            </div>
         </div>
     );
 }

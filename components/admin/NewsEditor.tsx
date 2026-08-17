@@ -10,6 +10,11 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { limitWords } from "@/lib/utils";
+
+// Limite de palavras do resumo/subtítulo: o suficiente para caber em 2 linhas
+// no banner de destaque do blog sem cortar o texto a meio.
+const MAX_SUBTITLE_WORDS = 36;
 import { syncManager } from "@/lib/syncManager";
 import { shareToFacebook, shareToLinkedin } from "@/app/[locale]/admin/noticias/share-actions";
 import { Spinner } from "@/components/ui/spinner";
@@ -29,6 +34,9 @@ export function NewsEditor({ initialData, isNew = false }: NewsEditorProps) {
         title: initialData?.title || "",
         subtitle: initialData?.subtitle || "",
         type: initialData?.type || "Notícia",
+        categories: (initialData?.categories && initialData.categories.length > 0)
+            ? initialData.categories
+            : [initialData?.type || "Notícia"],
         content: initialData?.content || "",
         image_url: initialData?.image_url || "",
         source: initialData?.source || "",
@@ -68,7 +76,19 @@ export function NewsEditor({ initialData, isNew = false }: NewsEditorProps) {
         }
     }, [formData, isNew]);
 
-    const categories = ["Notícia", "Mulher Agro", "Artigo Técnico", "Guia", "Relatório", "Legislação", "Documento", "Internacional", "Oportunidade", "Evento", "Recursos", "Política Agrária", "Curiosidade"];
+    const categories = ["Notícia", "Mulher Agro", "Artigo Técnico", "Guia", "Relatório", "Legislação", "Documento", "Internacional", "Oportunidade", "Evento", "Recursos", "Política Agrária", "Curiosidade", "Ambiente", "Mercado"];
+
+    // Múltiplas categorias por notícia: a primeira selecionada continua a ser
+    // gravada em `type` (categoria principal — usada nos badges e filtros
+    // antigos), enquanto `categories` guarda o conjunto completo.
+    const toggleCategory = (cat: string) => {
+        setFormData((prev) => {
+            const has = prev.categories.includes(cat);
+            const next = has ? prev.categories.filter((c: string) => c !== cat) : [...prev.categories, cat];
+            const safeNext = next.length > 0 ? next : [cat];
+            return { ...prev, categories: safeNext, type: safeNext[0] };
+        });
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -213,7 +233,7 @@ export function NewsEditor({ initialData, isNew = false }: NewsEditorProps) {
                                 <Type className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                 <Input
                                     value={formData.subtitle}
-                                    onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+                                    onChange={(e) => setFormData({ ...formData, subtitle: limitWords(e.target.value, MAX_SUBTITLE_WORDS) })}
                                     placeholder="Subtítulo ou lead... (Opcional)"
                                     className="pl-12 pr-4 py-6 bg-slate-50 border border-slate-200 rounded-lg text-md font-medium text-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none w-full transition-all shadow-sm"
                                 />
@@ -241,15 +261,28 @@ export function NewsEditor({ initialData, isNew = false }: NewsEditorProps) {
                             </h3>
 
                             <div className="space-y-4">
-                                <select
-                                    value={formData.type}
-                                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                    className="w-full h-11 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium shadow-sm outline-none focus:ring-2 focus:ring-emerald-500"
-                                >
-                                    {categories.map(cat => (
-                                        <option key={cat} value={cat}>{cat}</option>
-                                    ))}
-                                </select>
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2 block">Categorias (pode escolher várias)</label>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {categories.map(cat => {
+                                            const active = formData.categories.includes(cat);
+                                            return (
+                                                <button
+                                                    key={cat}
+                                                    type="button"
+                                                    onClick={() => toggleCategory(cat)}
+                                                    className={`px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wide transition-all border ${active
+                                                        ? "bg-emerald-600 text-white border-emerald-600"
+                                                        : "bg-white text-slate-500 border-slate-200 hover:border-emerald-300"
+                                                        }`}
+                                                >
+                                                    {cat}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 mt-2">Principal: <span className="font-bold text-slate-500">{formData.type}</span> (usada nos badges e no filtro do blog)</p>
+                                </div>
 
                                 <div className="relative">
                                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />

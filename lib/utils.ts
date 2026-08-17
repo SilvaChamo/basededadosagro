@@ -99,3 +99,13 @@ export const toSentenceCase = (text: string): string => {
     return prefix + char.toUpperCase();
   });
 };
+
+/**
+ * Trunca texto para no máximo `maxWords` palavras (usado para limitar o
+ * resumo/subtítulo de notícias ao que cabe no banner de destaque do blog).
+ */
+export const limitWords = (text: string, maxWords: number): string => {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return text;
+  return words.slice(0, maxWords).join(" ");
+};

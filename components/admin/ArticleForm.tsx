@@ -10,6 +10,11 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { syncManager } from "@/lib/syncManager";
+import { limitWords } from "@/lib/utils";
+
+// Limite de palavras do resumo/subtítulo: o suficiente para caber em 2 linhas
+// no banner de destaque do blog sem cortar o texto a meio.
+const MAX_SUBTITLE_WORDS = 36;
 import { useEffect } from "react";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -26,6 +31,9 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
         title: initialData?.title || "",
         subtitle: initialData?.subtitle || "",
         type: initialData?.type || "Notícia",
+        categories: (initialData?.categories && initialData.categories.length > 0)
+            ? initialData.categories
+            : [initialData?.type || "Notícia"],
         content: initialData?.content || "",
         image_url: initialData?.image_url || "",
         source: initialData?.source || "",
@@ -59,7 +67,19 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
         }
     }, [formData, initialData]);
 
-    const categories = ["Notícia", "Artigo Técnico", "Guia", "Relatório", "Legislação", "Documento", "Internacional", "Oportunidade", "Evento", "Recursos", "Política Agrária", "Curiosidade"];
+    const categories = ["Notícia", "Artigo Técnico", "Guia", "Relatório", "Legislação", "Documento", "Internacional", "Oportunidade", "Evento", "Recursos", "Política Agrária", "Curiosidade", "Ambiente", "Mercado"];
+
+    // Múltiplas categorias por notícia: a primeira selecionada continua a ser
+    // gravada em `type` (categoria principal — usada nos badges e filtros
+    // antigos), enquanto `categories` guarda o conjunto completo.
+    const toggleCategory = (cat: string) => {
+        setFormData((prev) => {
+            const has = prev.categories.includes(cat);
+            const next = has ? prev.categories.filter((c: string) => c !== cat) : [...prev.categories, cat];
+            const safeNext = next.length > 0 ? next : [cat];
+            return { ...prev, categories: safeNext, type: safeNext[0] };
+        });
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -166,7 +186,7 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
                                     <Input
                                         placeholder="Uma breve descrição ou lead..."
                                         value={formData.subtitle}
-                                        onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+                                        onChange={(e) => setFormData({ ...formData, subtitle: limitWords(e.target.value, MAX_SUBTITLE_WORDS) })}
                                     />
                                 </div>
 
@@ -187,16 +207,26 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
                                     <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-2">Meta Dados</h3>
 
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase">Categoria</label>
-                                        <select
-                                            value={formData.type}
-                                            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                            className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500"
-                                        >
-                                            {categories.map(cat => (
-                                                <option key={cat} value={cat}>{cat}</option>
-                                            ))}
-                                        </select>
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase">Categorias (pode escolher várias)</label>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {categories.map(cat => {
+                                                const active = formData.categories.includes(cat);
+                                                return (
+                                                    <button
+                                                        key={cat}
+                                                        type="button"
+                                                        onClick={() => toggleCategory(cat)}
+                                                        className={`px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wide transition-all border ${active
+                                                            ? "bg-emerald-600 text-white border-emerald-600"
+                                                            : "bg-white text-slate-500 border-slate-200 hover:border-emerald-300"
+                                                            }`}
+                                                    >
+                                                        {cat}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        <p className="text-[10px] text-slate-400">Principal: <span className="font-bold text-slate-500">{formData.type}</span></p>
                                     </div>
 
                                     <div className="space-y-1.5">
@@ -226,6 +256,7 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
                                                 recommendedSize="1200x630"
                                                 maxWidth={1200}
                                                 maxHeight={630}
+                                                hardCapMB={0.3}
                                                 bucket="public-assets"
                                                 folder="artigos"
                                                 imageClassName="object-cover w-full h-full"

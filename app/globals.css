@@ -613,3 +613,38 @@ font {
   border-right: 2px solid #059669;
   animation: typing-pulse 1s step-end infinite;
 }
+
+/* Esconde a scrollbar mantendo o scroll funcional (barras de menu horizontais) */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Conteúdo de artigos (notícias): força a mesma tipografia em todas as
+   publicações, mesmo quando o HTML gravado pelo editor traz estilos inline
+   de fonte/espaçamento (comum em texto colado do Word/Google Docs). O
+   !important é intencional aqui — é o único jeito de sobrepor um
+   style="font-family:..." inline vindo do conteúdo gravado. */
+.article-content,
+.article-content * {
+  font-family: var(--font-maven-pro), sans-serif !important;
+  line-height: 1.7 !important;
+}
+
+.article-content p {
+  margin-top: 0 !important;
+  margin-bottom: 1.25em !important;
+}
+
+.article-content h1,
+.article-content h2,
+.article-content h3,
+.article-content h4 {
+  line-height: 1.3 !important;
+  margin-top: 1.5em !important;
+  margin-bottom: 0.6em !important;
+}
