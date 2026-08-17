@@ -1,60 +1,17 @@
-"use client";
+import React from "react";
+import { TrendingUp, BarChart3, Globe2, ArrowRight, MousePointer2, ShoppingBag } from "lucide-react";
 
-import React, { useState } from "react";
-import { PageHeader } from "@/components/PageHeader";
-import { SearchSection } from "@/components/SearchSection";
-import { ShoppingBag, Search, X, TrendingUp, BarChart3, Globe2, ArrowRight, MousePointer2 } from "lucide-react";
-
-import { MarketPriceTable } from "@/components/MarketPriceTable";
+import { MercadoHeaderSearch } from "@/components/MercadoHeaderSearch";
+import { MarketPriceTableServer } from "@/components/MarketPriceTableServer";
 import { MarketSidebar } from "@/components/MarketSidebar";
 import { SupermarketCarousel } from "@/components/SupermarketCarousel";
+import { AnunciarProdutoButton } from "@/components/AnunciarProdutoButton";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { usePlanPermissions } from "@/hooks/usePlanPermissions";
 
 export default function MercadoPage() {
-    const [isSearchOpen, setIsSearchOpen] = useState(false);
-    const router = useRouter();
-    const { plan } = usePlanPermissions();
-
-    const handleAnunciarClick = () => {
-        if (plan === 'Business Vendedor' || plan === 'Parceiro') {
-            router.push('/usuario/dashboard/produtos');
-        } else {
-            router.push('/planos');
-        }
-    };
-
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900 font-sans relative">
-            <div className="relative">
-                <PageHeader
-                    title={<>Mercado <span className="text-[#f97316]">Agro</span></>}
-                    icon={ShoppingBag}
-                    backgroundImage="https://images.unsplash.com/photo-1488459716781-31db52582fe9?q=80&w=2000&auto=format&fit=crop"
-                    breadcrumbs={[
-                        { label: "Início", href: "/" },
-                        { label: "Mercado", href: undefined }
-                    ]}
-                />
-
-                {/* Botão de Pesquisa Flutuante - Alinhado à Direita do Conteúdo */}
-                <div className="absolute bottom-6 w-full z-20 pointer-events-none">
-                    <div className="container-site mx-auto flex justify-end">
-                        <button
-                            onClick={() => setIsSearchOpen(!isSearchOpen)}
-                            className={`w-12 h-12 rounded-[7px] flex items-center justify-center transition-all duration-300 shadow-xl pointer-events-auto animate-in fade-in slide-in-from-bottom-8 duration-700 ${isSearchOpen
-                                ? "bg-[#f97316] text-white rotate-90 border border-[#f97316]"
-                                : "bg-[#22c55e] text-white hover:bg-[#f97316] hover:scale-110"
-                                }`}
-                        >
-                            {isSearchOpen ? <X className="w-6 h-6" /> : <Search className="w-6 h-6" />}
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <SearchSection isOpen={isSearchOpen} withBottomBorder={true} />
+            <MercadoHeaderSearch />
 
             {/* 1. Secção Principal (Conteúdo em Grid) */}
             <main className="container-site pt-12 pb-20">
@@ -68,7 +25,7 @@ export default function MercadoPage() {
 
                         {/* Tabela de Preços (SIMA) */}
                         <section>
-                            <MarketPriceTable />
+                            <MarketPriceTableServer />
                         </section>
                     </div>
 
@@ -190,12 +147,7 @@ export default function MercadoPage() {
                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
                                     <span className="text-[40px] md:text-[56px] font-black text-emerald-600 leading-none">+250</span>
                                     <span className="text-[10px] md:text-[12px] font-black uppercase tracking-widest text-emerald-900 mt-2">Empresas Activas</span>
-                                    <button
-                                        onClick={handleAnunciarClick}
-                                        className="px-12 py-4 bg-white text-emerald-900 rounded-md font-black uppercase text-sm tracking-widest hover:scale-105 active:scale-95 shadow-xl transition-all"
-                                    >
-                                        Anunciar Produto
-                                    </button>
+                                    <AnunciarProdutoButton />
                                 </div>
                             </div>
                         </div>
