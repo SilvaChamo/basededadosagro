@@ -15,40 +15,6 @@ import { PageHeader } from "@/components/PageHeader";
 import { WeatherSidebar } from "@/components/WeatherSidebar";
 import { NewsletterCard } from "@/components/NewsletterCard";
 
-// DEMO FALLBACK DATA
-const FALLBACK_ARTICLES_DATA = [
-    {
-        id: 'a1',
-        title: "Impacto do Clima na Produção de Milho no Corredor da Beira",
-        slug: "impacto-clima-milho-beira",
-        date: "2024-01-10",
-        type: "article",
-        image_url: "https://images.unsplash.com/photo-1507842217121-9e871299ee18?q=80&w=800",
-        subtitle: "Estudo analítico sobre as variações pluviométricas e seu efeito no rendimento das culturas.",
-        content: "<p>Com as mudanças climáticas a afetarem cada vez mais a produção agrícola em Moçambique, este estudo foca-se no Corredor da Beira.</p><h2>Metodologia</h2><p>Foram analisados dados de 10 anos...</p>"
-    },
-    {
-        id: 'a2',
-        title: "Estudo sobre a Eficácia do Biocarvão em Solos Arenosos",
-        slug: "estudo-biocarvao-solos-arenosos",
-        date: "2023-11-20",
-        type: "article",
-        image_url: "https://images.unsplash.com/photo-1592982537447-7440770cbfc9?q=80&w=800",
-        subtitle: "Investigação sobre a retenção de nutrientes e melhoria da estrutura do solo com uso de biochar.",
-        content: "<p>O biocarvão tem se mostrado uma solução promissora para solos arenosos, comuns em várias regiões costeiras.</p>"
-    },
-    {
-        id: 'a3',
-        title: "Diversidade Genética do Embondeiro na Região Sul",
-        slug: "diversidade-genetica-embondeiro-sul",
-        date: "2023-09-05",
-        type: "article",
-        image_url: "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?q=80&w=800",
-        subtitle: "Mapeamento genético e conservação de uma das espécies mais icónicas de Moçambique.",
-        content: "<p>O embondeiro (Adansonia digitata) é vital para as comunidades locais.</p>"
-    }
-];
-
 export default function ArticleReadingPage() {
     const supabase = createClient();
     const params = useParams();
@@ -99,14 +65,7 @@ export default function ArticleReadingPage() {
                 if (articleData) {
                     setArticle(articleData);
                 } else {
-                    // Check fallback
-                    const fallbackItem = FALLBACK_ARTICLES_DATA.find(a => a.slug === slug);
-                    if (fallbackItem) {
-                        setArticle(fallbackItem);
-                    } else {
-                        // Really not found
-                        throw new Error("Article not found");
-                    }
+                    throw new Error("Article not found");
                 }
 
                 // Attempt to filter by same category if available

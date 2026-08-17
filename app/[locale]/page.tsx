@@ -6,6 +6,7 @@ import { WhyChooseUs } from "@/components/WhyChooseUs";
 import { MobileAppSection } from "@/components/MobileAppSection";
 import { supabase } from "@/lib/supabaseClient";
 import { getTranslations } from 'next-intl/server';
+import { sortArticlesByDateDesc } from "@/lib/utils";
 
 // A homepage não mostra nada específico do utilizador (só dados públicos:
 // estatísticas, empresas em destaque, notícias). Usar o cliente Supabase
@@ -31,7 +32,7 @@ export default async function Home() {
         .is('deleted_at', null)
         .in('type', ['Notícia', 'Internacional', 'Artigo', 'Artigo Técnico', 'Comunicado', 'Evento', 'Oportunidade', 'Curiosidade', 'Guia'])
         .order('created_at', { ascending: false })
-        .limit(5)
+        .limit(12)
     ]);
     statsResult = results[0];
     companiesResult = results[1];
@@ -72,7 +73,10 @@ export default async function Home() {
     }))
     : [];
 
-  const articles = articlesResult?.data || [];
+  // Busca 12 candidatos recentes (por created_at, uma coluna fiável) e só
+  // depois ordena pelos 5 a mostrar pela data real da notícia — ver
+  // sortArticlesByDateDesc em lib/utils.ts para o porquê.
+  const articles = sortArticlesByDateDesc(articlesResult?.data || []).slice(0, 5);
 
   return (
     <main className="min-h-screen bg-transparent">

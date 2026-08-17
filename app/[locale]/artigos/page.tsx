@@ -8,46 +8,7 @@ import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { NewsCard } from "@/components/NewsCard";
 import { Spinner } from "@/components/ui/spinner";
-
-// DEMO FALLBACK DATA
-const FALLBACK_ARTICLES = [
-    {
-        id: 'a1',
-        title: "Impacto do Clima na Produção de Milho no Corredor da Beira",
-        author: "Carlos Mondlane",
-        source: "IIAM - Instituto de Investigação Agrária",
-        source_url: "https://iiam.gov.mz/publicacoes/milho-beira",
-        slug: "impacto-clima-milho-beira",
-        date: "2024-01-10",
-        type: "article",
-        image_url: "https://images.unsplash.com/photo-1507842217121-9e871299ee18?q=80&w=800",
-        subtitle: "Estudo analítico sobre as variações pluviométricas e seu efeito no rendimento das culturas."
-    },
-    {
-        id: 'a2',
-        title: "Estudo sobre a Eficácia do Biocarvão em Solos Arenosos",
-        author: "Dr. Ana Paula",
-        source: "UEM - Faculdade de Agronomia",
-        source_url: "https://uem.mz/agronomia/estudos/biocarvao",
-        slug: "estudo-biocarvao-solos-arenosos",
-        date: "2023-11-20",
-        type: "article",
-        image_url: "https://images.unsplash.com/photo-1592982537447-7440770cbfc9?q=80&w=800",
-        subtitle: "Investigação sobre a retenção de nutrientes e melhoria da estrutura do solo com uso de biochar."
-    },
-    {
-        id: 'a3',
-        title: "Diversidade Genética do Embondeiro na Região Sul",
-        author: "Samuel Chivambo",
-        source: "Revista Científica de Moçambique",
-        source_url: "https://revistacientifica.org.mz/chivambo-2023",
-        slug: "diversidade-genetica-embondeiro-sul",
-        date: "2023-09-05",
-        type: "article",
-        image_url: "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?q=80&w=800",
-        subtitle: "Mapeamento genético e conservação de uma das espécies mais icónicas de Moçambique."
-    }
-];
+import { sortArticlesByDateDesc } from "@/lib/utils";
 
 export default function ArticlesArchivePage() {
     const supabase = createClient();
@@ -87,8 +48,14 @@ export default function ArticlesArchivePage() {
                     .is('deleted_at', null)
                     .order('date', { ascending: false });
 
-                // If we have real DB data, we use it. If not, we use fallback to not show an empty page.
-                const combinedLocal = (data && data.length > 0) ? data : FALLBACK_ARTICLES;
+                if (error) {
+                    console.error("Error fetching local articles:", error);
+                }
+
+                // `date` é texto livre na BD (alguns registos antigos não seguem
+                // AAAA-MM-DD), por isso reordena aqui com fallback para created_at
+                // em vez de confiar só no `.order('date')` acima.
+                const combinedLocal = sortArticlesByDateDesc(data || []);
                 setLocalArticles(combinedLocal);
                 setArticles(combinedLocal);
 
@@ -101,8 +68,8 @@ export default function ArticlesArchivePage() {
 
             } catch (error) {
                 console.error("Error fetching initial articles:", error);
-                setLocalArticles(FALLBACK_ARTICLES);
-                setArticles(FALLBACK_ARTICLES);
+                setLocalArticles([]);
+                setArticles([]);
             } finally {
                 setLoading(false);
                 setIsSearchActive(true); // mostrar a grelha de artigos por defeito, sem exigir pesquisa

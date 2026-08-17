@@ -16,6 +16,7 @@ import { NewsletterCard } from "@/components/NewsletterCard";
 import { NewsCard } from "@/components/NewsCard";
 import { NewsHeroSlider } from "@/components/NewsHeroSlider";
 import { Spinner } from "@/components/ui/spinner";
+import { sortArticlesByDateDesc } from "@/lib/utils";
 
 function BlogContent() {
     const searchParams = useSearchParams();
@@ -63,7 +64,10 @@ function BlogContent() {
                     throw articlesError;
                 }
 
-                setArticles(articlesData || []);
+                // `date` é texto livre na BD (alguns registos antigos não seguem
+                // AAAA-MM-DD), por isso o `.order('date')` acima não chega —
+                // reordena aqui com fallback para created_at.
+                setArticles(sortArticlesByDateDesc(articlesData || []));
             } catch (error) {
                 console.error("Error fetching content:", error);
             } finally {
@@ -98,7 +102,7 @@ function BlogContent() {
                 throw articlesError;
             }
 
-            setArticles(articlesData || []);
+            setArticles(sortArticlesByDateDesc(articlesData || []));
         } catch (error) {
             console.error("Manual refresh failed:", error);
         } finally {

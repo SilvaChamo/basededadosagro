@@ -99,3 +99,29 @@ export const toSentenceCase = (text: string): string => {
     return prefix + char.toUpperCase();
   });
 };
+
+/**
+ * Ordena artigos por data decrescente (mais recentes primeiro).
+ *
+ * `articles.date` é uma coluna de texto livre, não uma data real — alguns
+ * registos antigos (semeados directamente na BD, antes do formulário usar
+ * <input type="date">) têm valores como "Fevereiro 2024" ou "02 Fev 2024"
+ * em vez de "2024-02-02". Ordenar essa coluna como texto (ex: `.order('date')`
+ * do Supabase) põe esses registos antigos no topo, à frente de notícias reais
+ * e recentes, porque "F" e "0" ordenam à frente de "2" num sort alfabético.
+ *
+ * Esta função usa `date` só quando dá para interpretar como data válida;
+ * caso contrário cai para `created_at` (sempre um timestamp real), para que
+ * conteúdo antigo com data mal formatada nunca apareça como se fosse recente.
+ */
+export function sortArticlesByDateDesc<T extends { date?: string | null; created_at?: string | null }>(
+  articles: T[]
+): T[] {
+  const effectiveTime = (a: T): number => {
+    const parsedDate = a.date ? Date.parse(a.date) : NaN;
+    if (!isNaN(parsedDate)) return parsedDate;
+    const parsedCreatedAt = a.created_at ? Date.parse(a.created_at) : NaN;
+    return isNaN(parsedCreatedAt) ? 0 : parsedCreatedAt;
+  };
+  return [...articles].sort((a, b) => effectiveTime(b) - effectiveTime(a));
+}
