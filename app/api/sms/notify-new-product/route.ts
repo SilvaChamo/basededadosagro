@@ -1,6 +1,6 @@
-import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { canUseSMSNotifications, normalizePlanName } from "@/lib/plan-fields";
+import { createAdminClient } from "@/utils/supabase/admin";
 
 const INFOBIP_BASE_URL = process.env.INFOBIP_BASE_URL;
 const INFOBIP_API_KEY = process.env.INFOBIP_API_KEY;
@@ -50,15 +50,13 @@ async function sendSMS(phone: string, text: string): Promise<{ phone: string; st
 // We use the service role key to bypass RLS and fetch all subcribed users
 export async function POST(request: Request) {
     // We initialize the client inside the handler to avoid build-time evaluation issues
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
+    let supabaseAdmin;
+    try {
+        supabaseAdmin = createAdminClient();
+    } catch {
         console.error("Supabase environment variables are missing");
         return NextResponse.json({ error: "Configuração do servidor incompleta" }, { status: 500 });
     }
-
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     try {
         const { product, price, location, type = 'market', variation = null, companyId = null } = await request.json();

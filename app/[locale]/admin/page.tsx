@@ -15,7 +15,6 @@ import {
     Bot,
 } from "lucide-react";
 import Link from "next/link";
-import { LogoutButton } from "@/components/LogoutButton";
 
 interface RecentItem {
     id: string;
@@ -127,16 +126,13 @@ export default function AdminDashboardPage() {
 
     return (
         <div className="space-y-5">
-            {/* Bem-vindo - título e Sair na mesma linha */}
+            {/* Bem-vindo - o Sair agora vive só na mini-barra partilhada, acima */}
             <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm p-6">
-                <div className="flex items-start justify-between gap-4">
-                    <div>
-                        <h2 className="text-xl font-black text-slate-900 leading-tight">Bem-vindo ao painel de administração</h2>
-                        <p className="text-slate-500 font-medium text-sm leading-tight mt-0">
-                            Olá{userName ? `, ${userName}` : ""}. Este é o seu painel de gestão.
-                        </p>
-                    </div>
-                    <LogoutButton variant="outline" className="h-[36px] px-4 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-red-600 border-slate-200 shrink-0" showIcon={true} label="Sair" />
+                <div>
+                    <h2 className="text-xl font-black text-slate-900 leading-tight">Bem-vindo ao painel de administração</h2>
+                    <p className="text-slate-500 font-medium text-sm leading-tight mt-0">
+                        Olá{userName ? `, ${userName}` : ""}. Este é o seu painel de gestão.
+                    </p>
                 </div>
 
                 <div className="border-t border-slate-100 mt-6 pt-6 grid grid-cols-1 lg:grid-cols-4 gap-5">

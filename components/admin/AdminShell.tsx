@@ -5,6 +5,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { syncManager } from "@/lib/syncManager";
+import { AdminTopBarProvider, AdminTopBar } from "./AdminTopBar";
 import { toast } from "sonner";
 import {
     Wifi, WifiOff, RefreshCw,
@@ -74,6 +75,15 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
     // usePathname() devolve o caminho com o prefixo de idioma (ex.: "/pt/admin/galeria"),
     // mas os href do menu não o têm — sem tirar o prefixo, nenhuma comparação batia certo.
     const pathnameWithoutLocale = pathname.replace(/^\/(pt|en)(?=\/|$)/, "") || "/";
+    const isFullBleedRoute = pathnameWithoutLocale.startsWith('/admin/mensagens/newsletter') || pathnameWithoutLocale.startsWith('/admin/apresentacoes/editor');
+    // Todos os href do menu (ex.: "/admin/empresas") não têm prefixo de idioma —
+    // sem o acrescentar aqui, cada clique navegava para um URL sem locale, o
+    // middleware tinha de redirecionar para o mesmo caminho com "/pt" à frente,
+    // e só então a página carregava de facto. Isto duplicava o número de idas
+    // e vindas ao servidor em CADA clique do painel inteiro.
+    const localeMatch = pathname.match(/^\/(pt|en)(?=\/|$)/);
+    const locale = localeMatch ? localeMatch[1] : "pt";
+    const withLocale = useCallback((href: string) => `/${locale}${href}`, [locale]);
     const searchParams = useSearchParams();
     const currentSearch = searchParams.toString();
     const router = useRouter();
@@ -101,8 +111,8 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
     const handleGroupClick = useCallback((menu: string, firstHref: string) => {
         setOpenSubmenus([menu]);
         setOptimisticHref(firstHref);
-        router.push(firstHref);
-    }, [router]);
+        router.push(withLocale(firstHref));
+    }, [router, withLocale]);
 
     // O chevron é um alvo de clique à parte: só expande/colapsa o grupo,
     // sem navegar — permite fechar um grupo já aberto sem sair da página actual.
@@ -186,7 +196,7 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
 
         return (
             <Link
-                href={href}
+                href={withLocale(href)}
                 className={`relative flex items-center gap-3 py-1.5 transition-all duration-300 ease-out group whitespace-nowrap ${isHeader ? "text-[15px]" : "text-[14px]"} ${active ? (isHeader ? "text-orange-600 bg-orange-50" : "text-orange-600") : (isHeader ? "text-slate-500 hover:text-orange-500 hover:bg-slate-50" : "text-slate-700 hover:text-orange-600")} ${isHeader ? "font-semibold hover:translate-x-1.5" : "font-medium"} ${isCollapsed ? "justify-center px-2" : isSub ? "pl-11 pr-6" : "px-6"}`}
                 title={isCollapsed ? label : undefined}
             >
@@ -216,7 +226,7 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
         <div className="flex min-h-screen bg-slate-100 font-sans">
             {/* Mobile Header */}
             <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-[60] flex items-center justify-between px-4">
-                <Link href="/" className="flex items-center gap-3 overflow-hidden">
+                <Link href={withLocale("/")} className="flex items-center gap-3 overflow-hidden">
                     <img src="/admin-icon.png" alt="Logo" className="w-8 h-8 object-contain" />
                     <span className="font-black text-lg tracking-wider text-slate-900">PAINEL</span>
                 </Link>
@@ -245,7 +255,7 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                     {/* Header */}
                     <div className={`h-20 flex items-center px-6 border-b border-slate-100 bg-white transition-all ${isCollapsed ? "justify-center" : "justify-between"}`}>
                         {!isCollapsed && (
-                            <Link href="/" className="flex items-center gap-3 overflow-hidden hover:opacity-80 transition-opacity">
+                            <Link href={withLocale("/")} className="flex items-center gap-3 overflow-hidden hover:opacity-80 transition-opacity">
                                 <img src="/admin-icon.png" alt="Logo" className="w-10 h-10 object-contain" />
                                 <div>
                                     <span className="font-black text-xl tracking-wider text-slate-900 block truncate">PAINEL</span>
@@ -605,9 +615,20 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
 
             {/* Main Content */}
             <main className={`flex-1 bg-slate-50 min-h-screen transition-all duration-300 mt-16 lg:mt-0 ${isCollapsed ? "lg:ml-24" : "lg:ml-72"}`}>
-                <div className={pathnameWithoutLocale.startsWith('/admin/mensagens/newsletter') || pathnameWithoutLocale.startsWith('/admin/apresentacoes/editor') ? "p-0" : "p-8"}>
-                    {children}
-                </div>
+                <AdminTopBarProvider>
+                    {/* Rotas de ecrã inteiro (editor, newsletter) controlam o seu
+                        próprio espaço — sem a barra genérica nem o padding-padrão. */}
+                    {isFullBleedRoute ? (
+                        children
+                    ) : (
+                        <>
+                            <AdminTopBar />
+                            <div className="p-8 pt-2">
+                                {children}
+                            </div>
+                        </>
+                    )}
+                </AdminTopBarProvider>
             </main>
         </div>
     );
