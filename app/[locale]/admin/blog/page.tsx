@@ -456,6 +456,7 @@ export default function AdminArticlesPage() {
                             title={article.title}
                             subtitle={article.subtitle}
                             category={article.type}
+                            categories={article.categories}
                             date={article.date || article.created_at}
                             image={article.image_url}
                             slug={article.slug}

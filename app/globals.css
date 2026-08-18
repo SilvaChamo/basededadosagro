@@ -648,3 +648,11 @@ font {
   margin-top: 1.5em !important;
   margin-bottom: 0.6em !important;
 }
+
+/* Editor de conteúdo (RichTextEditor): mesma lógica do .article-content
+   acima — força Maven Pro mesmo quando o texto colado (Word/Google Docs)
+   traz style="font-family:'Times New Roman'..." inline no HTML colado. */
+.rich-text-editor-content,
+.rich-text-editor-content * {
+  font-family: var(--font-maven-pro), sans-serif !important;
+}

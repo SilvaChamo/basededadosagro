@@ -608,7 +608,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
             <div
                 ref={editorRef}
                 contentEditable
-                className="flex-1 px-4 py-4 min-h-[150px] outline-none text-black text-base overflow-y-visible prose prose-base max-w-none prose-headings:my-2 [&_b]:font-black [&_strong]:font-black prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 marker:text-emerald-600 [&_.rich-text-image-selected]:ring-2 [&_.rich-text-image-selected]:ring-emerald-500 [&_.rich-text-image-selected]:ring-offset-2"
+                className="rich-text-editor-content flex-1 px-4 py-4 min-h-[150px] outline-none text-black text-base overflow-y-visible prose prose-base max-w-none prose-headings:my-2 [&_b]:font-black [&_strong]:font-black prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 marker:text-emerald-600 [&_.rich-text-image-selected]:ring-2 [&_.rich-text-image-selected]:ring-emerald-500 [&_.rich-text-image-selected]:ring-offset-2"
                 onInput={handleInput}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}

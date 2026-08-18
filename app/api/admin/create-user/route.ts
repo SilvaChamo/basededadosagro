@@ -25,7 +25,7 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { email, role, plan, password } = body;
+        const { email, role, plan, password, fullName } = body;
 
         if (!email) {
             return NextResponse.json({ error: "Email é obrigatório" }, { status: 400 });
@@ -54,6 +54,7 @@ export async function POST(request: Request) {
                 role: role || 'user',
                 plan: plan || 'Free',
                 email: email, // ensure email is set if trigger didn't do it
+                ...(fullName ? { full_name: fullName } : {}),
                 updated_at: new Date().toISOString()
             })
             .eq('id', authData.user.id);
@@ -67,6 +68,7 @@ export async function POST(request: Request) {
                     email: email,
                     role: role || 'user',
                     plan: plan || 'Free',
+                    ...(fullName ? { full_name: fullName } : {}),
                     created_at: new Date().toISOString()
                 });
         }

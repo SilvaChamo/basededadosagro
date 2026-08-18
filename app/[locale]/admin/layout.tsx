@@ -69,7 +69,9 @@ export default async function AdminLayout({
 
     if (isNewsTeamRole(role)) {
         const pathname = (await headers()).get('x-pathname') || '';
-        if (!pathname.includes('/admin/central-noticias')) {
+        // Além da Central de Notícias, editor/contribuidor têm acesso à mesma
+        // Galeria 100% do painel de administrador (ver AdminShell "restricted").
+        if (!pathname.includes('/admin/central-noticias') && !pathname.includes('/admin/galeria')) {
             redirect('/admin/central-noticias');
         }
 

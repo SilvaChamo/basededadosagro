@@ -8,7 +8,7 @@ import {
     Clock, ThumbsUp, Share2,
     ArrowRight, Facebook, Twitter, Linkedin,
     ChevronLeft, ChevronRight, Calendar, User, Bookmark,
-    Newspaper, Tag, MessageCircle, ExternalLink
+    Newspaper, Tag, MessageCircle
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
@@ -152,12 +152,12 @@ export default function ArticleReadingPage() {
     }, [slug]);
 
     if (loading && !article) {
-        return <div className="min-h-screen bg-slate-50" />;
+        return <div className="min-h-screen bg-background" />;
     }
 
     if (!article) {
         return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+            <div className="min-h-screen bg-background flex items-center justify-center">
                 <div className="text-center space-y-6">
                     <h2 className="text-2xl font-black text-slate-800">Artigo não encontrado</h2>
                     <Link href="/" className="inline-flex items-center gap-2 text-emerald-600 font-bold hover:underline">
@@ -169,7 +169,7 @@ export default function ArticleReadingPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 selection:bg-emerald-100 selection:text-emerald-900">
+        <div className="min-h-screen bg-background selection:bg-emerald-100 selection:text-emerald-900">
             <PageHeader
                 title={article.type || "Notícia"}
                 icon={Newspaper}
@@ -222,22 +222,6 @@ export default function ArticleReadingPage() {
                                     </div>
                                     <span className="w-1 h-1 rounded-full bg-slate-200"></span>
 
-                                    {article.source_url && (
-                                        <>
-                                            <a
-                                                href={article.source_url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 transition-colors"
-                                            >
-                                                <ExternalLink className="w-3.5 h-3.5" />
-                                                <span className="hidden sm:inline">Visualizar Documento</span>
-                                                <span className="sm:hidden">Fonte</span>
-                                            </a>
-                                            <span className="w-1 h-1 rounded-full bg-slate-200"></span>
-                                        </>
-                                    )}
-
                                     <div className="relative">
                                         <button
                                             onClick={() => setShowShareMenu(!showShareMenu)}
@@ -274,18 +258,19 @@ export default function ArticleReadingPage() {
                         </div>
 
                         {/* Tags Section */}
-                        <div className="mt-12 flex flex-wrap gap-2.5">
-                            {["Agricultura", article.type, "Moçambique", "Tecnologia"].filter(Boolean).map((tag, i) => (
-                                <Link
-                                    key={i}
-                                    href={`/blog?cat=${tag === article.type ? tag : "Todos"}`}
-                                    className="inline-flex items-center px-4 py-2 bg-white text-slate-400 text-[10px] font-bold uppercase tracking-widest rounded-[7px] hover:bg-[#f97316] hover:text-white transition-all cursor-pointer border border-slate-100 shadow-sm group"
-                                >
-                                    <Tag className="w-3 h-3 mr-2 text-slate-300 group-hover:text-white transition-colors" />
-                                    {tag}
-                                </Link>
-                            ))}
-                        </div>
+                        {article.tags && article.tags.length > 0 && (
+                            <div className="mt-12 flex flex-wrap gap-2.5">
+                                {article.tags.map((tag: string, i: number) => (
+                                    <span
+                                        key={i}
+                                        className="inline-flex items-center px-4 py-2 bg-white text-slate-400 text-[10px] font-bold uppercase tracking-widest rounded-[7px] border border-slate-100 shadow-sm"
+                                    >
+                                        <Tag className="w-3 h-3 mr-2 text-slate-300" />
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
 
                         {/* Interaction Footer */}
                         <div className="mt-12 pt-12 border-t border-slate-200">

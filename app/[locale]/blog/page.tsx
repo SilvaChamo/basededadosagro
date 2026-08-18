@@ -16,6 +16,7 @@ import { NewsletterCard } from "@/components/NewsletterCard";
 import { NewsCard } from "@/components/NewsCard";
 import { NewsHeroSlider } from "@/components/NewsHeroSlider";
 import { Spinner } from "@/components/ui/spinner";
+import { NEWS_CATEGORIES } from "@/lib/constants";
 
 function BlogContent() {
     const searchParams = useSearchParams();
@@ -43,7 +44,7 @@ function BlogContent() {
         }
     }, [searchParams]);
 
-    const newsTypes = ['Notícia', 'Internacional', 'Guia', 'Evento', 'Oportunidade', 'Curiosidade', 'Recursos', 'Mulher Agro', 'Ambiente', 'Mercado'];
+    const newsTypes = NEWS_CATEGORIES;
 
     useEffect(() => {
         const fetchContent = async (isInitialLoad: boolean) => {
@@ -53,10 +54,7 @@ function BlogContent() {
                 // Fetch news articles (explicitly included types)
                 const { data: articlesData, error: articlesError } = await supabase
                     .from('articles')
-                    // NOTA: 'categories' só pode entrar aqui depois de aplicada a migração
-                    // 20260817_add_article_categories.sql (a coluna ainda não existe em
-                    // produção) — pedi-la antes disso parte esta query inteira.
-                    .select('id, title, subtitle, image_url, date, slug, type')
+                    .select('id, title, subtitle, image_url, date, slug, type, categories')
                     .is('deleted_at', null)
                     .in('type', newsTypes)
                     .order('date', { ascending: false });
@@ -210,6 +208,7 @@ function BlogContent() {
                         key={i}
                         title={article.title}
                         category={article.type}
+                        categories={article.categories}
                         date={article.date}
                         image={article.image_url}
                         slug={article.slug}

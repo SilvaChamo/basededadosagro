@@ -105,7 +105,7 @@ export function AdminDataTable({
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-sm border border-slate-100 overflow-hidden">
+        <div className="relative bg-white rounded-lg shadow-sm border border-slate-100 overflow-hidden">
             {/* Header - Google Contacts Style */}
             {!hideHeader && (
                 <div className="px-6 py-4 flex items-center justify-between border-b border-slate-100">

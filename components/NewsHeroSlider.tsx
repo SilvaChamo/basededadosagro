@@ -66,7 +66,7 @@ export function NewsHeroSlider({
             ))}
 
             <div className="relative z-20 h-full container-site flex flex-col justify-center pt-28 pb-20 md:pt-32">
-                <div className="max-w-2xl">
+                <div className="max-w-3xl">
                     <div className="flex items-center gap-2 mb-4">
                         <span className="bg-[#f97316] text-white text-xs font-black uppercase tracking-widest px-3.5 py-2 rounded-[6px]">
                             {active.type || "Notícia"}

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Button } from "@/components/ui/button";
-import { Plus, LayoutGrid, List, Pencil, Trash2, Calendar, Link as LinkIcon, Search, FileText, Globe, BookOpen, Lightbulb, RotateCcw, Trash, Bot } from "lucide-react";
+import { Plus, LayoutGrid, List, Pencil, Trash2, Calendar, Link as LinkIcon, Search, RotateCcw, Trash, X, Archive } from "lucide-react";
 import { ArticleForm } from "@/components/admin/ArticleForm";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -12,10 +13,18 @@ import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { NewsCard } from "@/components/NewsCard";
 import { Spinner } from "@/components/ui/spinner";
 
-export default function AdminNoticiasPage() {
+function AdminNoticiasContent() {
     const supabase = createClient();
+    const searchParams = useSearchParams();
+    const tabParam = searchParams.get('tab');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-    const [activeTab, setActiveTab] = useState('Todas');
+    const [activeTab, setActiveTab] = useState(tabParam || 'Todas');
+
+    // O menu lateral (grupo "Notícias") liga para /admin/noticias?tab=X —
+    // mantém o separador sincronizado se o parâmetro mudar.
+    useEffect(() => {
+        setActiveTab(tabParam || 'Todas');
+    }, [tabParam]);
     const [articles, setArticles] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
@@ -25,22 +34,15 @@ export default function AdminNoticiasPage() {
     const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
     const [articleToDelete, setArticleToDelete] = useState<any>(null);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
-    const [showBin, setShowBin] = useState(false);
+    const [statusFilter, setStatusFilter] = useState<'active' | 'archived' | 'deleted'>('active');
     const [showEmptyBinConfirm, setShowEmptyBinConfirm] = useState(false);
     const [pendingArticles, setPendingArticles] = useState<any[]>([]);
     const [pendingLoading, setPendingLoading] = useState(true);
     const [publishingFromPendingId, setPublishingFromPendingId] = useState<string | null>(null);
     const [pendingToDiscard, setPendingToDiscard] = useState<any>(null);
     const [pendingCategoryFilter, setPendingCategoryFilter] = useState('Todas');
-
-    const tabs = [
-        { id: 'Todas', label: 'Todas', icon: List },
-        { id: 'Notícia', label: 'Notícias', icon: FileText },
-        { id: 'Guia', label: 'Guias', icon: BookOpen },
-        { id: 'Dicas', label: 'Dicas', icon: Lightbulb },
-        { id: 'Internacional', label: 'Internacional', icon: Globe },
-        { id: 'Pendentes', label: `Notícias pendentes${pendingArticles.length > 0 ? ` (${pendingArticles.length})` : ''}`, icon: Bot },
-    ];
+    const [selectedPendingIds, setSelectedPendingIds] = useState<string[]>([]);
+    const [showBulkDiscardConfirm, setShowBulkDiscardConfirm] = useState(false);
 
     const pendingCategories = ['Todas', ...Array.from(new Set(pendingArticles.map((p: any) => p.category || 'Notícia')))];
     const filteredPending = pendingCategoryFilter === 'Todas'
@@ -53,7 +55,9 @@ export default function AdminNoticiasPage() {
             .from('articles_pending')
             .select('*')
             .order('date', { ascending: false, nullsFirst: false });
-        setPendingArticles(data || []);
+        // Relatórios pertencem à secção Documentos, nunca à fila de pendentes de Notícias.
+        const withoutReports = (data || []).filter((p: any) => p.category !== 'Relatório' && p.category !== 'Relatórios');
+        setPendingArticles(withoutReports);
         setPendingLoading(false);
     };
 
@@ -106,34 +110,100 @@ export default function AdminNoticiasPage() {
         }
     };
 
+    const togglePendingSelect = (id: string) => {
+        setSelectedPendingIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    };
+
+    const confirmBulkDiscard = async () => {
+        const previousPending = [...pendingArticles];
+        try {
+            setPendingArticles(prev => prev.filter((p: any) => !selectedPendingIds.includes(p.id)));
+
+            const { error } = await supabase.from('articles_pending').delete().in('id', selectedPendingIds);
+            if (error) throw error;
+
+            toast.success(`${selectedPendingIds.length} notícias descartadas!`);
+            setSelectedPendingIds([]);
+        } catch (error: any) {
+            setPendingArticles(previousPending);
+            toast.error("Erro ao descartar em massa: " + error.message);
+        } finally {
+            setShowBulkDiscardConfirm(false);
+        }
+    };
+
     const fetchArticles = async () => {
         setLoading(true);
-        let query = supabase
-            .from('articles')
-            .select('*')
-            .order('created_at', { ascending: false });
+        try {
+            let query = supabase.from('articles').select('*').order('created_at', { ascending: false });
 
-        if (showBin) {
-            query = query.not('deleted_at', 'is', null);
-        } else {
-            query = query.is('deleted_at', null);
+            // "Eliminado" continua a basear-se em deleted_at (como antes); "arquivado"
+            // é um eixo independente via `status`, e "activo" mostra tudo o que não
+            // está eliminado nem arquivado (trata status nulo como activo, para não
+            // esconder artigos antigos criados antes desta coluna existir).
+            if (statusFilter === 'deleted') query = query.not('deleted_at', 'is', null);
+            else if (statusFilter === 'archived') query = query.eq('status', 'archived').is('deleted_at', null);
+            else query = query.is('deleted_at', null).or('status.is.null,status.neq.archived');
+
+            const { data, error } = await query;
+
+            if (error) {
+                // Fallback if 'status' column doesn't exist yet on this database
+                if (error.code === '42703') {
+                    let fallbackQuery = supabase.from('articles').select('*').order('created_at', { ascending: false });
+                    if (statusFilter === 'deleted') fallbackQuery = fallbackQuery.not('deleted_at', 'is', null);
+                    else if (statusFilter === 'active') fallbackQuery = fallbackQuery.is('deleted_at', null);
+                    else {
+                        setArticles([]);
+                        setLoading(false);
+                        return;
+                    }
+                    const { data: fbData, error: fbError } = await fallbackQuery;
+                    if (fbError) throw fbError;
+                    setArticles(fbData || []);
+                } else {
+                    throw error;
+                }
+            } else {
+                setArticles(data || []);
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Erro ao carregar artigos");
+        } finally {
+            setLoading(false);
         }
-
-        const { data, error } = await query;
-
-        if (data) setArticles(data);
-        setLoading(false);
     };
 
     useEffect(() => {
         fetchArticles();
-    }, [showBin]);
+    }, [statusFilter]);
+
+    const handleArchive = async (article: any) => {
+        const newStatus = statusFilter === 'archived' ? 'active' : 'archived';
+        try {
+            const { error } = await supabase.from('articles').update({ status: newStatus }).eq('id', article.id);
+            if (error) {
+                if (error.code === '42703') {
+                    toast.error("Funcionalidade de Arquivo requer actualização da base de dados.");
+                } else {
+                    throw error;
+                }
+                return;
+            }
+            toast.success(newStatus === 'archived' ? "Artigo arquivado" : "Artigo restaurado");
+            fetchArticles();
+        } catch (error) {
+            console.error(error);
+            toast.error("Erro ao alterar estado do artigo");
+        }
+    };
 
     const confirmDelete = async () => {
         if (!articleToDelete) return;
 
         try {
-            if (showBin) {
+            if (statusFilter === 'deleted') {
                 // Hard Delete (Permanent) for items already in Bin
                 const res = await fetch('/api/admin/articles', {
                     method: 'DELETE',
@@ -249,6 +319,9 @@ export default function AdminNoticiasPage() {
     };
 
     const filteredArticles = articles.filter((a: any) => {
+        // Relatórios pertencem à secção Documentos, nunca à Gestão de Notícias.
+        if (a.type === 'Relatório' || a.type === 'Relatórios') return false;
+
         const matchesSearch = a.title.toLowerCase().includes(search.toLowerCase()) ||
             a.type?.toLowerCase().includes(search.toLowerCase());
         const matchesType = activeTab === 'Todas'
@@ -301,40 +374,30 @@ export default function AdminNoticiasPage() {
 
     return (
         <div className="space-y-4">
-            {/* Header - Single Line */}
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Gestão de Notícias</h1>
-                <Button onClick={() => { setEditingArticle(null); setPublishingFromPendingId(null); setIsFormOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Novo Artigo
-                </Button>
-            </div>
-
-            {/* Menu Bar - All Controls */}
-            <div className="flex items-center gap-4 bg-white rounded-lg border border-slate-200 shadow-sm">
-                {/* Left Side - Categories */}
-                <div className="flex items-center gap-1 bg-emerald-50 p-1 rounded-md border border-emerald-200">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => {
-                                setActiveTab(tab.id);
-                                setShowBin(false);
-                            }}
-                            className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${activeTab === tab.id
-                                ? 'bg-emerald-600 text-white shadow-sm'
-                                : 'text-slate-600 hover:bg-[#f97316] hover:text-white'
-                                }`}
-                        >
-                            <tab.icon className="w-3.5 h-3.5" />
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Right Side - Search + View Mode + Bin */}
-                <div className="flex items-center gap-2 ml-auto">
-                    {/* Search */}
+            {/* Barra de gestão - a navegação por categoria já vive no menu lateral
+                "Notícias", por isso aqui só ficam: em "Pendentes", os filtros da
+                fila (não existem no menu lateral) à esquerda; nas restantes vistas,
+                a pesquisa; e à direita os botões de gestão (grelha/lista, arquivo,
+                lixeira, novo artigo), tudo na mesma linha. */}
+            <div className="flex items-center gap-4">
+                {activeTab === 'Pendentes' ? (
+                    !pendingLoading && pendingArticles.length > 0 && (
+                        <div className="flex items-center gap-1 bg-emerald-50 p-1 rounded-[8px] border border-emerald-200 flex-wrap">
+                            {pendingCategories.map((cat) => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setPendingCategoryFilter(cat)}
+                                    className={`px-3 py-2 rounded-[8px] text-xs font-bold uppercase tracking-wider transition-all ${pendingCategoryFilter === cat
+                                        ? 'bg-emerald-600 text-white shadow-sm'
+                                        : 'text-slate-600 hover:bg-[#f97316] hover:text-white'
+                                        }`}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
+                        </div>
+                    )
+                ) : (
                     <div className="relative">
                         <Search className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-slate-400" />
                         <Input
@@ -344,7 +407,9 @@ export default function AdminNoticiasPage() {
                             className="pl-8 border-none bg-slate-50 focus-visible:ring-0 text-sm w-48"
                         />
                     </div>
+                )}
 
+                <div className="flex items-center gap-2 ml-auto">
                     {/* View Mode */}
                     <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-md">
                         <button
@@ -361,20 +426,35 @@ export default function AdminNoticiasPage() {
                         </button>
                     </div>
 
-                    {/* Bin Button - Last on right */}
-                    <div className="relative">
+                    <div className="flex items-center gap-0.5">
+                        {/* Archived Button */}
                         <button
-                            onClick={() => setShowBin(!showBin)}
-                            className={`px-4 py-2.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 ${showBin ? 'bg-rose-50 text-rose-600 ring-1 ring-rose-200' : 'text-slate-500 hover:bg-slate-50'}`}
+                            onClick={() => setStatusFilter(statusFilter === 'archived' ? 'active' : 'archived')}
+                            className={`px-4 py-2.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 ${statusFilter === 'archived' ? 'bg-amber-50 text-amber-600 ring-1 ring-amber-200' : 'text-slate-500 hover:bg-slate-50'}`}
+                            title="Arquivados"
+                        >
+                            <Archive className="w-4 h-4" />
+                        </button>
+
+                        {/* Bin Button */}
+                        <button
+                            onClick={() => setStatusFilter(statusFilter === 'deleted' ? 'active' : 'deleted')}
+                            className={`px-4 py-2.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 ${statusFilter === 'deleted' ? 'bg-rose-50 text-rose-600 ring-1 ring-rose-200' : 'text-slate-500 hover:bg-slate-50'}`}
+                            title="Lixeira"
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>
                     </div>
+
+                    <Button onClick={() => { setEditingArticle(null); setPublishingFromPendingId(null); setIsFormOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Novo Artigo
+                    </Button>
                 </div>
             </div>
 
             {/* Bin Actions - Show when bin is active */}
-            {showBin && (
+            {statusFilter === 'deleted' && (
                 <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-3">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -406,21 +486,30 @@ export default function AdminNoticiasPage() {
                         </div>
                     ) : (
                         <>
-                            <div className="flex items-center gap-1 bg-emerald-50 p-1 rounded-md border border-emerald-200 mb-6 w-fit flex-wrap">
-                                {pendingCategories.map((cat) => (
+                            {selectedPendingIds.length > 0 && (
+                                <div className="mb-4 flex items-center justify-between bg-emerald-600 text-white rounded-[8px] px-4 py-3">
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={() => setSelectedPendingIds([])}
+                                            className="p-1 hover:bg-white/10 rounded transition-colors"
+                                            title="Limpar selecção"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                        <span className="text-sm font-black tracking-tight">
+                                            {selectedPendingIds.length} {selectedPendingIds.length === 1 ? 'seleccionado' : 'seleccionados'}
+                                        </span>
+                                    </div>
                                     <button
-                                        key={cat}
-                                        onClick={() => setPendingCategoryFilter(cat)}
-                                        className={`px-3 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${pendingCategoryFilter === cat
-                                            ? 'bg-emerald-600 text-white shadow-sm'
-                                            : 'text-slate-600 hover:bg-[#f97316] hover:text-white'
-                                            }`}
+                                        onClick={() => setShowBulkDiscardConfirm(true)}
+                                        className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider bg-white/10 hover:bg-white/20 px-3 py-2 rounded-md transition-colors"
                                     >
-                                        {cat}
+                                        <Trash2 className="w-4 h-4" />
+                                        Descartar seleccionados
                                     </button>
-                                ))}
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-6 items-start">
+                                </div>
+                            )}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-6">
                                 {filteredPending.map((pending: any) => (
                                     <NewsCard
                                         key={pending.id}
@@ -436,6 +525,9 @@ export default function AdminNoticiasPage() {
                                         onCtaClick={() => handleReviewPending(pending)}
                                         sourceUrl={pending.source_url}
                                         sourceLabel={pending.source ? `Fonte: ${pending.source}` : undefined}
+                                        selectable
+                                        selected={selectedPendingIds.includes(pending.id)}
+                                        onToggleSelect={() => togglePendingSelect(pending.id)}
                                     />
                                 ))}
                             </div>
@@ -458,14 +550,17 @@ export default function AdminNoticiasPage() {
                                 title={article.title}
                                 subtitle={article.subtitle}
                                 category={article.type}
+                                categories={article.categories}
                                 date={article.date || article.created_at}
                                 image={article.image_url}
                                 slug={article.slug}
                                 isAdmin={true}
-                                isDeleted={showBin}
+                                isDeleted={statusFilter === 'deleted'}
+                                isArchived={statusFilter === 'archived'}
                                 onEdit={() => handleEdit(article)}
                                 onDelete={() => handleDelete(article)}
                                 onRestore={() => handleRestore(article)}
+                                onArchive={() => handleArchive(article)}
                             />
                         ))}
                     </div>
@@ -510,13 +605,13 @@ export default function AdminNoticiasPage() {
                     isOpen={showDeleteConfirm}
                     onClose={() => setShowDeleteConfirm(false)}
                     onConfirm={confirmDelete}
-                    title={showBin ? "Eliminar Permanentemente" : "Mover para Lixeira"}
+                    title={statusFilter === 'deleted' ? "Eliminar Permanentemente" : "Mover para Lixeira"}
                     description={
-                        showBin
+                        statusFilter === 'deleted'
                             ? `Tem a certeza que deseja eliminar PERMANENTEMENTE o artigo "${articleToDelete?.title}"? Esta acção NÃO pode ser desfeita.`
                             : `O artigo "${articleToDelete?.title}" será movido para a lixeira. Poderá restaurá-lo mais tarde.`
                     }
-                    confirmLabel={showBin ? "Eliminar de vez" : "Mover para Lixeira"}
+                    confirmLabel={statusFilter === 'deleted' ? "Eliminar de vez" : "Mover para Lixeira"}
                     variant="destructive"
                 />
 
@@ -549,7 +644,25 @@ export default function AdminNoticiasPage() {
                     confirmLabel="Descartar"
                     variant="destructive"
                 />
+
+                <ConfirmationModal
+                    isOpen={showBulkDiscardConfirm}
+                    onClose={() => setShowBulkDiscardConfirm(false)}
+                    onConfirm={confirmBulkDiscard}
+                    title="Descartar Notícias Pendentes"
+                    description={`Tem a certeza que deseja descartar ${selectedPendingIds.length} notícias pendentes? Esta acção não pode ser desfeita.`}
+                    confirmLabel="Descartar Todas"
+                    variant="destructive"
+                />
             </div>
         </div>
+    );
+}
+
+export default function AdminNoticiasPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center py-20"><Spinner className="h-8 w-8" /></div>}>
+            <AdminNoticiasContent />
+        </Suspense>
     );
 }

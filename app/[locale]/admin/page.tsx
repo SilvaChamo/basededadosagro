@@ -2,20 +2,28 @@
 
 import { useEffect, useState } from "react";
 import { getCachedDashboardStats, fetchAndCacheDashboardStats } from "@/lib/adminDashboardCache";
+import { supabase } from "@/lib/supabaseClient";
 import {
-    FileText,
-    BarChart3,
-    Building2,
-    Users,
-    ShoppingCart,
-    ArrowRight,
-    TrendingUp,
+    Activity,
+    MessageSquare,
+    Plus,
+    Video,
     Clock,
-    ChevronRight,
-    Mail
+    TrendingUp,
+    Newspaper,
+    Images,
+    Bot,
 } from "lucide-react";
 import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
+
+interface RecentItem {
+    id: string;
+    name: string;
+    href: string;
+    type: string;
+    created_at: string;
+}
 
 export default function AdminDashboardPage() {
     const [stats, setStats] = useState({
@@ -26,6 +34,11 @@ export default function AdminDashboardPage() {
         statsRows: 0
     });
     const [loading, setLoading] = useState(true);
+    const [userName, setUserName] = useState("");
+    const [pendingCount, setPendingCount] = useState(0);
+    const [weeklyArticlesCount, setWeeklyArticlesCount] = useState(0);
+    const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
+    const [recentLoading, setRecentLoading] = useState(true);
 
     useEffect(() => {
         // Dados prontos em cache (ex: pré-carregados no login) aparecem de imediato,
@@ -34,127 +47,201 @@ export default function AdminDashboardPage() {
         if (cached) {
             setStats(cached);
             setLoading(false);
-            return;
+        } else {
+            fetchAndCacheDashboardStats().then((data) => {
+                setStats(data);
+                setLoading(false);
+            });
         }
 
-        fetchAndCacheDashboardStats().then((data) => {
-            setStats(data);
-            setLoading(false);
-        });
+        async function fetchUserAndPending() {
+            // As 3 chamadas abaixo não dependem umas das outras (só a busca do
+            // nome tem uma dependência interna: precisa do user.id antes do
+            // profile) — corriam em sequência sem motivo, o que soma 3-4x o
+            // tempo de round-trip ao Supabase nesta única função.
+            const sinceOneWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+            const [userName, pendingResult, weeklyResult] = await Promise.all([
+                (async () => {
+                    const { data } = await supabase.auth.getUser();
+                    if (!data.user) return "";
+                    const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', data.user.id).single();
+                    return profile?.full_name || data.user.email || "";
+                })(),
+                supabase.from('articles_pending').select('*', { count: 'exact', head: true }),
+                supabase.from('articles').select('*', { count: 'exact', head: true }).gte('created_at', sinceOneWeek),
+            ]);
+
+            setUserName(userName);
+            setPendingCount(pendingResult.count || 0);
+            setWeeklyArticlesCount(weeklyResult.count || 0);
+        }
+
+        fetchUserAndPending();
+
+        async function fetchRecent() {
+            // Busca mais do que o necessário por tabela — algumas linhas não têm
+            // nome preenchido e são descartadas, sem isso podíamos ficar com
+            // menos de 3 itens depois do filtro.
+            const [companiesRecent, productsRecent, professionalsRecent, articlesRecent] = await Promise.all([
+                supabase.from('companies').select('id, name, created_at').order('created_at', { ascending: false }).limit(15),
+                supabase.from('products').select('id, name, created_at').order('created_at', { ascending: false }).limit(15),
+                supabase.from('professionals').select('id, name, created_at').order('created_at', { ascending: false }).limit(15),
+                supabase.from('articles').select('id, title, created_at').order('created_at', { ascending: false }).limit(15),
+            ]);
+
+            const toItems = (rows: any[] | null, type: string, base: string, field = "name"): RecentItem[] =>
+                (rows || [])
+                    .filter((r) => r[field] && String(r[field]).trim())
+                    .map((r) => ({ id: r.id, name: r[field], type, created_at: r.created_at, href: `${base}/${r.id}` }));
+
+            const merged = [
+                ...toItems(companiesRecent.data, "Empresa", "/admin/empresas"),
+                ...toItems(productsRecent.data, "Produto", "/admin/produtos"),
+                ...toItems(professionalsRecent.data, "Profissional", "/admin/profissionais"),
+                ...toItems(articlesRecent.data, "Notícia", "/admin/noticias", "title"),
+            ]
+                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                .slice(0, 3);
+
+            setRecentItems(merged);
+            setRecentLoading(false);
+        }
+
+        fetchRecent();
     }, []);
 
-    const cards = [
-        { name: "Artigos Publicados", value: stats.articles, icon: FileText, color: "text-blue-600", bg: "bg-blue-50", href: "/admin/artigos" },
-        { name: "Empresas Registadas", value: stats.companies, icon: Building2, color: "text-emerald-600", bg: "bg-emerald-50", href: "/admin/empresas" },
-        { name: "Profissionais no Sistema", value: stats.professionals, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50", href: "/admin/profissionais" },
-        { name: "Produtos", value: stats.products, icon: ShoppingCart, color: "text-orange-600", bg: "bg-orange-50", href: "/admin/produtos" },
+    const tiles = [
+        { label: "Ver Notícias", value: loading ? "..." : stats.articles, valueColor: "text-slate-800", icon: Newspaper, color: "text-blue-600", bg: "bg-blue-50", href: "/admin/noticias" },
+        { label: "Nova Notícia", value: loading ? "..." : weeklyArticlesCount, valueColor: "text-emerald-600", icon: Plus, color: "text-emerald-600", bg: "bg-emerald-50", href: "/admin/noticias" },
+        { label: "Galeria", value: "→", valueColor: "text-slate-800", icon: Images, color: "text-purple-600", bg: "bg-purple-50", href: "/admin/galeria" },
+        { label: "Pendentes", value: loading ? "..." : pendingCount, valueColor: "text-slate-800", icon: Bot, color: "text-orange-600", bg: "bg-orange-50", href: "/admin/noticias?tab=Pendentes" },
     ];
 
+    const formatDateTime = (value: string) => {
+        const date = new Date(value);
+        const day = date.toLocaleDateString('pt-PT', { day: 'numeric', month: 'long' });
+        const time = date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+        return `${day} às ${time}`;
+    };
+
     return (
-        <div className="space-y-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">Gestão de Conteúdos</h1>
-                    <p className="text-slate-500 font-medium">Bem-vindo ao painel administrativo. Monitorize e actualize os dados do site em tempo real.</p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Link
-                        href="/admin/mensagens"
-                        className="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-[#f97316] transition-all shadow-sm active:scale-95 shrink-0"
-                    >
-                        <Mail className="w-3.5 h-3.5" />
-                        Nova Mensagem
-                    </Link>
-                    <LogoutButton variant="outline" className="h-[36px] px-4 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-red-600 border-slate-200" showIcon={true} label="Sair" />
-                </div>
-            </div>
-
-            {/* Quick Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {cards.map((card) => (
-                    <Link
-                        key={card.name}
-                        href={card.href}
-                        className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between group hover:shadow-md transition-all cursor-pointer"
-                    >
-                        <div>
-                            <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">{card.name}</p>
-                            <h3 className="text-2xl font-black text-slate-800">{loading ? "..." : card.value}</h3>
-                        </div>
-                        <div className={`size-12 rounded-xl ${card.bg} ${card.color} flex items-center justify-center transition-transform group-hover:scale-110`}>
-                            <card.icon className="w-6 h-6" />
-                        </div>
-                    </Link>
-                ))}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                {/* Recent Activity / Quick Actions */}
-                <div className="lg:col-span-8 space-y-6">
-                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                        <div className="p-6 border-b border-slate-50 flex items-center justify-between">
-                            <h2 className="font-black text-sm uppercase tracking-widest text-slate-800 flex items-center gap-2">
-                                <TrendingUp className="w-4 h-4 text-emerald-500" />
-                                Resumo de Actividade
-                            </h2>
-                            <span className="text-[10px] font-black uppercase text-slate-400">Total de Dados: {stats.statsRows} linhas</span>
-                        </div>
-                        <div className="p-10 text-center">
-                            <div className="max-w-xs mx-auto space-y-4">
-                                <div className="size-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto">
-                                    <BarChart3 className="w-10 h-10 text-emerald-500" />
-                                </div>
-                                <h4 className="font-extrabold text-slate-800">Pronto para novos dados?</h4>
-                                <p className="text-xs text-slate-500 leading-relaxed font-medium">As estatísticas agrícolas são a base do nosso site. Comece por adicionar novos indicadores regionais.</p>
-                                <Link
-                                    href="/admin/estatisticas"
-                                    className="inline-flex items-center gap-2 bg-[#f97316] text-white px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-orange-500/20"
-                                >
-                                    Adicionar Estatística
-                                    <ArrowRight className="w-4 h-4" />
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Sidebar Info */}
-                <div className="lg:col-span-4 space-y-6">
-                    <div className="bg-slate-900 rounded-2xl p-8 text-white relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-10">
-                            <Clock className="w-24 h-24" />
-                        </div>
-                        <h3 className="text-xl font-black mb-4 relative z-10">Dica de Gestão</h3>
-                        <p className="text-sm text-slate-400 font-medium leading-relaxed relative z-10 mb-6">
-                            Mantenha o empresas de empresas actualizado para garantir que os utilizadores encontram sempre informações precisas sobre parceiros e fornecedores.
+        <div className="space-y-5">
+            {/* Bem-vindo - título e Sair na mesma linha */}
+            <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm p-6">
+                <div className="flex items-start justify-between gap-4">
+                    <div>
+                        <h2 className="text-xl font-black text-slate-900 leading-tight">Bem-vindo ao painel de administração</h2>
+                        <p className="text-slate-500 font-medium text-sm leading-tight mt-0">
+                            Olá{userName ? `, ${userName}` : ""}. Este é o seu painel de gestão.
                         </p>
+                    </div>
+                    <LogoutButton variant="outline" className="h-[36px] px-4 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-red-600 border-slate-200 shrink-0" showIcon={true} label="Sair" />
+                </div>
+
+                <div className="border-t border-slate-100 mt-6 pt-6 grid grid-cols-1 lg:grid-cols-4 gap-5">
+                    <div>
+                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-800 mb-3">Introdução</h3>
+                        <p className="text-sm text-slate-500 mb-3">Veja todas as notícias ou</p>
                         <Link
-                            href="/admin/empresas"
-                            className="text-xs font-black uppercase tracking-widest text-emerald-400 hover:text-white transition-colors flex items-center gap-2 group"
+                            href="/admin/noticias"
+                            className="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-3 rounded-[8px] text-[10px] font-black uppercase tracking-widest hover:bg-[#f97316] transition-all shadow-sm active:scale-95"
                         >
-                            Ver Empresas
-                            <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                            Adicionar Nova Notícia
                         </Link>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-                        <h3 className="font-black text-xs uppercase tracking-widest text-slate-400 mb-4">Estado do Sistema</h3>
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between text-xs font-bold">
-                                <span className="text-slate-500">Ligação Supabase</span>
-                                <span className="text-emerald-500 flex items-center gap-1.5">
-                                    <div className="size-2 bg-emerald-500 rounded-full animate-pulse" />
-                                    Activo
-                                </span>
+                    <div>
+                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-800 mb-3">Próximos passos</h3>
+                        <div className="space-y-2.5">
+                            <Link href="/" className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-emerald-600 transition-colors">
+                                <Activity className="w-4 h-4 text-slate-400" />
+                                Ver o seu site
+                            </Link>
+                            <Link href="/admin/mensagens" className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-emerald-600 transition-colors">
+                                <MessageSquare className="w-4 h-4 text-slate-400" />
+                                Gerir mensagens
+                            </Link>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-800 mb-3">Mais acções</h3>
+                        <div className="space-y-2.5">
+                            <Link href="/admin/galeria" className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-emerald-600 transition-colors">
+                                <Plus className="w-4 h-4 text-slate-400" />
+                                Adicionar multimédia
+                            </Link>
+                            <Link href="/admin/galeria?tipo=videos" className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-emerald-600 transition-colors">
+                                <Video className="w-4 h-4 text-slate-400" />
+                                Gerir vídeos
+                            </Link>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-800 mb-3">
+                            <Clock className="w-3.5 h-3.5 text-emerald-500" />
+                            Resumo do Site
+                        </h3>
+                        <div className="space-y-2.5">
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-slate-500 font-medium">Empresas</span>
+                                <span className="font-black text-slate-800">{loading ? "..." : stats.companies}</span>
                             </div>
-                            <div className="flex items-center justify-between text-xs font-bold">
-                                <span className="text-slate-500">API de Conteúdos</span>
-                                <span className="text-emerald-500 flex items-center gap-1.5">
-                                    <div className="size-2 bg-emerald-500 rounded-full" />
-                                    Online
-                                </span>
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-slate-500 font-medium">Profissionais</span>
+                                <span className="font-black text-slate-800">{loading ? "..." : stats.professionals}</span>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Actividades Recentes + Acções Rápidas */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                <div className="lg:col-span-5">
+                    <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm overflow-hidden h-full">
+                        <div className="p-6 border-b border-slate-50">
+                            <h2 className="font-black text-sm uppercase tracking-widest text-slate-800 flex items-center gap-2">
+                                <TrendingUp className="w-4 h-4 text-emerald-500" />
+                                Actividades Recentes
+                            </h2>
+                        </div>
+                        {recentLoading ? (
+                            <div className="p-10 text-center text-slate-400 text-xs font-bold italic">A carregar...</div>
+                        ) : recentItems.length === 0 ? (
+                            <div className="p-10 text-center text-slate-400 text-xs font-bold italic">Sem actividade recente.</div>
+                        ) : (
+                            <div className="px-6 divide-y divide-slate-100">
+                                {recentItems.map((item) => (
+                                    <div key={`${item.type}-${item.id}`} className="py-3">
+                                        <p className="text-xs text-slate-400 font-medium mb-1">{formatDateTime(item.created_at)}</p>
+                                        <Link href={item.href} className="text-sm font-bold text-blue-600 hover:underline">
+                                            {item.name}
+                                        </Link>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="lg:col-span-7">
+                    <div className="grid grid-cols-2 gap-5">
+                        {tiles.map((tile) => (
+                            <Link
+                                key={tile.label}
+                                href={tile.href}
+                                className="bg-white rounded-[10px] border border-slate-100 shadow-sm px-6 py-4 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md transition-all group"
+                            >
+                                <div className={`size-12 rounded-full ${tile.bg} ${tile.color} flex items-center justify-center transition-transform group-hover:scale-110`}>
+                                    <tile.icon className="w-6 h-6" />
+                                </div>
+                                <p className={`text-2xl font-black ${tile.valueColor}`}>{tile.value}</p>
+                                <p className="text-xs font-black uppercase tracking-widest text-slate-800">{tile.label}</p>
+                            </Link>
+                        ))}
                     </div>
                 </div>
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Plus, LayoutGrid, List, Search, FileText, Scale, Calendar, Link as LinkIcon, Pencil, Trash2, Layers, RotateCcw, Archive, MoreVertical } from "lucide-react";
@@ -15,13 +15,21 @@ import {
 } from "@/components/ui/popover";
 import { DocumentCard } from "@/components/admin/DocumentCard";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
 
-export default function AdminDocumentosPage() {
+function AdminDocumentosContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const tabParam = searchParams.get('tab');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-    const [activeTab, setActiveTab] = useState('todos');
+    const [activeTab, setActiveTab] = useState(tabParam || 'todos');
+
+    // O menu lateral (grupo "Documentos") liga para /admin/documentos?tab=X —
+    // mantém o separador sincronizado se o parâmetro mudar.
+    useEffect(() => {
+        setActiveTab(tabParam || 'todos');
+    }, [tabParam]);
     const [articles, setArticles] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
@@ -543,5 +551,13 @@ export default function AdminDocumentosPage() {
                 />
             </>
         </div >
+    );
+}
+
+export default function AdminDocumentosPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center py-20"><Spinner className="h-8 w-8" /></div>}>
+            <AdminDocumentosContent />
+        </Suspense>
     );
 }

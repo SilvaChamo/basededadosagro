@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, memo } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useState, useEffect, useCallback, memo, Suspense } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/client";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { syncManager } from "@/lib/syncManager";
 import { toast } from "sonner";
 import {
-    Wifi, WifiOff, RefreshCw, Loader2,
+    Wifi, WifiOff, RefreshCw,
     LayoutDashboard,
     Building2,
     MessageSquare,
@@ -18,13 +17,13 @@ import {
     Target,
     Grid2X2,
     Users,
-    LogOut,
     PanelLeftClose,
     PanelLeftOpen,
     Menu,
     ShoppingCart,
     Contact,
     Mail,
+    MailPlus,
     GraduationCap,
     LandPlot,
     Database,
@@ -40,6 +39,15 @@ import {
     FileEdit,
     Archive,
     Trash2,
+    Images,
+    Image,
+    Video,
+    FileType,
+    Music,
+    Layers,
+    BookOpen,
+    Scale,
+    UserPlus,
 } from "lucide-react";
 
 interface AdminShellProps {
@@ -51,37 +59,56 @@ interface AdminShellProps {
     roleLabel?: string;
 }
 
-export function AdminShell({ children, userEmail, restricted = false, roleLabel = "Administrador" }: AdminShellProps) {
+export function AdminShell(props: AdminShellProps) {
+    // useSearchParams() exige um limite de Suspense — sem isto o Next recusa-se
+    // a compilar (a comparação de item activo do submenu precisa da query string).
+    return (
+        <Suspense fallback={null}>
+            <AdminShellInner {...props} />
+        </Suspense>
+    );
+}
+
+function AdminShellInner({ children, userEmail, restricted = false, roleLabel = "Administrador" }: AdminShellProps) {
     const pathname = usePathname();
+    // usePathname() devolve o caminho com o prefixo de idioma (ex.: "/pt/admin/galeria"),
+    // mas os href do menu não o têm — sem tirar o prefixo, nenhuma comparação batia certo.
+    const pathnameWithoutLocale = pathname.replace(/^\/(pt|en)(?=\/|$)/, "") || "/";
+    const searchParams = useSearchParams();
+    const currentSearch = searchParams.toString();
     const router = useRouter();
-    const supabase = createClient();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { isOnline } = useNetworkStatus();
     const [isSyncing, setIsSyncing] = useState(false);
-    const [isSigningOut, setIsSigningOut] = useState(false);
     const [pendingCount, setPendingCount] = useState(0);
-    const [openSubmenus, setOpenSubmenus] = useState<string[]>(['gestao']);
+    const [openSubmenus, setOpenSubmenus] = useState<string[]>([]);
 
-    const toggleSubmenu = useCallback((menu: string) => {
-        setOpenSubmenus(prev =>
-            prev.includes(menu) ? [] : [menu]
-        );
+    // router.push() só actualiza usePathname()/useSearchParams() quando a
+    // navegação real termina (pode haver um atraso visível a ir buscar a
+    // rota) — por isso o item clicado marca-se aqui como activo de imediato,
+    // sem esperar por isso. Limpa-se sozinho assim que a navegação real
+    // chegar ao destino (o efeito abaixo reage à mudança de pathname/query).
+    const [optimisticHref, setOptimisticHref] = useState<string | null>(null);
+
+    useEffect(() => {
+        setOptimisticHref(null);
+    }, [pathnameWithoutLocale, currentSearch]);
+
+    // Clicar no cabeçalho de um grupo abre-o e navega logo para o seu primeiro
+    // submenu (em vez de só expandir/colapsar) — mesmo comportamento em todos
+    // os grupos da barra lateral.
+    const handleGroupClick = useCallback((menu: string, firstHref: string) => {
+        setOpenSubmenus([menu]);
+        setOptimisticHref(firstHref);
+        router.push(firstHref);
+    }, [router]);
+
+    // O chevron é um alvo de clique à parte: só expande/colapsa o grupo,
+    // sem navegar — permite fechar um grupo já aberto sem sair da página actual.
+    const toggleSubmenuOnly = useCallback((menu: string) => {
+        setOpenSubmenus(prev => prev.includes(menu) ? [] : [menu]);
     }, []);
-
-    const handleSignOut = useCallback(async () => {
-        setIsSigningOut(true);
-        try {
-            await supabase.auth.signOut();
-            router.refresh();
-            router.push('/auth/login');
-            toast.success("Sessão terminada.");
-        } catch (error) {
-            toast.error("Erro ao sair.");
-        } finally {
-            setIsSigningOut(false);
-        }
-    }, [supabase.auth, router]);
 
     useEffect(() => {
         const checkQueue = () => {
@@ -96,10 +123,10 @@ export function AdminShell({ children, userEmail, restricted = false, roleLabel 
 
     // Auto-collapse sidebar on Presentation Editor
     useEffect(() => {
-        if (pathname.startsWith('/admin/apresentacoes/editor')) {
+        if (pathnameWithoutLocale.startsWith('/admin/apresentacoes/editor')) {
             setIsCollapsed(true);
         }
-    }, [pathname]);
+    }, [pathnameWithoutLocale]);
 
     const handleSync = useCallback(async () => {
         if (!isOnline) {
@@ -117,10 +144,34 @@ export function AdminShell({ children, userEmail, restricted = false, roleLabel 
     }, [isOnline]);
 
     const isActive = (path: string, exact?: boolean) => {
-        if (exact) return pathname === path;
-        if (path === "/admin" && pathname === "/admin") return true;
-        if (path !== "/admin" && pathname.startsWith(path)) return true;
+        // Ver optimisticHref acima: enquanto a navegação real não chega,
+        // o item que acabou de ser clicado é que manda no estado activo.
+        if (optimisticHref !== null) return path === optimisticHref;
+
+        // Vários submenus (Notícias, Documentos, Multimédia...) usam a mesma
+        // rota base com uma query string diferente por item (?tab=Guia,
+        // ?tipo=videos...) — usePathname() não inclui a query, por isso sem
+        // isto todos os itens do mesmo grupo comparavam contra o mesmo path
+        // e só o link "exact" (sem query) ficava sempre activo.
+        const [base, query] = path.split('?');
+
+        if (query) {
+            if (pathnameWithoutLocale !== base) return false;
+            const params = new URLSearchParams(query);
+            return Array.from(params.entries()).every(([key, value]) => searchParams.get(key) === value);
+        }
+
+        if (exact) return pathnameWithoutLocale === base && currentSearch === '';
+        if (base === "/admin" && pathnameWithoutLocale === "/admin") return true;
+        if (base !== "/admin" && pathnameWithoutLocale.startsWith(base)) return true;
         return false;
+    };
+
+    // Destaca o cabeçalho do grupo a laranja quando a página actual pertence
+    // a esse grupo — independentemente de qual dos seus submenus está activo.
+    const isGroupActive = (prefixes: string[]) => {
+        const current = optimisticHref !== null ? optimisticHref.split('?')[0] : pathnameWithoutLocale;
+        return prefixes.some((p) => current === p || current.startsWith(p + "/"));
     };
 
     const LinkItem = memo(({ href, icon: Icon, label, isSub, isHeader, exact }: { href: string; icon: any; label: string; isSub?: boolean; isHeader?: boolean; exact?: boolean }) => {
@@ -136,14 +187,20 @@ export function AdminShell({ children, userEmail, restricted = false, roleLabel 
         return (
             <Link
                 href={href}
-                className={`relative flex items-center gap-3 py-2 text-[13px] transition-all group whitespace-nowrap ${active ? (isHeader ? "text-orange-600 bg-orange-50" : "text-orange-600 bg-orange-50") : (isHeader ? "text-slate-500 hover:text-orange-500 hover:bg-slate-50" : "text-slate-700 hover:text-slate-900 hover:bg-slate-100")} ${isHeader ? "font-black uppercase tracking-[0.1em]" : "font-medium"} ${isCollapsed ? "justify-center px-2" : isSub ? "pl-11 pr-6" : "px-6"}`}
+                className={`relative flex items-center gap-3 py-1.5 transition-all duration-300 ease-out group whitespace-nowrap ${isHeader ? "text-[15px]" : "text-[14px]"} ${active ? (isHeader ? "text-orange-600 bg-orange-50" : "text-orange-600") : (isHeader ? "text-slate-500 hover:text-orange-500 hover:bg-slate-50" : "text-slate-700 hover:text-orange-600")} ${isHeader ? "font-semibold hover:translate-x-1.5" : "font-medium"} ${isCollapsed ? "justify-center px-2" : isSub ? "pl-11 pr-6" : "px-6"}`}
                 title={isCollapsed ? label : undefined}
             >
                 {active && (
-                    <div className={`absolute top-0 bottom-0 bg-orange-500 transition-all ${isSub && !isCollapsed ? "left-[30px] w-[2px] z-10" : "right-0 w-[3px]"}`} />
+                    isSub && !isCollapsed ? (
+                        // Sobrepõe-se à linha cinza do grupo (left-[30px]), mas só com a
+                        // altura do texto do submenu — não a linha inteira do item.
+                        <div className="absolute left-[30px] top-1/2 -translate-y-1/2 h-4 w-[2px] bg-orange-500 z-10" />
+                    ) : (
+                        <div className="absolute top-0 bottom-0 right-0 w-[3px] bg-orange-500 transition-all" />
+                    )
                 )}
                 <Icon
-                    className={`w-5 h-5 min-w-[20px] transition-colors ${active ? "text-orange-600" : "text-slate-500 group-hover:text-orange-600"}`}
+                    className={`${isHeader ? "w-6 h-6 min-w-[24px]" : "w-5 h-5 min-w-[20px]"} transition-colors ${active ? "text-orange-600" : "text-slate-500 group-hover:text-orange-600"}`}
                 />
                 {!isCollapsed && (
                     <div className="flex items-center gap-2 flex-1">
@@ -217,6 +274,17 @@ export function AdminShell({ children, userEmail, restricted = false, roleLabel 
                                 <LinkItem href="/admin/central-noticias/rascunho" icon={FileEdit} label="Rascunho" isSub />
                                 <LinkItem href="/admin/central-noticias/arquivadas" icon={Archive} label="Arquivadas" isSub />
                                 <LinkItem href="/admin/central-noticias/lixo" icon={Trash2} label="Eliminadas" isSub />
+
+                                <div className="my-2 border-b border-slate-100 mx-6"></div>
+
+                                {/* Mesma galeria 100% (mesma página /admin/galeria) do painel
+                                    de administrador — só o acesso é que é restrito ao grupo. */}
+                                <LinkItem href="/admin/galeria" icon={Images} label="Multimédia" isHeader />
+                                <LinkItem href="/admin/galeria" icon={Images} label="Galeria" isSub exact />
+                                <LinkItem href="/admin/galeria?tipo=videos" icon={Video} label="Vídeos" isSub />
+                                <LinkItem href="/admin/galeria?tipo=documentos" icon={FileText} label="Documentos" isSub />
+                                <LinkItem href="/admin/galeria?tipo=pdf" icon={FileType} label="PDF" isSub />
+                                <LinkItem href="/admin/galeria?tipo=audio" icon={Music} label="Áudio" isSub />
                             </div>
                         ) : (
                         <>
@@ -230,16 +298,23 @@ export function AdminShell({ children, userEmail, restricted = false, roleLabel 
                         {/* GROUP: GESTÃO */}
                         <div className="flex flex-col gap-0.5">
                             {!isCollapsed && (
-                                <button
-                                    onClick={() => toggleSubmenu('gestao')}
-                                    className="flex items-center justify-between px-6 py-2 text-[13px] font-black uppercase text-slate-500 hover:text-orange-500 transition-colors group w-full text-left tracking-[0.1em]"
-                                >
-                                    <div className="flex items-center gap-2.5">
-                                        <Briefcase className="w-5 h-5" />
+                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/empresas', '/admin/lojas', '/admin/produtos', '/admin/propriedades', '/admin/profissionais', '/admin/central-noticias', '/admin/formacao', '/admin/apresentacoes']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
+                                    <button
+                                        onClick={() => handleGroupClick('gestao', '/admin/empresas')}
+                                        className="flex items-center gap-2.5 flex-1 min-w-0 pl-6 pr-2 py-1.5 text-[15px] font-semibold text-left transition-all duration-300 ease-out hover:translate-x-1.5 hover:text-orange-500"
+                                    >
+                                        <Briefcase className="w-6 h-6 shrink-0" />
                                         <span>Gestão</span>
-                                    </div>
-                                    <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('gestao') ? 'rotate-90' : ''}`} />
-                                </button>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleSubmenuOnly('gestao')}
+                                        className="pl-2 pr-6 py-1.5 hover:text-orange-500 transition-colors"
+                                        title={openSubmenus.includes('gestao') ? "Colapsar" : "Expandir"}
+                                    >
+                                        <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('gestao') ? 'rotate-90' : ''}`} />
+                                    </button>
+                                </div>
                             )}
                             {openSubmenus.includes('gestao') && (
                                 <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
@@ -249,12 +324,117 @@ export function AdminShell({ children, userEmail, restricted = false, roleLabel 
                                     <LinkItem href="/admin/produtos" icon={ShoppingCart} label="Produtos" isSub />
                                     <LinkItem href="/admin/propriedades" icon={LandPlot} label="Propriedades" isSub />
                                     <LinkItem href="/admin/profissionais" icon={Users} label="Profissionais" isSub />
-                                    <LinkItem href="/admin/artigos" icon={Newspaper} label="Artigos" isSub />
-                                    <LinkItem href="/admin/noticias" icon={FileText} label="Notícias" isSub />
                                     <LinkItem href="/admin/central-noticias" icon={Rss} label="Central de Notícias" isSub />
-                                    <LinkItem href="/admin/documentos" icon={FileText} label="Documentos" isSub />
                                     <LinkItem href="/admin/formacao" icon={GraduationCap} label="Formação" isSub />
                                     <LinkItem href="/admin/apresentacoes" icon={Presentation} label="Apresentações" isSub />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className={`my-2 border-b border-slate-100 ${isCollapsed ? "mx-2" : "mx-6"}`}></div>
+
+                        {/* GROUP: NOTÍCIAS */}
+                        <div className="flex flex-col gap-0.5">
+                            {!isCollapsed && (
+                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/noticias']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
+                                    <button
+                                        onClick={() => handleGroupClick('noticias', '/admin/noticias')}
+                                        className="flex items-center gap-2.5 flex-1 min-w-0 pl-6 pr-2 py-1.5 text-[15px] font-semibold text-left transition-all duration-300 ease-out hover:translate-x-1.5 hover:text-orange-500"
+                                    >
+                                        <Newspaper className="w-6 h-6 shrink-0" />
+                                        <span>Notícias</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleSubmenuOnly('noticias')}
+                                        className="pl-2 pr-6 py-1.5 hover:text-orange-500 transition-colors"
+                                        title={openSubmenus.includes('noticias') ? "Colapsar" : "Expandir"}
+                                    >
+                                        <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('noticias') ? 'rotate-90' : ''}`} />
+                                    </button>
+                                </div>
+                            )}
+                            {openSubmenus.includes('noticias') && (
+                                <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
+                                    {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-2 w-[1.5px] bg-slate-100" />}
+                                    <LinkItem href="/admin/noticias" icon={Newspaper} label="Todas as Notícias" isSub exact />
+                                    <LinkItem href="/admin/noticias?tab=Guia" icon={GraduationCap} label="Guias" isSub />
+                                    <LinkItem href="/admin/noticias?tab=Dicas" icon={Tag} label="Dicas" isSub />
+                                    <LinkItem href="/admin/noticias?tab=Internacional" icon={Rss} label="Internacional" isSub />
+                                    <LinkItem href="/admin/noticias?tab=Pendentes" icon={Archive} label="Pendentes" isSub />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className={`my-2 border-b border-slate-100 ${isCollapsed ? "mx-2" : "mx-6"}`}></div>
+
+                        {/* GROUP: DOCUMENTOS (funde Artigos científicos + Documentos oficiais —
+                            ambos vivem na mesma tabela `articles`, só o `type` muda) */}
+                        <div className="flex flex-col gap-0.5">
+                            {!isCollapsed && (
+                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/documentos', '/admin/artigos']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
+                                    <button
+                                        onClick={() => handleGroupClick('documentos', '/admin/documentos')}
+                                        className="flex items-center gap-2.5 flex-1 min-w-0 pl-6 pr-2 py-1.5 text-[15px] font-semibold text-left transition-all duration-300 ease-out hover:translate-x-1.5 hover:text-orange-500"
+                                    >
+                                        <FileText className="w-6 h-6 shrink-0" />
+                                        <span>Documentos</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleSubmenuOnly('documentos')}
+                                        className="pl-2 pr-6 py-1.5 hover:text-orange-500 transition-colors"
+                                        title={openSubmenus.includes('documentos') ? "Colapsar" : "Expandir"}
+                                    >
+                                        <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('documentos') ? 'rotate-90' : ''}`} />
+                                    </button>
+                                </div>
+                            )}
+                            {openSubmenus.includes('documentos') && (
+                                <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
+                                    {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-2 w-[1.5px] bg-slate-100" />}
+                                    <LinkItem href="/admin/documentos" icon={FileText} label="Todos os Documentos" isSub exact />
+                                    <LinkItem href="/admin/documentos?tab=relatorios" icon={FileText} label="Relatórios" isSub />
+                                    <LinkItem href="/admin/documentos?tab=legislacao" icon={Scale} label="Leis e Regulamentos" isSub />
+                                    <LinkItem href="/admin/documentos?tab=outros" icon={Layers} label="Outros Documentos" isSub />
+                                    <LinkItem href="/admin/artigos?tab=Artigos" icon={Newspaper} label="Artigos Científicos" isSub />
+                                    <LinkItem href="/admin/artigos?tab=Dissertações" icon={GraduationCap} label="Dissertações" isSub />
+                                    <LinkItem href="/admin/artigos?tab=Livros" icon={BookOpen} label="Livros & Manuais" isSub />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className={`my-2 border-b border-slate-100 ${isCollapsed ? "mx-2" : "mx-6"}`}></div>
+
+                        {/* GROUP: MULTIMÉDIA */}
+                        <div className="flex flex-col gap-0.5">
+                            {!isCollapsed && (
+                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/galeria']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
+                                    <button
+                                        onClick={() => handleGroupClick('multimedia', '/admin/galeria')}
+                                        className="flex items-center gap-2.5 flex-1 min-w-0 pl-6 pr-2 py-1.5 text-[15px] font-semibold text-left transition-all duration-300 ease-out hover:translate-x-1.5 hover:text-orange-500"
+                                    >
+                                        <Images className="w-6 h-6 shrink-0" />
+                                        <span>Multimédia</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleSubmenuOnly('multimedia')}
+                                        className="pl-2 pr-6 py-1.5 hover:text-orange-500 transition-colors"
+                                        title={openSubmenus.includes('multimedia') ? "Colapsar" : "Expandir"}
+                                    >
+                                        <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('multimedia') ? 'rotate-90' : ''}`} />
+                                    </button>
+                                </div>
+                            )}
+                            {openSubmenus.includes('multimedia') && (
+                                <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
+                                    {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-2 w-[1.5px] bg-slate-100" />}
+                                    <LinkItem href="/admin/galeria" icon={Images} label="Galeria" isSub exact />
+                                    <LinkItem href="/admin/galeria?tipo=videos" icon={Video} label="Vídeos" isSub />
+                                    <LinkItem href="/admin/galeria?tipo=documentos" icon={FileText} label="Documentos" isSub />
+                                    <LinkItem href="/admin/galeria?tipo=pdf" icon={FileType} label="PDF" isSub />
+                                    <LinkItem href="/admin/galeria?tipo=audio" icon={Music} label="Áudio" isSub />
                                 </div>
                             )}
                         </div>
@@ -264,16 +444,23 @@ export function AdminShell({ children, userEmail, restricted = false, roleLabel 
                         {/* GROUP: INTERAÇÕES */}
                         <div className="flex flex-col gap-0.5">
                             {!isCollapsed && (
-                                <button
-                                    onClick={() => toggleSubmenu('interactions')}
-                                    className="flex items-center justify-between px-6 py-2 text-[13px] font-black uppercase text-slate-500 hover:text-orange-500 transition-colors group w-full text-left tracking-[0.1em]"
-                                >
-                                    <div className="flex items-center gap-2.5">
-                                        <MessageSquare className="w-5 h-5" />
+                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/estatisticas', '/admin/indicadores', '/admin/mensagens', '/admin/contactos']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
+                                    <button
+                                        onClick={() => handleGroupClick('interactions', '/admin/estatisticas')}
+                                        className="flex items-center gap-2.5 flex-1 min-w-0 pl-6 pr-2 py-1.5 text-[15px] font-semibold text-left transition-all duration-300 ease-out hover:translate-x-1.5 hover:text-orange-500"
+                                    >
+                                        <MessageSquare className="w-6 h-6 shrink-0" />
                                         <span>Interações</span>
-                                    </div>
-                                    <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('interactions') ? 'rotate-90' : ''}`} />
-                                </button>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleSubmenuOnly('interactions')}
+                                        className="pl-2 pr-6 py-1.5 hover:text-orange-500 transition-colors"
+                                        title={openSubmenus.includes('interactions') ? "Colapsar" : "Expandir"}
+                                    >
+                                        <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('interactions') ? 'rotate-90' : ''}`} />
+                                    </button>
+                                </div>
                             )}
                             {openSubmenus.includes('interactions') && (
                                 <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
@@ -282,6 +469,7 @@ export function AdminShell({ children, userEmail, restricted = false, roleLabel 
                                     <LinkItem href="/admin/indicadores" icon={Target} label="Indicadores" isSub />
 
                                     {/* Mensagem Sub-items */}
+                                    <LinkItem href="/admin/mensagens" icon={MailPlus} label="Nova Mensagem" isSub />
                                     <LinkItem href="/admin/mensagens" icon={Mail} label="Email" isSub />
                                     <LinkItem href="/admin/mensagens/newsletter" icon={Newspaper} label="Newsletter" isSub />
                                     <LinkItem href="/admin/mensagens/subscritores" icon={Users} label="Subscritores" isSub />
@@ -297,16 +485,23 @@ export function AdminShell({ children, userEmail, restricted = false, roleLabel 
                         {/* GROUP: MÓDULOS ESPECIAIS */}
                         <div className="flex flex-col gap-0.5">
                             {!isCollapsed && (
-                                <button
-                                    onClick={() => toggleSubmenu('modules')}
-                                    className="flex items-center justify-between px-6 py-2 text-[13px] font-black uppercase text-slate-500 hover:text-orange-500 transition-colors group w-full text-left tracking-[0.1em]"
-                                >
-                                    <div className="flex items-center gap-2.5">
-                                        <Boxes className="w-5 h-5" />
+                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/podcast', '/admin/actividades', '/admin/servicos']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
+                                    <button
+                                        onClick={() => handleGroupClick('modules', '/admin/podcast')}
+                                        className="flex items-center gap-2.5 flex-1 min-w-0 pl-6 pr-2 py-1.5 text-[15px] font-semibold text-left transition-all duration-300 ease-out hover:translate-x-1.5 hover:text-orange-500"
+                                    >
+                                        <Boxes className="w-6 h-6 shrink-0" />
                                         <span>Módulos</span>
-                                    </div>
-                                    <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('modules') ? 'rotate-90' : ''}`} />
-                                </button>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleSubmenuOnly('modules')}
+                                        className="pl-2 pr-6 py-1.5 hover:text-orange-500 transition-colors"
+                                        title={openSubmenus.includes('modules') ? "Colapsar" : "Expandir"}
+                                    >
+                                        <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('modules') ? 'rotate-90' : ''}`} />
+                                    </button>
+                                </div>
                             )}
                             {openSubmenus.includes('modules') && (
                                 <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
@@ -320,24 +515,63 @@ export function AdminShell({ children, userEmail, restricted = false, roleLabel 
 
                         <div className={`my-2 border-b border-slate-100 ${isCollapsed ? "mx-2" : "mx-6"}`}></div>
 
+                        {/* GROUP: UTILIZADORES (fora de Opções — submenu ao estilo do
+                            menu "Utilizadores" do WordPress: lista + adicionar novo) */}
+                        <div className="flex flex-col gap-0.5">
+                            {!isCollapsed && (
+                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/utilizadores']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
+                                    <button
+                                        onClick={() => handleGroupClick('utilizadores', '/admin/utilizadores')}
+                                        className="flex items-center gap-2.5 flex-1 min-w-0 pl-6 pr-2 py-1.5 text-[15px] font-semibold text-left transition-all duration-300 ease-out hover:translate-x-1.5 hover:text-orange-500"
+                                    >
+                                        <Users className="w-6 h-6 shrink-0" />
+                                        <span>Utilizadores</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleSubmenuOnly('utilizadores')}
+                                        className="pl-2 pr-6 py-1.5 hover:text-orange-500 transition-colors"
+                                        title={openSubmenus.includes('utilizadores') ? "Colapsar" : "Expandir"}
+                                    >
+                                        <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('utilizadores') ? 'rotate-90' : ''}`} />
+                                    </button>
+                                </div>
+                            )}
+                            {openSubmenus.includes('utilizadores') && (
+                                <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
+                                    {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-2 w-[1.5px] bg-slate-100" />}
+                                    <LinkItem href="/admin/utilizadores" icon={Users} label="Todos os Utilizadores" isSub exact />
+                                    <LinkItem href="/admin/utilizadores/novo" icon={UserPlus} label="Adicionar Novo" isSub />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className={`my-2 border-b border-slate-100 ${isCollapsed ? "mx-2" : "mx-6"}`}></div>
+
                         {/* GROUP: OPÇÕES */}
                         <div className="flex flex-col gap-0.5 pb-6">
                             {!isCollapsed && (
-                                <button
-                                    onClick={() => toggleSubmenu('options')}
-                                    className="flex items-center justify-between px-6 py-2 text-[13px] font-black uppercase text-slate-500 hover:text-orange-500 transition-colors group w-full text-left tracking-[0.1em]"
-                                >
-                                    <div className="flex items-center gap-2.5">
-                                        <Settings className="w-5 h-5" />
+                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/configuracoes', '/admin/integracoes']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
+                                    <button
+                                        onClick={() => handleGroupClick('options', '/admin/configuracoes')}
+                                        className="flex items-center gap-2.5 flex-1 min-w-0 pl-6 pr-2 py-1.5 text-[15px] font-semibold text-left transition-all duration-300 ease-out hover:translate-x-1.5 hover:text-orange-500"
+                                    >
+                                        <Settings className="w-6 h-6 shrink-0" />
                                         <span>Opções</span>
-                                    </div>
-                                    <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('options') ? 'rotate-90' : ''}`} />
-                                </button>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleSubmenuOnly('options')}
+                                        className="pl-2 pr-6 py-1.5 hover:text-orange-500 transition-colors"
+                                        title={openSubmenus.includes('options') ? "Colapsar" : "Expandir"}
+                                    >
+                                        <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('options') ? 'rotate-90' : ''}`} />
+                                    </button>
+                                </div>
                             )}
                             {openSubmenus.includes('options') && (
                                 <div className="flex flex-col gap-1 animate-in slide-in-from-top-1 duration-200 relative">
                                     {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-1 w-[1.5px] bg-slate-100" />}
-                                    <LinkItem href="/admin/utilizadores" icon={Users} label="Utilizadores" isSub />
                                     <LinkItem href="/admin/configuracoes" icon={Target} label="Configurações" isSub />
                                     <LinkItem href="/admin/integracoes" icon={Share2} label="Integrações" isSub />
                                 </div>
@@ -365,22 +599,13 @@ export function AdminShell({ children, userEmail, restricted = false, roleLabel 
                                 AD
                             </div>
                         )}
-                        <button
-                            onClick={handleSignOut}
-                            disabled={isSigningOut}
-                            title={isCollapsed ? "Sair" : undefined}
-                            className={`mt-2 flex items-center gap-2.5 py-2 rounded-lg text-[13px] font-bold text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all disabled:opacity-50 ${isCollapsed ? "w-10 h-10 mx-auto justify-center" : "w-full px-2"}`}
-                        >
-                            {isSigningOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
-                            {!isCollapsed && "Sair"}
-                        </button>
                     </div>
                 </div>
             </aside>
 
             {/* Main Content */}
             <main className={`flex-1 bg-slate-50 min-h-screen transition-all duration-300 mt-16 lg:mt-0 ${isCollapsed ? "lg:ml-24" : "lg:ml-72"}`}>
-                <div className={pathname.startsWith('/admin/mensagens/newsletter') || pathname.startsWith('/admin/apresentacoes/editor') ? "p-0" : "p-8"}>
+                <div className={pathnameWithoutLocale.startsWith('/admin/mensagens/newsletter') || pathnameWithoutLocale.startsWith('/admin/apresentacoes/editor') ? "p-0" : "p-8"}>
                     {children}
                 </div>
             </main>

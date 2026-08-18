@@ -27,17 +27,17 @@ function PropertiesContent() {
                 if (empresaId) {
                     const { data: company } = await supabase
                         .from('companies')
-                        .select('company_name')
+                        .select('name')
                         .eq('id', empresaId)
                         .single();
-                    if (company) setContextName(company.company_name);
+                    if (company) setContextName(company.name);
                 }
 
                 // 2. Fetch Properties
                 let query = supabase.from('properties').select('*');
 
                 if (empresaId) {
-                    query = query.eq('id_empresa', empresaId);
+                    query = query.eq('company_id', empresaId);
                 }
 
                 const { data, error } = await query.order('created_at', { ascending: false });

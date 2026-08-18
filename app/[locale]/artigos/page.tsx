@@ -444,6 +444,7 @@ export default function ArticlesArchivePage() {
                                                 title={article.title}
                                                 subtitle={article.subtitle}
                                                 category={article.type === 'external_article' ? 'Documento' : (article.type || 'Artigo')}
+                                                categories={article.categories}
                                                 date={article.date}
                                                 image={article.image_url}
                                                 slug={article.slug}

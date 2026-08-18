@@ -24,6 +24,24 @@ export type Company = {
     valueChain?: string;
 };
 
+// Categorias de notícias: única fonte de verdade partilhada entre os filtros
+// do blog (app/[locale]/blog/page.tsx) e o seletor de categorias do editor
+// de notícias (components/admin/ArticleForm.tsx). Mantém as duas listas
+// sempre iguais — sem isto, uma notícia com uma categoria só presente no
+// editor mas ausente aqui nunca aparece filtrada no blog.
+export const NEWS_CATEGORIES = [
+    "Notícia",
+    "Internacional",
+    "Guia",
+    "Evento",
+    "Oportunidade",
+    "Curiosidade",
+    "Recursos",
+    "Mulher Agro",
+    "Ambiente",
+    "Mercado",
+];
+
 export const COMPANY_CATEGORIES = [
     "Agricultura de precisão",
     "Agricultura orgânica",

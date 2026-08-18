@@ -20,6 +20,38 @@ async function requireAdmin() {
     return { error: null, user };
 }
 
+type FlatFile = { name: string; created_at: string | null; size: number | null; mimetype: string | null };
+
+// O Storage do Supabase só lista um "nível" de cada vez (ficheiros +
+// placeholders de pasta). A galeria precisa de ver tudo o que já foi
+// carregado no bucket (artigos/, content-images/, etc.), por isso percorre
+// as subpastas recursivamente em vez de assumir tudo na raiz.
+async function listAllFiles(admin: ReturnType<typeof createAdminClient>, bucket: string, prefix = ""): Promise<FlatFile[]> {
+    const { data, error } = await admin.storage.from(bucket).list(prefix, {
+        limit: 1000,
+        sortBy: { column: "created_at", order: "desc" },
+    });
+    if (error || !data) return [];
+
+    const results: FlatFile[] = [];
+    for (const entry of data) {
+        const fullPath = prefix ? `${prefix}/${entry.name}` : entry.name;
+        if (entry.id === null) {
+            // Placeholder de pasta — não é um ficheiro, entra recursivamente.
+            const nested = await listAllFiles(admin, bucket, fullPath);
+            results.push(...nested);
+        } else {
+            results.push({
+                name: fullPath,
+                created_at: entry.created_at,
+                size: entry.metadata?.size ?? null,
+                mimetype: entry.metadata?.mimetype ?? null,
+            });
+        }
+    }
+    return results;
+}
+
 export async function GET(req: NextRequest) {
     const { error: authError } = await requireAdmin();
     if (authError) return authError;
@@ -28,19 +60,12 @@ export async function GET(req: NextRequest) {
     if (!bucket) return NextResponse.json({ error: "Bucket em falta." }, { status: 400 });
 
     const admin = createAdminClient();
-    const { data, error } = await admin.storage.from(bucket).list("", {
-        limit: 1000,
-        sortBy: { column: "created_at", order: "desc" },
-    });
+    const rawFiles = await listAllFiles(admin, bucket);
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-    const files = (data || [])
-        .filter((f) => f.id !== null) // ignora "pastas" (placeholder entries)
+    const files = rawFiles
+        .sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""))
         .map((f) => ({
-            name: f.name,
-            created_at: f.created_at,
-            size: f.metadata?.size ?? null,
+            ...f,
             publicUrl: admin.storage.from(bucket).getPublicUrl(f.name).data.publicUrl,
         }));
 
@@ -60,8 +85,9 @@ export async function DELETE(req: NextRequest) {
     const { error } = await admin.storage.from(bucket).remove(names);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    // Mantém a galeria (media_library) sincronizada com o storage.
+    // Mantém as galerias (media_library e media_details) sincronizadas com o storage.
     await admin.from("media_library").delete().eq("bucket", bucket).in("path", names);
+    await admin.from("media_details").delete().in("file_name", names);
 
     return NextResponse.json({ success: true });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Button } from "@/components/ui/button";
@@ -10,14 +10,22 @@ import { NewsCard } from "@/components/NewsCard";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
 
-export default function AdminArtigosCientificosPage() {
+function AdminArtigosCientificosContent() {
     const supabase = createClient();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const tabParam = searchParams.get('tab');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-    const [activeTab, setActiveTab] = useState('Dissertações');
+    const [activeTab, setActiveTab] = useState(tabParam || 'Dissertações');
+
+    // O menu lateral (grupo "Documentos") liga para /admin/artigos?tab=X —
+    // mantém o separador sincronizado se o parâmetro mudar.
+    useEffect(() => {
+        setActiveTab(tabParam || 'Dissertações');
+    }, [tabParam]);
     const [articles, setArticles] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
@@ -416,6 +424,7 @@ export default function AdminArtigosCientificosPage() {
                             title={article.title}
                             subtitle={article.subtitle}
                             category={article.type}
+                            categories={article.categories}
                             date={article.date || article.created_at}
                             image={article.image_url}
                             slug={article.slug}
@@ -560,5 +569,13 @@ export default function AdminArtigosCientificosPage() {
                 variant="destructive"
             />
         </div>
+    );
+}
+
+export default function AdminArtigosCientificosPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center py-20"><Spinner className="h-8 w-8" /></div>}>
+            <AdminArtigosCientificosContent />
+        </Suspense>
     );
 }
