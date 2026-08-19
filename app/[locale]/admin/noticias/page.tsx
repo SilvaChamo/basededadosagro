@@ -50,8 +50,10 @@ function AdminNoticiasContent() {
         ? pendingArticles
         : pendingArticles.filter((p: any) => (p.category || 'Notícia') === pendingCategoryFilter);
 
-    const fetchPending = async () => {
-        setPendingLoading(true);
+    const PENDING_CACHE_KEY = "noticias:pendentes";
+
+    const fetchPending = async (showLoading = true) => {
+        if (showLoading) setPendingLoading(true);
         const { data } = await supabase
             .from('articles_pending')
             .select('*')
@@ -59,11 +61,17 @@ function AdminNoticiasContent() {
         // Relatórios pertencem à secção Documentos, nunca à fila de pendentes de Notícias.
         const withoutReports = (data || []).filter((p: any) => p.category !== 'Relatório' && p.category !== 'Relatórios');
         setPendingArticles(withoutReports);
+        setCachedList(PENDING_CACHE_KEY, withoutReports);
         setPendingLoading(false);
     };
 
     useEffect(() => {
-        fetchPending();
+        const cachedPending = getCachedList<any[]>(PENDING_CACHE_KEY);
+        if (cachedPending) {
+            setPendingArticles(cachedPending);
+            setPendingLoading(false);
+        }
+        fetchPending(!cachedPending);
     }, []);
 
     // O robô guarda o corpo do artigo como texto simples (parágrafos
@@ -133,10 +141,8 @@ function AdminNoticiasContent() {
         }
     };
 
-    // "Pendentes" (fetchPending, mais abaixo) fica sempre por cachear de propósito
-    // — é uma fila de trabalho, o admin quer ver submissões novas assim que
-    // aparecem. Só "Todas"/"Arquivados"/"Lixeira" (statusFilter) beneficiam de
-    // cache curto, por isso a chave inclui o statusFilter.
+    // "Todas"/"Arquivados"/"Lixeira" têm cada um o seu próprio cache — a chave
+    // inclui o statusFilter. "Pendentes" tem o seu (PENDING_CACHE_KEY, acima).
     const articlesCacheKey = `noticias:${statusFilter}`;
 
     const fetchArticles = async (showLoading = true) => {
