@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
     ArrowLeft,
@@ -9,7 +9,8 @@ import {
     Lock,
     CheckCircle2,
     Info,
-    ChevronRight
+    ChevronRight,
+    AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { Spinner } from "@/components/ui/spinner";
+
+// Consulta o estado a cada 4s durante no máximo 2 minutos — passado isso,
+// mostra "ainda a processar" em vez de continuar a perguntar para sempre.
+const POLL_INTERVAL_MS = 4000;
+const POLL_TIMEOUT_MS = 120000;
 
 function PagamentoContent() {
     const supabase = createClient();
@@ -29,45 +35,124 @@ function PagamentoContent() {
     const userEmail = searchParams.get("email") || "";
 
     const [paymentMethod, setPaymentMethod] = useState<"mpesa" | "visa">("mpesa");
+    const [phoneNumber, setPhoneNumber] = useState("");
     const [loading, setLoading] = useState(false);
+    // idle -> awaiting (STK enviado, a consultar estado) -> failed (mostra erro, permite tentar de novo)
+    const [stage, setStage] = useState<"idle" | "awaiting" | "failed">("idle");
+    const [errorMessage, setErrorMessage] = useState("");
+    const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const pollDeadlineRef = useRef<number>(0);
 
     // Extract numeric price
     const priceNumeric = parseInt(price.replace(/[^0-9]/g, "")) || 0;
     const priceFormatted = priceNumeric.toLocaleString("pt-PT") + " MT";
 
-    const handlePayment = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
+    useEffect(() => {
+        return () => {
+            if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+        };
+    }, []);
 
-        // Simulate payment processing
-        await new Promise(resolve => setTimeout(resolve, 2000));
+    const activatePlan = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        await supabase.from('profiles').update({ plan: planName }).eq('id', user.id);
+        await supabase.from('companies').update({ plan: planName }).eq('user_id', user.id);
+    };
 
-        // Activate Plan Logic
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (user) {
-                // 1. Update Profile Plan
-                await supabase
-                    .from('profiles')
-                    .update({ plan: planName })
-                    .eq('id', user.id);
-
-                // 2. Update Company Plan (if exists)
-                await supabase
-                    .from('companies')
-                    .update({ plan: planName })
-                    .eq('user_id', user.id);
-            }
-        } catch (error) {
-            console.error("Error activating plan:", error);
-            // Even if activation fails safely, we might want to log it or handle it.
-            // For now, we proceed to success to not block the user, 
-            // but in a real app, this should be handled more robustly via webhooks.
+    const pollStatus = async (reference: string) => {
+        if (Date.now() > pollDeadlineRef.current) {
+            setStage("failed");
+            setErrorMessage("Ainda não recebemos a confirmação do M-Pesa. Verifique o seu telemóvel — se já autorizou o pagamento, tente novamente dentro de momentos.");
+            setLoading(false);
+            return;
         }
 
-        // Redirect to success page
-        router.push(`/checkout/sucesso?plan=${encodeURIComponent(planName)}`);
+        try {
+            const res = await fetch(`/api/payment/mpesa/status?reference=${encodeURIComponent(reference)}`);
+            const data = await res.json();
+
+            if (data.status === "completed") {
+                // A rota já confirmou o pagamento — falta activar o plano
+                // desta conta antes de seguir para o sucesso.
+                try {
+                    await activatePlan();
+                } catch (error) {
+                    console.error("Erro ao activar plano após pagamento confirmado:", error);
+                }
+                router.push(`/checkout/sucesso?plan=${encodeURIComponent(planName)}`);
+                return;
+            }
+
+            if (data.status === "failed") {
+                setStage("failed");
+                setErrorMessage("O pagamento não foi concluído (recusado, cancelado ou expirado no telemóvel). Pode tentar novamente.");
+                setLoading(false);
+                return;
+            }
+
+            pollTimeoutRef.current = setTimeout(() => pollStatus(reference), POLL_INTERVAL_MS);
+        } catch (error) {
+            console.error("Erro ao consultar estado do pagamento:", error);
+            pollTimeoutRef.current = setTimeout(() => pollStatus(reference), POLL_INTERVAL_MS);
+        }
+    };
+
+    const handlePayment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setErrorMessage("");
+
+        if (paymentMethod === "visa") {
+            setErrorMessage("Pagamento por cartão ainda não está disponível — use M-Pesa por agora.");
+            return;
+        }
+
+        const digits = phoneNumber.replace(/\D/g, "");
+        if (digits.length < 9) {
+            setErrorMessage("Introduza um número de telemóvel M-Pesa válido.");
+            return;
+        }
+
+        setLoading(true);
+        setStage("idle");
+
+        try {
+            const res = await fetch("/api/payment/mpesa", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    phoneNumber: `258${digits.slice(-9)}`,
+                    amount: priceNumeric,
+                    planName,
+                }),
+            });
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                setStage("failed");
+                setErrorMessage(data.error || "Não foi possível iniciar o pagamento. Tente novamente.");
+                setLoading(false);
+                return;
+            }
+
+            if (data.mock) {
+                // Sem credenciais M-Pesa configuradas — o pedido já activou o
+                // plano no modo simulado, direito ao sucesso.
+                await activatePlan();
+                router.push(`/checkout/sucesso?plan=${encodeURIComponent(planName)}`);
+                return;
+            }
+
+            // STK Push enviado — aguarda confirmação real no telemóvel.
+            setStage("awaiting");
+            pollDeadlineRef.current = Date.now() + POLL_TIMEOUT_MS;
+            pollTimeoutRef.current = setTimeout(() => pollStatus(data.reference), POLL_INTERVAL_MS);
+        } catch (error: any) {
+            console.error("Erro ao processar pagamento:", error);
+            setStage("failed");
+            setErrorMessage("Erro de ligação. Tente novamente.");
+            setLoading(false);
+        }
     };
 
     return (
@@ -167,6 +252,9 @@ function PagamentoContent() {
                                                 required
                                                 type="tel"
                                                 placeholder="8X XXX XXXX"
+                                                value={phoneNumber}
+                                                onChange={(e) => setPhoneNumber(e.target.value)}
+                                                disabled={stage === "awaiting"}
                                                 className="pl-14 h-12 bg-slate-50 border-slate-200 rounded-[8px] focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium"
                                             />
                                         </div>
@@ -192,7 +280,13 @@ function PagamentoContent() {
                                         </div>
                                         <h3 className="text-lg font-bold text-slate-900">Cartão de Crédito / Débito</h3>
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="bg-amber-50/50 border border-amber-100 p-4 rounded-[8px] flex gap-3">
+                                        <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                                        <p className="text-sm text-amber-800">
+                                            Pagamento por cartão ainda não está disponível. Use M-Pesa por agora.
+                                        </p>
+                                    </div>
+                                    <div className="space-y-2 opacity-40 pointer-events-none">
                                         <label className="text-sm font-bold text-slate-700 ml-1">Nome no Cartão</label>
                                         <Input
                                             required
@@ -239,15 +333,27 @@ function PagamentoContent() {
                                 </div>
                             )}
 
+                            {errorMessage && (
+                                <div className="mt-4 bg-red-50 border border-red-100 p-4 rounded-[8px] flex gap-3">
+                                    <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                                    <p className="text-sm text-red-800">{errorMessage}</p>
+                                </div>
+                            )}
+
                             <div className="mt-6 pt-6 border-t border-slate-100">
                                 <Button
                                     disabled={loading}
                                     className="w-full h-14 rounded-[10px] bg-orange-600 hover:bg-orange-700 text-white font-black text-lg shadow-xl shadow-orange-600/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98] cursor-pointer"
                                 >
-                                    {loading ? (
+                                    {stage === "awaiting" ? (
                                         <>
                                             <Spinner className="w-5 h-5" />
-                                            Processando pagamento...
+                                            A aguardar confirmação no telemóvel...
+                                        </>
+                                    ) : loading ? (
+                                        <>
+                                            <Spinner className="w-5 h-5" />
+                                            A processar...
                                         </>
                                     ) : (
                                         <>
