@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import createIntlMiddleware from 'next-intl/middleware';
 import { updateSession } from '@/utils/supabase/middleware';
 
@@ -29,9 +29,15 @@ export async function middleware(request: NextRequest) {
   // 4. Disponibiliza o pathname actual aos Server Components (ex: para o
   // admin/layout.tsx saber restringir Editor/Contribuidor à Central de Notícias),
   // já que o App Router não tem forma nativa de o ler fora de Client Components.
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-pathname', request.nextUrl.pathname);
-  return NextResponse.next({ request: { headers: requestHeaders } });
+  //
+  // Importante: não se pode substituir intlResponse por um NextResponse.next()
+  // novo aqui — em modo "as-needed" o next-intl às vezes devolve um rewrite
+  // interno (ex.: "/" -> "/pt") para páginas do idioma padrão sem prefixo, e
+  // criar uma resposta do zero perdia esse rewrite, dando 404. Em vez disso,
+  // injecta-se o cabeçalho directamente na resposta que o next-intl já
+  // preparou, preservando o que ele decidiu (rewrite ou passagem directa).
+  intlResponse.headers.set('x-middleware-request-x-pathname', request.nextUrl.pathname);
+  return intlResponse;
 }
  
 export const config = {
