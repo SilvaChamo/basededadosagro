@@ -19,6 +19,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
 import { getCachedList, setCachedList } from "@/lib/adminListCache";
 import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 
 function AdminDocumentosContent() {
     const router = useRouter();
@@ -303,19 +304,7 @@ function AdminDocumentosContent() {
         }
     ];
 
-    useAdminTopBar("", undefined, undefined, {
-        showLogout: true,
-        actions: (
-            <button
-                type="button"
-                onClick={() => router.push('/admin/documentos/novo')}
-                className={TOPBAR_NEW_BUTTON_CLASS}
-            >
-                <Plus className="w-4 h-4" />
-                Novo Documento
-            </button>
-        ),
-    });
+    useAdminTopBar("");
 
     return (
         <div className="space-y-8">
@@ -393,6 +382,23 @@ function AdminDocumentosContent() {
                     >
                         <List className="w-4 h-4" />
                     </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => router.push('/admin/documentos/novo')}
+                        className={TOPBAR_NEW_BUTTON_CLASS}
+                    >
+                        <Plus className="w-4 h-4" />
+                        Novo Documento
+                    </button>
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
                 </div>
             </div>
 

@@ -14,6 +14,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
 import { getCachedList, setCachedList } from "@/lib/adminListCache";
 import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 
 function AdminArtigosCientificosContent() {
     const supabase = createClient();
@@ -316,19 +317,7 @@ function AdminArtigosCientificosContent() {
         }
     ];
 
-    useAdminTopBar("", undefined, undefined, {
-        showLogout: true,
-        actions: (
-            <button
-                type="button"
-                onClick={() => router.push('/admin/artigos/novo')}
-                className={TOPBAR_NEW_BUTTON_CLASS}
-            >
-                <Plus className="w-4 h-4" />
-                Novo Científico
-            </button>
-        ),
-    });
+    useAdminTopBar("");
 
     return (
         <div className="space-y-8">
@@ -407,6 +396,21 @@ function AdminArtigosCientificosContent() {
                             <List className="w-4 h-4" />
                         </button>
                     </div>
+
+                    <button
+                        type="button"
+                        onClick={() => router.push('/admin/artigos/novo')}
+                        className={TOPBAR_NEW_BUTTON_CLASS}
+                    >
+                        <Plus className="w-4 h-4" />
+                        Novo Científico
+                    </button>
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
                 </div>
             </div>
 

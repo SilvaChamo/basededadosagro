@@ -13,6 +13,7 @@ import { STORE_CATEGORIES } from "@/lib/agro-data";
 import { Spinner } from "@/components/ui/spinner";
 import { getCachedList, setCachedList } from "@/lib/adminListCache";
 import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 
 export default function AdminLojasPage() {
     const [stores, setStores] = useState<any[]>([]);
@@ -212,15 +213,7 @@ export default function AdminLojasPage() {
     });
 
 
-    useAdminTopBar("", undefined, undefined, {
-        showLogout: true,
-        actions: (
-            <Link href="/admin/lojas/novo" className={TOPBAR_NEW_BUTTON_CLASS}>
-                <Plus className="w-4 h-4" />
-                Nova Loja
-            </Link>
-        ),
-    });
+    useAdminTopBar("");
 
     return (
         <div className="space-y-6">
@@ -274,6 +267,17 @@ export default function AdminLojasPage() {
                         <Trash2 className="w-4 h-4" />
                     </button>
                 </div>
+
+                <Link href="/admin/lojas/novo" className={TOPBAR_NEW_BUTTON_CLASS}>
+                    <Plus className="w-4 h-4" />
+                    Nova Loja
+                </Link>
+                <LogoutButton
+                    variant="outline"
+                    className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                    showIcon
+                    label="Sair"
+                />
             </div>
 
             {/* Content */}

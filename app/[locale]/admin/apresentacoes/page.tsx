@@ -6,6 +6,7 @@ import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Button } from "@/components/ui/button";
 import { Plus, Presentation, Pencil, Trash2, Play, Search, LayoutGrid, List, Archive, ArrowRight, Calendar } from "lucide-react";
 import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
@@ -236,19 +237,7 @@ export default function AdminApresentacoesPage() {
 
     const filtered = getDisplayItems();
 
-    useAdminTopBar("", undefined, undefined, {
-        showLogout: true,
-        actions: (
-            <button
-                type="button"
-                onClick={() => router.push('/admin/apresentacoes/novo')}
-                className={TOPBAR_NEW_BUTTON_CLASS}
-            >
-                <Plus className="w-4 h-4" />
-                Novo
-            </button>
-        ),
-    });
+    useAdminTopBar("");
 
     return (
         <div className="space-y-8">
@@ -314,6 +303,21 @@ export default function AdminApresentacoesPage() {
                             <List className="w-4 h-4" />
                         </button>
                     </div>
+
+                    <button
+                        type="button"
+                        onClick={() => router.push('/admin/apresentacoes/novo')}
+                        className={TOPBAR_NEW_BUTTON_CLASS}
+                    >
+                        <Plus className="w-4 h-4" />
+                        Novo
+                    </button>
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
                 </div>
             </div>
 

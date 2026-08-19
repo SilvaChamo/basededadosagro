@@ -14,6 +14,7 @@ import { NewsCard } from "@/components/NewsCard";
 import { Spinner } from "@/components/ui/spinner";
 import { getCachedList, setCachedList } from "@/lib/adminListCache";
 import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 
 function AdminNoticiasContent() {
     const supabase = createClient();
@@ -381,23 +382,13 @@ function AdminNoticiasContent() {
         }
     ];
 
+    // Barra partilhada só é usada quando o formulário está aberto (título +
+    // Cancelar) — na lista, fica suprimida: o Novo Artigo e o Sair vivem na
+    // mesma linha dos botões de gestão, mais abaixo.
     useAdminTopBar(
         isFormOpen ? (editingArticle ? "Editar Artigo" : "Novo Artigo") : "",
         isFormOpen ? () => { setIsFormOpen(false); setPublishingFromPendingId(null); } : undefined,
-        "Cancelar",
-        isFormOpen ? undefined : {
-            showLogout: true,
-            actions: (
-                <button
-                    type="button"
-                    onClick={() => { setEditingArticle(null); setPublishingFromPendingId(null); setIsFormOpen(true); }}
-                    className={TOPBAR_NEW_BUTTON_CLASS}
-                >
-                    <Plus className="w-4 h-4" />
-                    Novo Artigo
-                </button>
-            ),
-        }
+        "Cancelar"
     );
 
     if (isFormOpen) {
@@ -483,6 +474,21 @@ function AdminNoticiasContent() {
                             <Trash2 className="w-4 h-4" />
                         </button>
                     </div>
+
+                    <button
+                        type="button"
+                        onClick={() => { setEditingArticle(null); setPublishingFromPendingId(null); setIsFormOpen(true); }}
+                        className={TOPBAR_NEW_BUTTON_CLASS}
+                    >
+                        <Plus className="w-4 h-4" />
+                        Novo Artigo
+                    </button>
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
                 </div>
             </div>
 

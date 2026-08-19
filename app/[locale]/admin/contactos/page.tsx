@@ -29,6 +29,7 @@ import * as XLSX from "xlsx";
 import { Spinner } from "@/components/ui/spinner";
 import { getCachedList, setCachedList } from "@/lib/adminListCache";
 import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 
 const CACHE_KEY = "contactos";
 
@@ -470,19 +471,9 @@ export default function AdminContactosPage() {
         }
     }
 
-    useAdminTopBar("", undefined, undefined, {
-        showLogout: true,
-        actions: (
-            <button
-                type="button"
-                onClick={() => { resetForm(); setEditingContact(null); setShowModal(true); }}
-                className={TOPBAR_NEW_BUTTON_CLASS}
-            >
-                <Plus className="w-4 h-4" />
-                Novo
-            </button>
-        ),
-    });
+    // Barra partilhada suprimida nesta página — o Sair vive na mesma linha
+    // dos botões de gestão abaixo (sempre no fim), não numa barra à parte.
+    useAdminTopBar("");
 
     return (
         <div className="flex flex-col">
@@ -511,6 +502,20 @@ export default function AdminContactosPage() {
                         <Globe className="w-4 h-4" />
                         Importar de Websites
                     </Button>
+                    <button
+                        type="button"
+                        onClick={() => { resetForm(); setEditingContact(null); setShowModal(true); }}
+                        className={TOPBAR_NEW_BUTTON_CLASS}
+                    >
+                        <Plus className="w-4 h-4" />
+                        Novo
+                    </button>
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
                 </div>
             </div>
 

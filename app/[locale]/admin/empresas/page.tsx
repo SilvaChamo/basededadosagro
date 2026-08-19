@@ -17,6 +17,7 @@ import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Spinner } from "@/components/ui/spinner";
 import { getCachedList, setCachedList } from "@/lib/adminListCache";
 import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 
 const EMPRESAS_CACHE_KEY = "empresas";
 
@@ -299,19 +300,7 @@ export default function AdminEmpresasPage() {
         }
     ];
 
-    useAdminTopBar("", undefined, undefined, {
-        showLogout: true,
-        actions: (
-            <button
-                type="button"
-                onClick={() => router.push('/admin/empresas/novo')}
-                className={TOPBAR_NEW_BUTTON_CLASS}
-            >
-                <Plus className="w-4 h-4" />
-                Nova Empresa
-            </button>
-        ),
-    });
+    useAdminTopBar("");
 
     return (
         <div className="space-y-6">
@@ -388,6 +377,21 @@ export default function AdminEmpresasPage() {
                                 <List className="w-4 h-4" />
                             </button>
                         </div>
+
+                        <button
+                            type="button"
+                            onClick={() => router.push('/admin/empresas/novo')}
+                            className={TOPBAR_NEW_BUTTON_CLASS}
+                        >
+                            <Plus className="w-4 h-4" />
+                            Nova Empresa
+                        </button>
+                        <LogoutButton
+                            variant="outline"
+                            className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                            showIcon
+                            label="Sair"
+                        />
                     </div>
                 </div>
             </div>

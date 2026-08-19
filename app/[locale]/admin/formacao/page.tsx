@@ -12,6 +12,7 @@ import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
 import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 
 export default function AdminFormacaoPage() {
     const router = useRouter();
@@ -325,19 +326,7 @@ export default function AdminFormacaoPage() {
         }
     ];
 
-    useAdminTopBar("", undefined, undefined, {
-        showLogout: true,
-        actions: (
-            <button
-                type="button"
-                onClick={() => router.push('/admin/formacao/novo')}
-                className={TOPBAR_NEW_BUTTON_CLASS}
-            >
-                <Plus className="w-4 h-4" />
-                Nova Formação
-            </button>
-        ),
-    });
+    useAdminTopBar("");
 
     return (
         <div className="space-y-8">
@@ -418,6 +407,21 @@ export default function AdminFormacaoPage() {
                             <List className="w-4 h-4" />
                         </button>
                     </div>
+
+                    <button
+                        type="button"
+                        onClick={() => router.push('/admin/formacao/novo')}
+                        className={TOPBAR_NEW_BUTTON_CLASS}
+                    >
+                        <Plus className="w-4 h-4" />
+                        Nova Formação
+                    </button>
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
                 </div>
             </div>
 
