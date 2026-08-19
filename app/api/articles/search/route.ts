@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     }
 
     try {
-        const apiUrl = `https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(query)}&limit=${limit}&fields=title,authors,venue,year,url,abstract`;
+        const apiUrl = `https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(query)}&limit=${limit}&fields=title,authors,venue,year,url,abstract,openAccessPdf`;
 
         const response = await fetch(apiUrl, {
             headers: {

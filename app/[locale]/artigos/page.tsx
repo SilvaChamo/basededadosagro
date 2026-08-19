@@ -166,6 +166,7 @@ export default function ArticlesArchivePage() {
                     slug: `ext-${paper.paperId}`,
                     date: `${paper.year || new Date().getFullYear()}-01-01`,
                     type: "external_article",
+                    pdf_url: paper.openAccessPdf?.url || undefined,
                     subtitle: paper.abstract ? paper.abstract.substring(0, 160) + "..." : "Documento científico recuperado de base de dados global."
                 }));
             }
@@ -279,7 +280,7 @@ export default function ArticlesArchivePage() {
             ]}
             sidebarComponents={
                 <div className="space-y-agro">
-                    <div className="bg-white p-6 rounded-[15px] border border-slate-100 shadow-sm transition-all duration-300">
+                    <div className="bg-white p-6 rounded-[10px] border border-slate-100 shadow-sm transition-all duration-300">
                         <div className="flex items-center gap-2 mb-4">
                             {searchMode === 'auto' ? <Zap className="w-4 h-4 text-emerald-500" /> : <Info className="w-4 h-4 text-slate-400" />}
                             <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-0">
@@ -297,7 +298,7 @@ export default function ArticlesArchivePage() {
         >
             {/* Scientific Search Input - EXACT Home Style + Enter Trigger */}
             <div className="mb-[20px]">
-                <div className={`relative bg-white rounded-[15px] shadow-sm h-14 flex items-center border transition-all duration-300 ${isScanningGlobal ? 'border-emerald-300 ring-2 ring-emerald-50' : 'border-gray-200'}`}>
+                <div className={`relative bg-white rounded-[10px] shadow-sm h-14 flex items-center border transition-all duration-300 ${isScanningGlobal ? 'border-emerald-300 ring-2 ring-emerald-50' : 'border-gray-200'}`}>
                     <button
                         onClick={() => handleSearch()}
                         className="pl-6 text-gray-400 hover:text-emerald-600 transition-colors"
@@ -318,7 +319,7 @@ export default function ArticlesArchivePage() {
                     <div className="relative h-full">
                         <button
                             onClick={() => setIsModeSelectorOpen(!isModeSelectorOpen)}
-                            className="group flex items-center gap-2 px-6 h-full border-l border-gray-100 bg-gray-50 hover:bg-gray-100 transition-all cursor-pointer relative rounded-r-[15px]"
+                            className="group flex items-center gap-2 px-6 h-full border-l border-gray-100 bg-gray-50 hover:bg-gray-100 transition-all cursor-pointer relative rounded-r-[10px]"
                         >
                             {isScanningGlobal ? (
                                 <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider animate-pulse whitespace-nowrap">
@@ -435,15 +436,20 @@ export default function ArticlesArchivePage() {
                 ) : (
                     <div className="space-y-10">
                         {loading ? (
-                            <div className="space-y-4">
+                            <div className="divide-y divide-slate-100">
                                 {Array(6).fill(0).map((_, i) => (
-                                    <div key={i} className="animate-pulse bg-white rounded-[12px] h-[110px] border border-slate-100 shadow-sm" />
+                                    <div key={i} className="py-6 first:pt-0 animate-pulse space-y-2.5">
+                                        <div className="h-3 bg-slate-100 rounded w-24" />
+                                        <div className="h-5 bg-slate-100 rounded w-3/4" />
+                                        <div className="h-3 bg-slate-100 rounded w-1/3" />
+                                        <div className="h-3 bg-slate-100 rounded w-full" />
+                                    </div>
                                 ))}
                             </div>
                         ) : (
                             <>
                                 {displayedArticles.length > 0 ? (
-                                    <div className="space-y-4">
+                                    <div className="divide-y divide-slate-100">
                                         {displayedArticles.map((article) => (
                                             <ScientificArticleRow
                                                 key={article.id}
@@ -452,6 +458,7 @@ export default function ArticlesArchivePage() {
                                                 author={article.author}
                                                 source={article.source}
                                                 sourceUrl={article.source_url}
+                                                pdfUrl={article.pdf_url}
                                                 category={article.type === 'external_article' ? 'Documento' : (article.type || 'Artigo')}
                                                 date={article.date}
                                                 slug={article.slug}
