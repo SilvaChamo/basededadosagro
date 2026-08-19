@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { StandardBlogTemplate } from "@/components/StandardBlogTemplate";
 import { BookOpen, Search, ArrowRight, Calendar, User, ChevronDown, Info, Zap, Brain } from "lucide-react";
 import Link from "next/link";
@@ -49,6 +49,30 @@ const FALLBACK_ARTICLES = [
     }
 ];
 
+/** A que "biblioteca"/fonte pertence um resultado — usado para o filtro na
+ * barra lateral. Local: a instituição indicada em `source` (ou o nosso
+ * próprio repositório, se vazio). Externo: o domínio real do link (mais
+ * específico que o `venue`, que costuma faltar), com fallback ao venue. */
+function getArticleLibrary(article: any): string {
+    if (article.type === 'external_article') {
+        if (article.source_url) {
+            try {
+                return new URL(article.source_url).hostname.replace(/^www\./, '');
+            } catch {
+                // URL inválido — cai para o fallback abaixo.
+            }
+        }
+        return article.source || "Biblioteca Global";
+    }
+    return article.source || "Repositório BaseAgro";
+}
+
+function getRelatedArticles(article: any, all: any[], max = 3) {
+    return all
+        .filter((a) => a.id !== article.id && (a.type === article.type || a.source === article.source))
+        .slice(0, max);
+}
+
 export default function ArticlesArchivePage() {
     const supabase = createClient();
     const [articles, setArticles] = useState<any[]>([]);
@@ -59,6 +83,7 @@ export default function ArticlesArchivePage() {
     const [isFetchingMore, setIsFetchingMore] = useState(false);
     const [isScanningGlobal, setIsScanningGlobal] = useState(false);
     const [isSearchActive, setIsSearchActive] = useState(false);
+    const [selectedLibrary, setSelectedLibrary] = useState<string | null>(null);
     const [searchMode, setSearchMode] = useState<'manual' | 'auto'>('manual');
     const [isModeSelectorOpen, setIsModeSelectorOpen] = useState(false);
     const loaderRef = useRef<HTMLDivElement>(null);
@@ -100,18 +125,10 @@ export default function ArticlesArchivePage() {
                 setArticles(FALLBACK_ARTICLES);
             } finally {
                 setLoading(false);
-                setIsSearchActive(true); // mostrar a grelha de artigos por defeito, sem exigir pesquisa
-            }
-
-            // 2. Auto-Scan Global Scientific Database for Mozambique — corre em
-            // segundo plano, sem "await" aqui de propósito. O Semantic Scholar
-            // (sem chave de API configurada) pode demorar dezenas de segundos
-            // a responder; a página já mostra os artigos locais, e estes
-            // juntam-se à grelha quando (e se) chegarem, em vez de atrasar a
-            // primeira apresentação com o ecrã genérico de "hero".
-            const mozPapers = await fetchExternalArticles("Moçambique Agricultura");
-            if (mozPapers.length > 0) {
-                setArticles(prev => [...prev, ...mozPapers]);
+                // Note: isSearchActive continua false aqui de propósito — o
+                // banner publicitário deve manter-se visível até o utilizador
+                // pesquisar por uma palavra-chave; só handleSearch activa a
+                // lista de resultados.
             }
         }
         fetchInitial();
@@ -187,6 +204,7 @@ export default function ArticlesArchivePage() {
         // Actually, Enter should always force a search regardless of mode, confirming the action.
 
         setIsSearchActive(true);
+        setSelectedLibrary(null);
 
         const normalize = (text: string) =>
             text ? text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
@@ -243,7 +261,27 @@ export default function ArticlesArchivePage() {
         setVisibleCount(3);
     };
 
-    const displayedArticles = articles.slice(0, visibleCount);
+    // Bibliotecas/fontes distintas presentes nos resultados actuais — usado
+    // para o filtro na barra lateral (contagem por biblioteca).
+    const libraries = useMemo(() => {
+        const counts = new Map<string, number>();
+        articles.forEach((article) => {
+            const lib = getArticleLibrary(article);
+            counts.set(lib, (counts.get(lib) || 0) + 1);
+        });
+        return Array.from(counts.entries()).map(([name, count]) => ({ name, count }));
+    }, [articles]);
+
+    const visibleArticles = selectedLibrary
+        ? articles.filter((article) => getArticleLibrary(article) === selectedLibrary)
+        : articles;
+
+    const displayedArticles = visibleArticles.slice(0, visibleCount);
+
+    const selectLibrary = (name: string | null) => {
+        setSelectedLibrary(name);
+        setVisibleCount(3);
+    };
 
     const handleLoadMore = () => {
         if (isFetchingMore) return;
@@ -257,7 +295,7 @@ export default function ArticlesArchivePage() {
     // Infinite Scroll Observer
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting && !isFetchingMore && visibleCount < articles.length) {
+            if (entries[0].isIntersecting && !isFetchingMore && visibleCount < visibleArticles.length) {
                 handleLoadMore();
             }
         }, { threshold: 0.1 });
@@ -267,7 +305,7 @@ export default function ArticlesArchivePage() {
         }
 
         return () => observer.disconnect();
-    }, [isFetchingMore, visibleCount, articles.length]);
+    }, [isFetchingMore, visibleCount, visibleArticles.length]);
 
     return (
         <StandardBlogTemplate
@@ -293,6 +331,35 @@ export default function ArticlesArchivePage() {
                                 : "A pesquisa é ativada apenas quando você decide, permitindo digitar frases completas com precisão antes de buscar."}
                         </p>
                     </div>
+
+                    {isSearchActive && libraries.length > 0 && (
+                        <div className="bg-white p-6 rounded-[10px] border border-slate-100 shadow-sm">
+                            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-4">
+                                Bibliotecas
+                            </h3>
+                            <div className="space-y-1">
+                                <button
+                                    type="button"
+                                    onClick={() => selectLibrary(null)}
+                                    className={`w-full flex items-center justify-between px-3 py-2 rounded-[6px] text-xs font-bold transition-colors ${!selectedLibrary ? 'bg-emerald-50 text-emerald-700' : 'text-slate-500 hover:bg-slate-50'}`}
+                                >
+                                    <span>Todas</span>
+                                    <span className="text-[10px] text-slate-400">{articles.length}</span>
+                                </button>
+                                {libraries.map((lib) => (
+                                    <button
+                                        key={lib.name}
+                                        type="button"
+                                        onClick={() => selectLibrary(lib.name)}
+                                        className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-[6px] text-xs font-bold transition-colors ${selectedLibrary === lib.name ? 'bg-emerald-50 text-emerald-700' : 'text-slate-500 hover:bg-slate-50'}`}
+                                    >
+                                        <span className="truncate">{lib.name}</span>
+                                        <span className="text-[10px] text-slate-400 shrink-0">{lib.count}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             }
         >
@@ -436,7 +503,7 @@ export default function ArticlesArchivePage() {
                 ) : (
                     <div className="space-y-10">
                         {loading ? (
-                            <div className="divide-y divide-slate-100">
+                            <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm divide-y divide-slate-100 px-6">
                                 {Array(6).fill(0).map((_, i) => (
                                     <div key={i} className="py-6 first:pt-0 animate-pulse space-y-2.5">
                                         <div className="h-3 bg-slate-100 rounded w-24" />
@@ -449,7 +516,7 @@ export default function ArticlesArchivePage() {
                         ) : (
                             <>
                                 {displayedArticles.length > 0 ? (
-                                    <div className="divide-y divide-slate-100">
+                                    <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm divide-y divide-slate-100 px-6">
                                         {displayedArticles.map((article) => (
                                             <ScientificArticleRow
                                                 key={article.id}
@@ -463,17 +530,27 @@ export default function ArticlesArchivePage() {
                                                 date={article.date}
                                                 slug={article.slug}
                                                 isExternal={article.type === 'external_article'}
+                                                related={getRelatedArticles(article, articles).map((r) => ({
+                                                    title: r.title,
+                                                    slug: r.slug,
+                                                    sourceUrl: r.source_url,
+                                                    isExternal: r.type === 'external_article',
+                                                }))}
                                             />
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="py-20 text-center text-slate-400">
+                                    <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm py-20 text-center text-slate-400">
                                         Nenhum artigo encontrado para a sua pesquisa.
                                     </div>
                                 )}
 
                                 {/* Automatic Load More Sentinel */}
-                                
+                                {visibleCount < visibleArticles.length && (
+                                    <div ref={loaderRef} className="h-12 flex items-center justify-center">
+                                        {isFetchingMore && <Spinner className="w-5 h-5 text-orange-500" />}
+                                    </div>
+                                )}
                             </>
                         )}
                     </div>

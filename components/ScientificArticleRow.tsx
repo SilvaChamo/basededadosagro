@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { Calendar, ArrowUpRight } from "lucide-react";
 
+interface RelatedArticle {
+    title: string;
+    slug?: string;
+    sourceUrl?: string;
+    isExternal?: boolean;
+}
+
 interface ScientificArticleRowProps {
     title: string;
     subtitle?: string;
@@ -8,8 +15,8 @@ interface ScientificArticleRowProps {
     source?: string;
     sourceUrl?: string;
     /** Link directo ao PDF (quando o Semantic Scholar o disponibiliza via
-     * openAccessPdf) — mostra o selo "PDF" e passa a ser o link preferido
-     * no canto direito, em vez do sourceUrl genérico. */
+     * openAccessPdf) — sempre tratado como PDF, mesmo que o URL em si não
+     * termine em ".pdf" (ex: resolvers de DOI). */
     pdfUrl?: string;
     date: string | Date;
     category?: string;
@@ -18,6 +25,9 @@ interface ScientificArticleRowProps {
      * base de dados local — o título liga directamente para `sourceUrl`
      * em vez de para `/artigos/[slug]` (que não existe para estes). */
     isExternal?: boolean;
+    /** Outros resultados do mesmo lote (mesma categoria/fonte) — mostrados
+     * como atalhos rápidos logo a seguir ao resumo. */
+    related?: RelatedArticle[];
 }
 
 function domainFromUrl(url: string) {
@@ -27,6 +37,21 @@ function domainFromUrl(url: string) {
         return url;
     }
 }
+
+function formatLabel(pdfUrl?: string, sourceUrl?: string): 'PDF' | 'WORD' | 'LINK' | null {
+    if (pdfUrl) return 'PDF';
+    if (!sourceUrl) return null;
+    const lower = sourceUrl.toLowerCase();
+    if (lower.endsWith('.pdf')) return 'PDF';
+    if (lower.endsWith('.doc') || lower.endsWith('.docx')) return 'WORD';
+    return 'LINK';
+}
+
+const FORMAT_STYLES: Record<string, string> = {
+    PDF: 'bg-rose-50 text-rose-600 border-rose-100',
+    WORD: 'bg-blue-50 text-blue-600 border-blue-100',
+    LINK: 'bg-slate-50 text-slate-500 border-slate-200',
+};
 
 export function ScientificArticleRow({
     title,
@@ -39,6 +64,7 @@ export function ScientificArticleRow({
     category,
     slug,
     isExternal = false,
+    related = [],
 }: ScientificArticleRowProps) {
     const formattedDate = new Date(date).toLocaleDateString('pt-PT', {
         day: '2-digit',
@@ -47,6 +73,7 @@ export function ScientificArticleRow({
     });
 
     const realLink = pdfUrl || sourceUrl;
+    const format = formatLabel(pdfUrl, sourceUrl);
     const authorSource = [author, source].filter(Boolean).join(' - ');
     const titleClass = "text-[17px] font-bold text-slate-800 hover:text-emerald-700 hover:underline transition-colors leading-snug tracking-tight";
 
@@ -87,6 +114,26 @@ export function ScientificArticleRow({
                             {subtitle}
                         </p>
                     )}
+
+                    {related.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2.5 text-[11px]">
+                            <span className="font-black uppercase tracking-wider text-slate-400">Relacionados:</span>
+                            {related.map((item, i) => (
+                                <span key={i} className="inline-flex items-center gap-2">
+                                    {item.isExternal && item.sourceUrl ? (
+                                        <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className="font-bold text-slate-500 hover:text-emerald-700 truncate max-w-[180px] inline-block align-bottom">
+                                            {item.title}
+                                        </a>
+                                    ) : (
+                                        <Link href={`/artigos/${item.slug}`} className="font-bold text-slate-500 hover:text-emerald-700 truncate max-w-[180px] inline-block align-bottom">
+                                            {item.title}
+                                        </Link>
+                                    )}
+                                    {i < related.length - 1 && <span className="text-slate-300">·</span>}
+                                </span>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {realLink && (
@@ -96,9 +143,9 @@ export function ScientificArticleRow({
                         rel="noopener noreferrer"
                         className="shrink-0 flex items-center gap-1.5 text-[11px] font-bold text-slate-500 hover:text-emerald-700 transition-colors"
                     >
-                        {pdfUrl && (
-                            <span className="px-1.5 py-0.5 rounded-[4px] bg-rose-50 text-rose-600 border border-rose-100 text-[9px] font-black tracking-wide">
-                                PDF
+                        {format && (
+                            <span className={`px-1.5 py-0.5 rounded-[4px] border text-[9px] font-black tracking-wide ${FORMAT_STYLES[format]}`}>
+                                {format}
                             </span>
                         )}
                         <span className="truncate max-w-[140px]">{domainFromUrl(realLink)}</span>
