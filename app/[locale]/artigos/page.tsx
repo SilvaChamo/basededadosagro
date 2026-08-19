@@ -6,7 +6,7 @@ import { BookOpen, Search, ArrowRight, Calendar, User, ChevronDown, Info, Zap, B
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
-import { NewsCard } from "@/components/NewsCard";
+import { ScientificArticleRow } from "@/components/ScientificArticleRow";
 import { Spinner } from "@/components/ui/spinner";
 
 // DEMO FALLBACK DATA
@@ -435,25 +435,27 @@ export default function ArticlesArchivePage() {
                 ) : (
                     <div className="space-y-10">
                         {loading ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-6">
+                            <div className="space-y-4">
                                 {Array(6).fill(0).map((_, i) => (
-                                    <div key={i} className="animate-pulse bg-white rounded-[20px] h-[400px] border border-slate-100 shadow-sm" />
+                                    <div key={i} className="animate-pulse bg-white rounded-[12px] h-[110px] border border-slate-100 shadow-sm" />
                                 ))}
                             </div>
                         ) : (
                             <>
                                 {displayedArticles.length > 0 ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-6 px-[30px]">
+                                    <div className="space-y-4">
                                         {displayedArticles.map((article) => (
-                                            <NewsCard
+                                            <ScientificArticleRow
                                                 key={article.id}
                                                 title={article.title}
                                                 subtitle={article.subtitle}
+                                                author={article.author}
+                                                source={article.source}
+                                                sourceUrl={article.source_url}
                                                 category={article.type === 'external_article' ? 'Documento' : (article.type || 'Artigo')}
-                                                categories={article.categories}
                                                 date={article.date}
-                                                image={article.image_url}
                                                 slug={article.slug}
+                                                isExternal={article.type === 'external_article'}
                                             />
                                         ))}
                                     </div>
