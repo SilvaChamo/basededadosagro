@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { createClient } from '@supabase/supabase-js';
+import { createClient as createSessionClient } from '@/utils/supabase/server';
+import { isAdminRole } from '@/lib/roles';
 
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,6 +11,23 @@ const supabaseAdmin = createClient(
 
 export async function POST(req: Request) {
     try {
+        // Sem isto, qualquer pessoa conseguia usar o SMTP do site para
+        // mandar spam/phishing em nome da Base Agro para qualquer lista de
+        // emails — só administração pode disparar campanhas.
+        const sessionSupabase = await createSessionClient();
+        const { data: { user } } = await sessionSupabase.auth.getUser();
+        if (!user) {
+            return NextResponse.json({ error: 'É necessário iniciar sessão' }, { status: 401 });
+        }
+        const { data: profile } = await supabaseAdmin
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+        if (!isAdminRole(profile?.role)) {
+            return NextResponse.json({ error: 'Apenas administradores podem enviar campanhas de email' }, { status: 403 });
+        }
+
         const { to, subject, html, replyTo, attachments, targetAudiences } = await req.json();
 
         // 1. Basic Validation

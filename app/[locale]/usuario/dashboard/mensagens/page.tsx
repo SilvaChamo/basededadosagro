@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { Loader2, Mail, CheckCircle, Bell } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { Spinner } from "@/components/ui/spinner";
+import DOMPurify from "isomorphic-dompurify";
 import {
     Dialog,
     DialogContent,
@@ -111,7 +112,7 @@ export default function UserMessagesPage() {
                                             {new Date(item.created_at).toLocaleDateString()}
                                         </span>
                                     </div>
-                                    <p className="text-xs text-slate-500 line-clamp-2" dangerouslySetInnerHTML={{ __html: item.message?.content?.substring(0, 150) + "..." }} />
+                                    <p className="text-xs text-slate-500 line-clamp-2" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize((item.message?.content || '').substring(0, 150) + "...") }} />
                                 </div>
                                 {!item.read && (
                                     <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-orange-500 block md:static"></div>
@@ -138,7 +139,7 @@ export default function UserMessagesPage() {
                         </DialogHeader>
 
                         <div className="mt-4 prose prose-sm max-w-none prose-slate">
-                            <div dangerouslySetInnerHTML={{ __html: selectedMessage.message?.content }} />
+                            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedMessage.message?.content || '') }} />
                         </div>
                     </DialogContent>
                 </Dialog>

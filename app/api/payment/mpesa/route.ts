@@ -48,6 +48,11 @@ export async function POST(request: Request) {
             await adminClient.from('payment_transactions')
                 .update({ status: 'completed', completed_at: new Date().toISOString(), provider_response: { mock: true } })
                 .eq('reference', uniqueReference);
+            // Com o service_role (só o admin client tem, o browser já não
+            // consegue escrever role/plan directamente desde a protecção
+            // por trigger em profiles).
+            await adminClient.from('profiles').update({ plan: planName }).eq('id', user.id);
+            await adminClient.from('companies').update({ plan: planName }).eq('user_id', user.id);
             return NextResponse.json({
                 success: true,
                 mock: true,

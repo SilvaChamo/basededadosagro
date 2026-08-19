@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { canUseSMSNotifications, normalizePlanName } from "@/lib/plan-fields";
 import { createAdminClient } from "@/utils/supabase/admin";
+import { createClient } from "@/utils/supabase/server";
+import { isAdminRole } from "@/lib/roles";
 
 const INFOBIP_BASE_URL = process.env.INFOBIP_BASE_URL;
 const INFOBIP_API_KEY = process.env.INFOBIP_API_KEY;
@@ -49,6 +51,15 @@ async function sendSMS(phone: string, text: string): Promise<{ phone: string; st
 
 // We use the service role key to bypass RLS and fetch all subcribed users
 export async function POST(request: Request) {
+    // Sem isto, qualquer pessoa não autenticada conseguia disparar SMS reais
+    // (custam dinheiro via Infobip) para todos os subscritores de uma
+    // localização, só chamando este endpoint directamente.
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        return NextResponse.json({ error: "É necessário iniciar sessão" }, { status: 401 });
+    }
+
     // We initialize the client inside the handler to avoid build-time evaluation issues
     let supabaseAdmin;
     try {
@@ -65,20 +76,48 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Dados incompletos" }, { status: 400 });
         }
 
-        // Check if company has SMS feature (Premium+ required for company products)
-        if (type === 'company' && companyId) {
+        if (type === 'company') {
+            // Alerta de produto de empresa: só o dono da empresa (ou um
+            // admin) pode disparar isto, e só se o plano incluir SMS.
+            if (!companyId) {
+                return NextResponse.json({ error: "companyId é obrigatório para type=company" }, { status: 400 });
+            }
+
             const { data: company } = await supabaseAdmin
                 .from('companies')
-                .select('plan')
+                .select('plan, user_id')
                 .eq('id', companyId)
                 .single();
 
-            const plan = normalizePlanName(company?.plan);
+            const { data: profile } = await supabaseAdmin
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single();
+
+            if (!company || (company.user_id !== user.id && !isAdminRole(profile?.role))) {
+                return NextResponse.json({ error: "Sem permissão para notificar por esta empresa" }, { status: 403 });
+            }
+
+            const plan = normalizePlanName(company.plan);
             if (!canUseSMSNotifications(plan)) {
                 return NextResponse.json({
                     error: "Recurso SMS requer plano Premium ou superior",
                     upgrade_required: true
                 }, { status: 403 });
+            }
+        } else {
+            // Alertas de mercado (regionais/nacionais) só podem ser
+            // despoletados pela administração — não há dono individual a
+            // verificar como no caso de 'company'.
+            const { data: profile } = await supabaseAdmin
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single();
+
+            if (!isAdminRole(profile?.role)) {
+                return NextResponse.json({ error: "Apenas administradores podem enviar alertas de mercado" }, { status: 403 });
             }
         }
 
@@ -92,8 +131,13 @@ export async function POST(request: Request) {
         // 2. Filter by location ONLY if type is 'market'
         // Company products are national alerts, Market variations are regional
         if (location && type === 'market') {
-            // Match province or district
-            query = query.or(`province.ilike.%${location}%,district.ilike.%${location}%`);
+            // `location` vem do pedido — nunca interpolar directamente numa
+            // string de filtro do PostgREST. Só letras/números/espaços/hífen
+            // sobrevivem, o resto é cortado antes de entrar no .or().
+            const safeLocation = String(location).replace(/[^\p{L}\p{N}\s-]/gu, '').trim().slice(0, 100);
+            if (safeLocation) {
+                query = query.or(`province.ilike.%${safeLocation}%,district.ilike.%${safeLocation}%`);
+            }
         }
 
         const { data: subscribers, error: fetchError } = await query;

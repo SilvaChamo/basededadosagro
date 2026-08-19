@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import Image from "next/image";
-import { createClient } from "@/utils/supabase/client";
 import { Spinner } from "@/components/ui/spinner";
 
 // Consulta o estado a cada 4s durante no máximo 2 minutos — passado isso,
@@ -25,7 +24,6 @@ const POLL_INTERVAL_MS = 4000;
 const POLL_TIMEOUT_MS = 120000;
 
 function PagamentoContent() {
-    const supabase = createClient();
     const searchParams = useSearchParams();
     const router = useRouter();
 
@@ -53,13 +51,6 @@ function PagamentoContent() {
         };
     }, []);
 
-    const activatePlan = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        await supabase.from('profiles').update({ plan: planName }).eq('id', user.id);
-        await supabase.from('companies').update({ plan: planName }).eq('user_id', user.id);
-    };
-
     const pollStatus = async (reference: string) => {
         if (Date.now() > pollDeadlineRef.current) {
             setStage("failed");
@@ -73,13 +64,8 @@ function PagamentoContent() {
             const data = await res.json();
 
             if (data.status === "completed") {
-                // A rota já confirmou o pagamento — falta activar o plano
-                // desta conta antes de seguir para o sucesso.
-                try {
-                    await activatePlan();
-                } catch (error) {
-                    console.error("Erro ao activar plano após pagamento confirmado:", error);
-                }
+                // A rota já confirmou o pagamento e activou o plano
+                // (server-side, com o admin client) antes de responder.
                 router.push(`/checkout/sucesso?plan=${encodeURIComponent(planName)}`);
                 return;
             }
@@ -136,9 +122,8 @@ function PagamentoContent() {
             }
 
             if (data.mock) {
-                // Sem credenciais M-Pesa configuradas — o pedido já activou o
-                // plano no modo simulado, direito ao sucesso.
-                await activatePlan();
+                // Sem credenciais M-Pesa configuradas — o servidor já activou
+                // o plano no modo simulado, direito ao sucesso.
                 router.push(`/checkout/sucesso?plan=${encodeURIComponent(planName)}`);
                 return;
             }

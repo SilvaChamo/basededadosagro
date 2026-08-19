@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { isAdminRole } from "@/lib/roles";
 
 // Email regex pattern
 const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
@@ -8,12 +9,53 @@ const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
 const phoneRegex = /(?:\+258|258)?[\s.-]?(?:8[2-7]|21|23|24|25|26|27|28|29)[\s.-]?\d{3}[\s.-]?\d{4}/g;
 const phoneGenericRegex = /(?:\+\d{1,3}[\s.-]?)?\(?\d{2,3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/g;
 
+// Nomes/prefixos de endereço que nunca devem ser aceites como alvo do
+// scrape — evita que este endpoint seja usado para fazer o servidor
+// contactar a rede interna (SSRF) em vez de um site público real.
+const BLOCKED_HOSTNAME_PATTERNS = [
+    /^localhost$/i,
+    /^127\./,
+    /^0\.0\.0\.0$/,
+    /^10\./,
+    /^172\.(1[6-9]|2\d|3[01])\./,
+    /^192\.168\./,
+    /^169\.254\./,
+    /\.local$/i,
+    /^\[?::1\]?$/,
+];
+
 export async function POST(request: Request) {
     try {
+        // Só administração pode despoletar isto — além de escrever
+        // contactos em nome de qualquer empresa, o servidor faz um pedido
+        // HTTP ao URL fornecido, o que sem controlo de acesso é um vector
+        // de SSRF (o servidor a "visitar" endereços internos por ordem de
+        // quem chamar o endpoint).
+        const supabaseAuth = await createClient();
+        const { data: { user } } = await supabaseAuth.auth.getUser();
+        if (!user) {
+            return NextResponse.json({ error: "É necessário iniciar sessão" }, { status: 401 });
+        }
+        const { data: profile } = await supabaseAuth.from('profiles').select('role').eq('id', user.id).single();
+        if (!isAdminRole(profile?.role)) {
+            return NextResponse.json({ error: "Apenas administradores podem importar contactos" }, { status: 403 });
+        }
+
         const { url, company_id, company_name } = await request.json();
 
         if (!url) {
             return NextResponse.json({ error: "URL is required" }, { status: 400 });
+        }
+
+        let parsedUrl: URL;
+        try {
+            parsedUrl = new URL(url);
+        } catch {
+            return NextResponse.json({ error: "URL inválido" }, { status: 400 });
+        }
+        const isBlockedHost = BLOCKED_HOSTNAME_PATTERNS.some((pattern) => pattern.test(parsedUrl.hostname));
+        if (!['http:', 'https:'].includes(parsedUrl.protocol) || isBlockedHost) {
+            return NextResponse.json({ error: "URL não permitido" }, { status: 400 });
         }
 
         // Fetch the website content

@@ -3,6 +3,14 @@ import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { getMpesaAccessToken, getMpesaCredentials, MPESA_BASE_URL } from '@/lib/mpesa';
 
+// Activa o plano com o cliente admin (service_role) — desde que a coluna
+// profiles.role/plan passou a estar protegida por trigger contra escrita
+// directa do dono da conta, isto já não pode ser feito a partir do browser.
+async function activatePlan(adminClient: ReturnType<typeof createAdminClient>, userId: string, planName: string) {
+    await adminClient.from('profiles').update({ plan: planName }).eq('id', userId);
+    await adminClient.from('companies').update({ plan: planName }).eq('user_id', userId);
+}
+
 export async function GET(request: Request) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -29,6 +37,12 @@ export async function GET(request: Request) {
     // Já temos uma resposta definitiva guardada (concluída, falhada, ou modo
     // simulado) — não vale a pena voltar a perguntar ao M-Pesa.
     if (tx.status !== 'pending') {
+        if (tx.status === 'completed') {
+            // Idempotente — repetir a activação não faz mal, só garante que
+            // uma falha a meio de um pedido anterior não deixe o plano por
+            // activar.
+            await activatePlan(createAdminClient(), user.id, tx.plan_name);
+        }
         return NextResponse.json({ status: tx.status, planName: tx.plan_name });
     }
 
@@ -74,6 +88,7 @@ export async function GET(request: Request) {
             await adminClient.from('payment_transactions')
                 .update({ status: 'completed', completed_at: new Date().toISOString(), provider_response: statusData })
                 .eq('reference', reference);
+            await activatePlan(adminClient, user.id, tx.plan_name);
             return NextResponse.json({ status: 'completed', planName: tx.plan_name });
         }
 
