@@ -11,6 +11,7 @@ import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { NewsCard } from "@/components/NewsCard";
 import { Button } from "@/components/ui/button";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
+import { getCachedList, setCachedList } from "@/lib/adminListCache";
 
 import { useRouter } from "next/navigation";
 
@@ -28,8 +29,10 @@ export default function AdminArticlesPage() {
     const [activeAdminTab, setActiveAdminTab] = useState("noticias");
     const { addAction, undo, redo, canUndo, canRedo } = useUndoRedo();
 
-    async function fetchArticles() {
-        setLoading(true);
+    const blogCacheKey = `blog:${activeAdminTab}:${statusFilter}`;
+
+    async function fetchArticles(showLoading = true) {
+        if (showLoading) setLoading(true);
 
         let query = supabase
             .from('articles')
@@ -74,11 +77,13 @@ export default function AdminArticlesPage() {
                 const { data: fallbackData, error: fallbackError } = await fallbackQuery;
                 if (fallbackError) throw fallbackError;
                 setArticles(fallbackData || []);
+                setCachedList(blogCacheKey, fallbackData || []);
             } else {
                 throw error;
             }
         } else {
             setArticles(data || []);
+            setCachedList(blogCacheKey, data || []);
         }
 
 
@@ -89,7 +94,10 @@ export default function AdminArticlesPage() {
     }
 
     useEffect(() => {
-        fetchArticles();
+        const cached = getCachedList<any[]>(blogCacheKey);
+        if (cached) setArticles(cached);
+        fetchArticles(!cached);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [statusFilter, activeAdminTab]);
 
     const confirmDelete = async () => {

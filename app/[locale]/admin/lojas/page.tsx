@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { STORE_CATEGORIES } from "@/lib/agro-data";
 import { Spinner } from "@/components/ui/spinner";
+import { getCachedList, setCachedList } from "@/lib/adminListCache";
 
 export default function AdminLojasPage() {
     const [stores, setStores] = useState<any[]>([]);
@@ -25,9 +26,11 @@ export default function AdminLojasPage() {
         setIsMounted(true);
     }, []);
 
-    const fetchStores = async () => {
+    const lojasCacheKey = `lojas:${statusFilter}`;
+
+    const fetchStores = async (showLoading = true) => {
         try {
-            setIsLoading(true);
+            if (showLoading) setIsLoading(true);
             let query = supabase
                 .from('companies')
                 .select('*')
@@ -57,6 +60,7 @@ export default function AdminLojasPage() {
                     const { data: fallbackData, error: fallbackError } = await fallbackQuery;
                     if (fallbackError) throw fallbackError;
                     setStores(fallbackData || []);
+                    setCachedList(lojasCacheKey, fallbackData || []);
                 } else if (error.code === '42703' && statusFilter === 'deleted') {
                     setStores([]);
                 } else {
@@ -64,6 +68,7 @@ export default function AdminLojasPage() {
                 }
             } else {
                 setStores(data || []);
+                setCachedList(lojasCacheKey, data || []);
             }
         } catch (err) {
             console.error('Exception in fetchStores:', err);
@@ -75,7 +80,9 @@ export default function AdminLojasPage() {
 
     useEffect(() => {
         if (isMounted) {
-            fetchStores();
+            const cached = getCachedList<any[]>(lojasCacheKey);
+            if (cached) setStores(cached);
+            fetchStores(!cached);
         }
 
         // Safety timeout
@@ -84,6 +91,7 @@ export default function AdminLojasPage() {
         }, 10000);
 
         return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isMounted, statusFilter]);
 
     const handleDelete = async (row: any) => {

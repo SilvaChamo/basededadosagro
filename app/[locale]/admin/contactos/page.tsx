@@ -27,6 +27,9 @@ import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import { Spinner } from "@/components/ui/spinner";
+import { getCachedList, setCachedList } from "@/lib/adminListCache";
+
+const CACHE_KEY = "contactos";
 
 interface Contact {
     id: string;
@@ -75,12 +78,20 @@ export default function AdminContactosPage() {
     });
 
     useEffect(() => {
-        fetchContacts();
+        // Cache curto (90s) para não reprocessar a lista toda sempre que se
+        // volta a esta página dentro da mesma sessão — sempre a actualizar
+        // em segundo plano a seguir, mesmo com cache válido.
+        const cached = getCachedList<Contact[]>(CACHE_KEY);
+        if (cached) {
+            setContacts(cached);
+            setLoading(false);
+        }
+        fetchContacts(!cached);
         fetchCompanies();
     }, []);
 
-    async function fetchContacts() {
-        setLoading(true);
+    async function fetchContacts(showLoading = true) {
+        if (showLoading) setLoading(true);
         const { data, error } = await supabase
             .from('contacts')
             .select(`
@@ -95,6 +106,7 @@ export default function AdminContactosPage() {
             setContacts([]);
         } else {
             setContacts(data || []);
+            setCachedList(CACHE_KEY, data || []);
         }
         setLoading(false);
     }

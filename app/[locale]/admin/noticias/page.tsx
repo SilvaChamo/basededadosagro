@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { NewsCard } from "@/components/NewsCard";
 import { Spinner } from "@/components/ui/spinner";
+import { getCachedList, setCachedList } from "@/lib/adminListCache";
 
 function AdminNoticiasContent() {
     const supabase = createClient();
@@ -132,8 +133,14 @@ function AdminNoticiasContent() {
         }
     };
 
-    const fetchArticles = async () => {
-        setLoading(true);
+    // "Pendentes" (fetchPending, mais abaixo) fica sempre por cachear de propósito
+    // — é uma fila de trabalho, o admin quer ver submissões novas assim que
+    // aparecem. Só "Todas"/"Arquivados"/"Lixeira" (statusFilter) beneficiam de
+    // cache curto, por isso a chave inclui o statusFilter.
+    const articlesCacheKey = `noticias:${statusFilter}`;
+
+    const fetchArticles = async (showLoading = true) => {
+        if (showLoading) setLoading(true);
         try {
             let query = supabase.from('articles').select('*').order('created_at', { ascending: false });
 
@@ -161,11 +168,13 @@ function AdminNoticiasContent() {
                     const { data: fbData, error: fbError } = await fallbackQuery;
                     if (fbError) throw fbError;
                     setArticles(fbData || []);
+                    setCachedList(articlesCacheKey, fbData || []);
                 } else {
                     throw error;
                 }
             } else {
                 setArticles(data || []);
+                setCachedList(articlesCacheKey, data || []);
             }
         } catch (error) {
             console.error(error);
@@ -176,7 +185,10 @@ function AdminNoticiasContent() {
     };
 
     useEffect(() => {
-        fetchArticles();
+        const cached = getCachedList<any[]>(articlesCacheKey);
+        if (cached) setArticles(cached);
+        fetchArticles(!cached);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [statusFilter]);
 
     const handleArchive = async (article: any) => {

@@ -17,6 +17,7 @@ import { DocumentCard } from "@/components/admin/DocumentCard";
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
+import { getCachedList, setCachedList } from "@/lib/adminListCache";
 
 function AdminDocumentosContent() {
     const router = useRouter();
@@ -48,8 +49,12 @@ function AdminDocumentosContent() {
         { id: 'outros', label: 'Outros Documentos', icon: Layers, types: ['Documento', 'document', 'PDF', 'Artigo Técnico'] },
     ];
 
-    const fetchArticles = async () => {
-        setLoading(true);
+    // Busca sempre todos os tipos (allTypes) para o statusFilter actual — o
+    // separador (activeTab) filtra em memória, por isso não faz parte da chave.
+    const documentosCacheKey = `documentos:${statusFilter}`;
+
+    const fetchArticles = async (showLoading = true) => {
+        if (showLoading) setLoading(true);
         const allTypes = tabs.flatMap((t: any) => t.types);
 
         try {
@@ -85,11 +90,13 @@ function AdminDocumentosContent() {
                     const { data: fbData, error: fbError } = await fallbackQuery;
                     if (fbError) throw fbError;
                     setArticles(fbData || []);
+                    setCachedList(documentosCacheKey, fbData || []);
                 } else {
                     throw error;
                 }
             } else {
                 setArticles(data || []);
+                setCachedList(documentosCacheKey, data || []);
             }
         } catch (error) {
             console.error(error);
@@ -100,7 +107,10 @@ function AdminDocumentosContent() {
     };
 
     useEffect(() => {
-        fetchArticles();
+        const cached = getCachedList<any[]>(documentosCacheKey);
+        if (cached) setArticles(cached);
+        fetchArticles(!cached);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [statusFilter]);
 
     const confirmDelete = async () => {

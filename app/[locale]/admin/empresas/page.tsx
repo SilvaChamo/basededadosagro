@@ -15,6 +15,9 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Spinner } from "@/components/ui/spinner";
+import { getCachedList, setCachedList } from "@/lib/adminListCache";
+
+const EMPRESAS_CACHE_KEY = "empresas";
 
 export default function AdminEmpresasPage() {
     const supabase = createClient();
@@ -34,9 +37,9 @@ export default function AdminEmpresasPage() {
     const [itemToProcess, setItemToProcess] = useState<any>(null);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-    async function fetchData() {
+    async function fetchData(showLoading = true) {
         try {
-            setLoading(true);
+            if (showLoading) setLoading(true);
             let query = supabase.from('companies').select('*');
             const { data: result, error } = await query
                 .or('type.neq.Loja,type.is.null') // Show everything except stores, including NULLs
@@ -48,6 +51,7 @@ export default function AdminEmpresasPage() {
                 toast.error("Erro ao carregar dados.");
             } else {
                 setData(result || []);
+                setCachedList(EMPRESAS_CACHE_KEY, result || []);
             }
         } catch (err) {
             console.error("fetchData error:", err);
@@ -57,7 +61,9 @@ export default function AdminEmpresasPage() {
     }
 
     useEffect(() => {
-        fetchData();
+        const cached = getCachedList<any[]>(EMPRESAS_CACHE_KEY);
+        if (cached) setData(cached);
+        fetchData(!cached);
     }, []);
 
     // Filter Logic

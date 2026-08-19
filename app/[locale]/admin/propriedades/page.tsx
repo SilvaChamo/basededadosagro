@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
+import { getCachedList, setCachedList } from "@/lib/adminListCache";
 
 export default function AdminPropertiesPage() {
     const supabase = createClient();
@@ -25,8 +26,10 @@ export default function AdminPropertiesPage() {
     const [showEmptyBinConfirm, setShowEmptyBinConfirm] = useState(false);
     const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
-    async function fetchData() {
-        setLoading(true);
+    const propriedadesCacheKey = `propriedades:${statusFilter}`;
+
+    async function fetchData(showLoading = true) {
+        if (showLoading) setLoading(true);
         try {
             let query = supabase
                 .from('properties')
@@ -63,11 +66,13 @@ export default function AdminPropertiesPage() {
                     const { data: fallbackData, error: fallbackError } = await fallbackQuery;
                     if (fallbackError) throw fallbackError;
                     setData(fallbackData || []);
+                    setCachedList(propriedadesCacheKey, fallbackData || []);
                 } else {
                     throw error;
                 }
             } else {
                 setData(data || []);
+                setCachedList(propriedadesCacheKey, data || []);
             }
         } catch (error: any) {
             console.error(error);
@@ -77,7 +82,10 @@ export default function AdminPropertiesPage() {
     }
 
     useEffect(() => {
-        fetchData();
+        const cached = getCachedList<any[]>(propriedadesCacheKey);
+        if (cached) setData(cached);
+        fetchData(!cached);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [statusFilter]);
 
     const handleDelete = (row: any) => {

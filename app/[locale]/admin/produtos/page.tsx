@@ -13,6 +13,7 @@ import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
+import { getCachedList, setCachedList } from "@/lib/adminListCache";
 
 export default function AdminProductsPage() {
     const router = useRouter();
@@ -33,8 +34,13 @@ export default function AdminProductsPage() {
     // Selection state
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-    async function fetchData() {
-        setLoading(true);
+    // A pesquisa filtra em memória (processData, mais abaixo) sobre os dados já
+    // obtidos — não faz parte da query nem da chave de cache, só do separador
+    // e do estado, para não guardar em cache um subconjunto já filtrado por texto.
+    const productsCacheKey = `produtos:${activeTab}:${statusFilter}`;
+
+    async function fetchData(showLoading = true) {
+        if (showLoading) setLoading(true);
 
         const table = activeTab === "mercado" ? 'market_prices' : 'products';
         const selectQuery = activeTab === "mercado" ? '*' : '*, companies(id, name)';
@@ -79,11 +85,13 @@ export default function AdminProductsPage() {
                     }
                     const { data: fallbackData, error: fallbackError } = await fallbackQuery;
                     if (fallbackError) throw fallbackError;
+                    setCachedList(productsCacheKey, fallbackData || []);
                     processData(fallbackData || []);
                 } else {
                     throw error;
                 }
             } else {
+                setCachedList(productsCacheKey, data || []);
                 processData(data || []);
             }
         } catch (error) {
@@ -109,7 +117,13 @@ export default function AdminProductsPage() {
     }
 
     useEffect(() => {
-        fetchData();
+        // Cache guarda os dados em bruto (antes do filtro de pesquisa) — por
+        // isso um "hit" aqui filtra logo com processData em vez de esperar a
+        // rede, incluindo ao digitar na pesquisa (que também dispara este efeito).
+        const cachedRaw = getCachedList<any[]>(productsCacheKey);
+        if (cachedRaw) processData(cachedRaw);
+        fetchData(!cachedRaw);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab, statusFilter, search]);
 
     // Handlers

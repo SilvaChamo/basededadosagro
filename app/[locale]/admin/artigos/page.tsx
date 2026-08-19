@@ -12,6 +12,7 @@ import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
+import { getCachedList, setCachedList } from "@/lib/adminListCache";
 
 function AdminArtigosCientificosContent() {
     const supabase = createClient();
@@ -44,8 +45,12 @@ function AdminArtigosCientificosContent() {
         { id: 'Outros', label: 'Outros', icon: Layers },
     ];
 
-    const fetchArticles = async () => {
-        setLoading(true);
+    // Busca sempre todos os tipos para o statusFilter actual — o separador
+    // (activeTab) filtra em memória, por isso não faz parte da chave.
+    const artigosCacheKey = `artigos:${statusFilter}`;
+
+    const fetchArticles = async (showLoading = true) => {
+        if (showLoading) setLoading(true);
         try {
             let query = supabase
                 .from('articles')
@@ -84,11 +89,13 @@ function AdminArtigosCientificosContent() {
                     const { data: fallbackData, error: fallbackError } = await fallbackQuery;
                     if (fallbackError) throw fallbackError;
                     setArticles(fallbackData || []);
+                    setCachedList(artigosCacheKey, fallbackData || []);
                 } else {
                     throw error;
                 }
             } else {
                 setArticles(data || []);
+                setCachedList(artigosCacheKey, data || []);
             }
         } catch (error: any) {
             console.error(error);
@@ -99,7 +106,10 @@ function AdminArtigosCientificosContent() {
     };
 
     useEffect(() => {
-        fetchArticles();
+        const cached = getCachedList<any[]>(artigosCacheKey);
+        if (cached) setArticles(cached);
+        fetchArticles(!cached);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [statusFilter]);
 
     const confirmDelete = async () => {
