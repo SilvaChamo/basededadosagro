@@ -28,6 +28,7 @@ import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import { Spinner } from "@/components/ui/spinner";
 import { getCachedList, setCachedList } from "@/lib/adminListCache";
+import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
 
 const CACHE_KEY = "contactos";
 
@@ -469,6 +470,20 @@ export default function AdminContactosPage() {
         }
     }
 
+    useAdminTopBar("", undefined, undefined, {
+        showLogout: true,
+        actions: (
+            <button
+                type="button"
+                onClick={() => { resetForm(); setEditingContact(null); setShowModal(true); }}
+                className={TOPBAR_NEW_BUTTON_CLASS}
+            >
+                <Plus className="w-4 h-4" />
+                Novo
+            </button>
+        ),
+    });
+
     return (
         <div className="flex flex-col">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-0 pb-0">
@@ -490,18 +505,11 @@ export default function AdminContactosPage() {
                     <Button
                         variant="outline"
                         onClick={handleScrape}
-                        className="border-slate-200 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 gap-2 text-xs font-bold rounded-md h-8 px-3 transition-all"
+                        className="border-slate-200 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 gap-2 text-xs font-bold rounded-[8px] h-8 px-3 transition-all"
                         disabled={importing}
                     >
                         <Globe className="w-4 h-4" />
                         Importar de Websites
-                    </Button>
-                    <Button
-                        onClick={() => { resetForm(); setEditingContact(null); setShowModal(true); }}
-                        className="bg-emerald-600 hover:bg-orange-600 text-white gap-2 text-xs font-bold rounded-md h-8 px-3 transition-all shadow-sm"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Novo
                     </Button>
                 </div>
             </div>

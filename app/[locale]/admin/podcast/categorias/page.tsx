@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Save, X, Tag } from "lucide-react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import Link from "next/link";
+import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
 
 interface PodcastCategory {
     id: string;
@@ -124,6 +125,20 @@ export default function PodcastCategoriesPage() {
         setEditDescription(cat.description || "");
     }
 
+    useAdminTopBar("", undefined, undefined, {
+        showLogout: true,
+        actions: (
+            <button
+                type="button"
+                onClick={() => { setShowNew(true); setNewName(""); setNewDescription(""); }}
+                className={TOPBAR_NEW_BUTTON_CLASS}
+            >
+                <Plus className="w-4 h-4" />
+                Nova Categoria
+            </button>
+        ),
+    });
+
     return (
         <div className="space-y-6">
             <AdminHeader
@@ -138,13 +153,6 @@ export default function PodcastCategoriesPage() {
                 >
                     ← Voltar aos Episódios
                 </Link>
-                <button
-                    onClick={() => { setShowNew(true); setNewName(""); setNewDescription(""); }}
-                    className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-[8px] text-sm font-bold hover:bg-orange-500 transition-colors"
-                >
-                    <Plus className="w-4 h-4" />
-                    Nova Categoria
-                </button>
             </div>
 
             {/* New Category Form */}

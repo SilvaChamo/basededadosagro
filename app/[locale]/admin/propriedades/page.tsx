@@ -11,6 +11,7 @@ import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
 import { getCachedList, setCachedList } from "@/lib/adminListCache";
+import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
 
 export default function AdminPropertiesPage() {
     const supabase = createClient();
@@ -237,6 +238,20 @@ export default function AdminPropertiesPage() {
         }
     ];
 
+    useAdminTopBar("", undefined, undefined, {
+        showLogout: true,
+        actions: (
+            <button
+                type="button"
+                onClick={() => router.push('/admin/propriedades/novo')}
+                className={TOPBAR_NEW_BUTTON_CLASS}
+            >
+                <Plus className="w-4 h-4" />
+                Nova Propriedade
+            </button>
+        ),
+    });
+
     return (
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -287,14 +302,6 @@ export default function AdminPropertiesPage() {
                             <List className="w-4 h-4" />
                         </button>
                     </div>
-
-                    <Button
-                        onClick={() => router.push('/admin/propriedades/novo')}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest text-[10px] h-10 px-4 rounded-lg gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Nova Propriedade
-                    </Button>
                 </div>
             </div>
 

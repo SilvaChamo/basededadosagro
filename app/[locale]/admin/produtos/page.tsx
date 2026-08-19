@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
 import { getCachedList, setCachedList } from "@/lib/adminListCache";
+import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
 
 export default function AdminProductsPage() {
     const router = useRouter();
@@ -356,6 +357,16 @@ export default function AdminProductsPage() {
         }
     ];
 
+    useAdminTopBar("", undefined, undefined, {
+        showLogout: true,
+        actions: (
+            <button type="button" onClick={handleAdd} className={TOPBAR_NEW_BUTTON_CLASS}>
+                <Plus className="w-4 h-4" />
+                {activeTab === "mercado" ? "Nova Cotação" : "Novo Item"}
+            </button>
+        ),
+    });
+
     return (
         <div className="space-y-8">
             {/* Header & Controls */}
@@ -434,15 +445,6 @@ export default function AdminProductsPage() {
                             <List className="w-4 h-4" />
                         </button>
                     </div>
-
-
-                    <Button
-                        onClick={handleAdd}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest text-[10px] h-10 px-4 rounded-lg gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        {activeTab === "mercado" ? "Nova Cotação" : "Novo Item"}
-                    </Button>
                 </div>
             </div>
 

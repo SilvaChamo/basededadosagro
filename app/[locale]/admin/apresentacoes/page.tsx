@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Button } from "@/components/ui/button";
 import { Plus, Presentation, Pencil, Trash2, Play, Search, LayoutGrid, List, Archive, ArrowRight, Calendar } from "lucide-react";
+import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
@@ -235,6 +236,20 @@ export default function AdminApresentacoesPage() {
 
     const filtered = getDisplayItems();
 
+    useAdminTopBar("", undefined, undefined, {
+        showLogout: true,
+        actions: (
+            <button
+                type="button"
+                onClick={() => router.push('/admin/apresentacoes/novo')}
+                className={TOPBAR_NEW_BUTTON_CLASS}
+            >
+                <Plus className="w-4 h-4" />
+                Novo
+            </button>
+        ),
+    });
+
     return (
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -299,15 +314,6 @@ export default function AdminApresentacoesPage() {
                             <List className="w-4 h-4" />
                         </button>
                     </div>
-
-                    {/* New Button */}
-                    <Button
-                        onClick={() => router.push('/admin/apresentacoes/novo')}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest text-[10px] h-10 px-4 rounded-lg gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Novo
-                    </Button>
                 </div>
             </div>
 

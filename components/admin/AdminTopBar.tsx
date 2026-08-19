@@ -19,6 +19,12 @@ interface TopBarContextValue {
     setConfig: (config: TopBarConfig | null) => void;
 }
 
+// Estilo único para o botão "Novo X" de cada página, para ficar visualmente
+// alinhado ao Sair (mesma altura h-9) quando os dois partilham esta barra.
+// Um só sítio para esta classe — usada por todas as páginas de listagem via
+// useAdminTopBar({ actions: <Button className={TOPBAR_NEW_BUTTON_CLASS}>... }).
+export const TOPBAR_NEW_BUTTON_CLASS = "inline-flex items-center gap-2 bg-emerald-600 hover:bg-orange-600 text-white font-black uppercase tracking-widest text-[10px] h-9 px-4 rounded-[8px] transition-all shadow-sm";
+
 const AdminTopBarContext = createContext<TopBarContextValue | null>(null);
 
 export function AdminTopBarProvider({ children }: { children: ReactNode }) {

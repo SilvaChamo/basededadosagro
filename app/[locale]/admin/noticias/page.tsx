@@ -13,6 +13,7 @@ import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { NewsCard } from "@/components/NewsCard";
 import { Spinner } from "@/components/ui/spinner";
 import { getCachedList, setCachedList } from "@/lib/adminListCache";
+import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
 
 function AdminNoticiasContent() {
     const supabase = createClient();
@@ -380,6 +381,25 @@ function AdminNoticiasContent() {
         }
     ];
 
+    useAdminTopBar(
+        isFormOpen ? (editingArticle ? "Editar Artigo" : "Novo Artigo") : "",
+        isFormOpen ? () => { setIsFormOpen(false); setPublishingFromPendingId(null); } : undefined,
+        "Cancelar",
+        isFormOpen ? undefined : {
+            showLogout: true,
+            actions: (
+                <button
+                    type="button"
+                    onClick={() => { setEditingArticle(null); setPublishingFromPendingId(null); setIsFormOpen(true); }}
+                    className={TOPBAR_NEW_BUTTON_CLASS}
+                >
+                    <Plus className="w-4 h-4" />
+                    Novo Artigo
+                </button>
+            ),
+        }
+    );
+
     if (isFormOpen) {
         return (
             <ArticleForm
@@ -463,11 +483,6 @@ function AdminNoticiasContent() {
                             <Trash2 className="w-4 h-4" />
                         </button>
                     </div>
-
-                    <Button onClick={() => { setEditingArticle(null); setPublishingFromPendingId(null); setIsFormOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Novo Artigo
-                    </Button>
                 </div>
             </div>
 

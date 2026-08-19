@@ -12,6 +12,7 @@ import {
 import { STORE_CATEGORIES } from "@/lib/agro-data";
 import { Spinner } from "@/components/ui/spinner";
 import { getCachedList, setCachedList } from "@/lib/adminListCache";
+import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
 
 export default function AdminLojasPage() {
     const [stores, setStores] = useState<any[]>([]);
@@ -211,6 +212,16 @@ export default function AdminLojasPage() {
     });
 
 
+    useAdminTopBar("", undefined, undefined, {
+        showLogout: true,
+        actions: (
+            <Link href="/admin/lojas/novo" className={TOPBAR_NEW_BUTTON_CLASS}>
+                <Plus className="w-4 h-4" />
+                Nova Loja
+            </Link>
+        ),
+    });
+
     return (
         <div className="space-y-6">
             {/* Top Bar: Search, Filter and Actions */}
@@ -263,14 +274,6 @@ export default function AdminLojasPage() {
                         <Trash2 className="w-4 h-4" />
                     </button>
                 </div>
-
-                <Link
-                    href="/admin/lojas/novo"
-                    className="flex items-center justify-center gap-2 px-6 py-2 bg-emerald-600 hover:bg-orange-500 text-white font-bold rounded-lg transition-all shadow-lg shadow-emerald-500/10 w-full md:w-auto whitespace-nowrap"
-                >
-                    <Plus className="w-4 h-4" />
-                    Nova Loja
-                </Link>
             </div>
 
             {/* Content */}
@@ -287,7 +290,7 @@ export default function AdminLojasPage() {
                     </p>
                     <Link
                         href="/admin/lojas/novo"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-[8px] transition-all"
                     >
                         <Plus className="w-4 h-4" />
                         Adicionar Loja

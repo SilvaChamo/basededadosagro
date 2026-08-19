@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
+import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
 
 export default function AdminFormacaoPage() {
     const router = useRouter();
@@ -324,6 +325,20 @@ export default function AdminFormacaoPage() {
         }
     ];
 
+    useAdminTopBar("", undefined, undefined, {
+        showLogout: true,
+        actions: (
+            <button
+                type="button"
+                onClick={() => router.push('/admin/formacao/novo')}
+                className={TOPBAR_NEW_BUTTON_CLASS}
+            >
+                <Plus className="w-4 h-4" />
+                Nova Formação
+            </button>
+        ),
+    });
+
     return (
         <div className="space-y-8">
             {/* Header & Controls */}
@@ -403,14 +418,6 @@ export default function AdminFormacaoPage() {
                             <List className="w-4 h-4" />
                         </button>
                     </div>
-
-                    <Button
-                        onClick={() => router.push('/admin/formacao/novo')}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest text-[10px] h-10 px-4 rounded-lg gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Nova Formação
-                    </Button>
                 </div>
             </div>
 

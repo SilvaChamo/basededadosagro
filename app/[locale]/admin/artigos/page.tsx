@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useRouter, useSearchParams } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
 import { getCachedList, setCachedList } from "@/lib/adminListCache";
+import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
 
 function AdminArtigosCientificosContent() {
     const supabase = createClient();
@@ -315,6 +316,20 @@ function AdminArtigosCientificosContent() {
         }
     ];
 
+    useAdminTopBar("", undefined, undefined, {
+        showLogout: true,
+        actions: (
+            <button
+                type="button"
+                onClick={() => router.push('/admin/artigos/novo')}
+                className={TOPBAR_NEW_BUTTON_CLASS}
+            >
+                <Plus className="w-4 h-4" />
+                Novo Científico
+            </button>
+        ),
+    });
+
     return (
         <div className="space-y-8">
             {/* Header & Controls */}
@@ -392,14 +407,6 @@ function AdminArtigosCientificosContent() {
                             <List className="w-4 h-4" />
                         </button>
                     </div>
-
-                    <Button
-                        onClick={() => router.push('/admin/artigos/novo')}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest text-[10px] h-10 px-4 rounded-lg gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Novo Científico
-                    </Button>
                 </div>
             </div>
 

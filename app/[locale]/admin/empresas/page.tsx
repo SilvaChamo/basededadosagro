@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Spinner } from "@/components/ui/spinner";
 import { getCachedList, setCachedList } from "@/lib/adminListCache";
+import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
 
 const EMPRESAS_CACHE_KEY = "empresas";
 
@@ -298,6 +299,20 @@ export default function AdminEmpresasPage() {
         }
     ];
 
+    useAdminTopBar("", undefined, undefined, {
+        showLogout: true,
+        actions: (
+            <button
+                type="button"
+                onClick={() => router.push('/admin/empresas/novo')}
+                className={TOPBAR_NEW_BUTTON_CLASS}
+            >
+                <Plus className="w-4 h-4" />
+                Nova Empresa
+            </button>
+        ),
+    });
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -373,14 +388,6 @@ export default function AdminEmpresasPage() {
                                 <List className="w-4 h-4" />
                             </button>
                         </div>
-
-                        <Button
-                            onClick={() => router.push('/admin/empresas/novo')}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest text-xs h-10 px-6 rounded-lg gap-2 shrink-0"
-                        >
-                            <Plus className="w-4 h-4" />
-                            <span className="hidden md:inline">Nova Empresa</span>
-                        </Button>
                     </div>
                 </div>
             </div>
