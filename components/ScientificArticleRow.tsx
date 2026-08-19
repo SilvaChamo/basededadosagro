@@ -78,7 +78,7 @@ export function ScientificArticleRow({
     const titleClass = "text-[17px] font-bold text-slate-800 hover:text-emerald-700 hover:underline transition-colors leading-snug tracking-tight";
 
     return (
-        <div className="py-6 first:pt-0">
+        <div className="py-6">
             <div className="flex items-start justify-between gap-6">
                 <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-1.5">

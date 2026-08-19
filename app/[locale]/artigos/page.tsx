@@ -364,7 +364,7 @@ export default function ArticlesArchivePage() {
             }
         >
             {/* Scientific Search Input - EXACT Home Style + Enter Trigger */}
-            <div className="mb-[20px]">
+            <div className="mb-[10px]">
                 <div className={`relative bg-white rounded-[10px] shadow-sm h-14 flex items-center border transition-all duration-300 ${isScanningGlobal ? 'border-emerald-300 ring-2 ring-emerald-50' : 'border-gray-200'}`}>
                     <button
                         onClick={() => handleSearch()}
@@ -439,11 +439,6 @@ export default function ArticlesArchivePage() {
                         )}
                     </div>
                 </div>
-                {isScanningGlobal && (
-                    <p className="text-[11px] text-emerald-600 font-bold mt-2 animate-pulse uppercase tracking-wider pl-1">
-                        Varrendo bibliotecas digitais e bases acadêmicas globais...
-                    </p>
-                )}
             </div>
 
             <div className="pt-10 border-t border-slate-200">
@@ -503,9 +498,9 @@ export default function ArticlesArchivePage() {
                 ) : (
                     <div className="space-y-10">
                         {loading ? (
-                            <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm divide-y divide-slate-100 px-6">
+                            <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm divide-y divide-slate-200 px-6">
                                 {Array(6).fill(0).map((_, i) => (
-                                    <div key={i} className="py-6 first:pt-0 animate-pulse space-y-2.5">
+                                    <div key={i} className="py-6 animate-pulse space-y-2.5">
                                         <div className="h-3 bg-slate-100 rounded w-24" />
                                         <div className="h-5 bg-slate-100 rounded w-3/4" />
                                         <div className="h-3 bg-slate-100 rounded w-1/3" />
@@ -516,7 +511,7 @@ export default function ArticlesArchivePage() {
                         ) : (
                             <>
                                 {displayedArticles.length > 0 ? (
-                                    <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm divide-y divide-slate-100 px-6">
+                                    <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm divide-y divide-slate-200 px-6">
                                         {displayedArticles.map((article) => (
                                             <ScientificArticleRow
                                                 key={article.id}
