@@ -76,14 +76,15 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
     // mas os href do menu não o têm — sem tirar o prefixo, nenhuma comparação batia certo.
     const pathnameWithoutLocale = pathname.replace(/^\/(pt|en)(?=\/|$)/, "") || "/";
     const isFullBleedRoute = pathnameWithoutLocale.startsWith('/admin/mensagens/newsletter') || pathnameWithoutLocale.startsWith('/admin/apresentacoes/editor');
-    // Todos os href do menu (ex.: "/admin/empresas") não têm prefixo de idioma —
-    // sem o acrescentar aqui, cada clique navegava para um URL sem locale, o
-    // middleware tinha de redirecionar para o mesmo caminho com "/pt" à frente,
-    // e só então a página carregava de facto. Isto duplicava o número de idas
-    // e vindas ao servidor em CADA clique do painel inteiro.
+    // Todos os href do menu (ex.: "/admin/empresas") não têm prefixo de idioma.
+    // O middleware está em modo "as-needed": o idioma por omissão (pt) navega
+    // sem prefixo, só o inglês precisa de "/en" à frente — por isso só se
+    // acrescenta o prefixo quando o idioma actual não é o padrão. Acrescentá-lo
+    // sempre (incluindo para pt) fazia o middleware redirecionar de volta para
+    // a forma sem prefixo em cada clique, duplicando as idas e vindas ao servidor.
     const localeMatch = pathname.match(/^\/(pt|en)(?=\/|$)/);
     const locale = localeMatch ? localeMatch[1] : "pt";
-    const withLocale = useCallback((href: string) => `/${locale}${href}`, [locale]);
+    const withLocale = useCallback((href: string) => locale === "pt" ? href : `/${locale}${href}`, [locale]);
     const searchParams = useSearchParams();
     const currentSearch = searchParams.toString();
     const router = useRouter();

@@ -72,12 +72,13 @@ export default async function AdminLayout({
         // Além da Central de Notícias, editor/contribuidor têm acesso à mesma
         // Galeria 100% do painel de administrador (ver AdminShell "restricted").
         if (!pathname.includes('/admin/central-noticias') && !pathname.includes('/admin/galeria')) {
-            // Sem o prefixo de idioma aqui, o middleware tinha de redirecionar
-            // outra vez para o acrescentar — dobrava o número de saltos em
-            // cada navegação deste papel, que já é o mais afectado por isto.
+            // Modo "as-needed": pt (padrão) não leva prefixo, só en. Redirigir
+            // sempre com prefixo (incluindo pt) fazia o middleware saltar outra
+            // vez para a forma sem prefixo — dobrava os saltos neste papel, que
+            // já é o mais afectado por isto.
             const localeMatch = pathname.match(/^\/(pt|en)(?=\/|$)/);
             const locale = localeMatch ? localeMatch[1] : "pt";
-            redirect(`/${locale}/admin/central-noticias`);
+            redirect(locale === "pt" ? "/admin/central-noticias" : `/${locale}/admin/central-noticias`);
         }
 
         return (

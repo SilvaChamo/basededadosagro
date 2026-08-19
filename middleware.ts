@@ -5,7 +5,8 @@ import { updateSession } from '@/utils/supabase/middleware';
 const handleI18nRouting = createIntlMiddleware({
   locales: ['pt', 'en'],
   defaultLocale: 'pt',
-  localeCookie: false,
+  localePrefix: 'as-needed',
+  localeCookie: true,
 });
 
 export async function middleware(request: NextRequest) {
