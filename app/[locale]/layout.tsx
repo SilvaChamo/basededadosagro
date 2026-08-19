@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Montserrat, Maven_Pro } from "next/font/google";
+import { Montserrat } from "next/font/google";
+import localFont from "next/font/local";
 import Scripts from "next/script";
 import "../globals.css";
 import NavFooterToggle from "./components/NavFooterToggle";
@@ -18,8 +19,18 @@ const montserrat = Montserrat({
   variable: "--font-montserrat",
 });
 
-const mavenPro = Maven_Pro({
-  subsets: ["latin"],
+// Ficheiros locais em vez de next/font/google — o download do Google Fonts
+// em build/dev falha silenciosamente em alguns ambientes e a fonte cai
+// para o fallback sans-serif sem aviso nenhum.
+const mavenPro = localFont({
+  src: [
+    { path: "../fonts/maven-pro/MavenPro-Regular.ttf", weight: "400", style: "normal" },
+    { path: "../fonts/maven-pro/MavenPro-Medium.ttf", weight: "500", style: "normal" },
+    { path: "../fonts/maven-pro/MavenPro-SemiBold.ttf", weight: "600", style: "normal" },
+    { path: "../fonts/maven-pro/MavenPro-Bold.ttf", weight: "700", style: "normal" },
+    { path: "../fonts/maven-pro/MavenPro-ExtraBold.ttf", weight: "800", style: "normal" },
+    { path: "../fonts/maven-pro/MavenPro-Black.ttf", weight: "900", style: "normal" },
+  ],
   variable: "--font-maven-pro",
 });
 

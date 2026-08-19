@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { StandardBlogTemplate } from "@/components/StandardBlogTemplate";
-import { BookOpen, Search, ArrowRight, Calendar, User, ChevronDown, Info, Zap, Brain } from "lucide-react";
+import { BookOpen, Search, ArrowRight, Calendar, User, ChevronDown, ChevronLeft, ChevronRight, Info, Zap, Brain } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { ScientificArticleRow } from "@/components/ScientificArticleRow";
-import { Spinner } from "@/components/ui/spinner";
 
 // DEMO FALLBACK DATA
 const FALLBACK_ARTICLES = [
@@ -73,20 +72,20 @@ function getRelatedArticles(article: any, all: any[], max = 3) {
         .slice(0, max);
 }
 
+const RESULTS_PAGE_SIZE = 10;
+
 export default function ArticlesArchivePage() {
     const supabase = createClient();
     const [articles, setArticles] = useState<any[]>([]);
     const [localArticles, setLocalArticles] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
-    const [visibleCount, setVisibleCount] = useState(3);
-    const [isFetchingMore, setIsFetchingMore] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
     const [isScanningGlobal, setIsScanningGlobal] = useState(false);
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [selectedLibrary, setSelectedLibrary] = useState<string | null>(null);
     const [searchMode, setSearchMode] = useState<'manual' | 'auto'>('manual');
     const [isModeSelectorOpen, setIsModeSelectorOpen] = useState(false);
-    const loaderRef = useRef<HTMLDivElement>(null);
 
     // Debounced Auto-Search
     useEffect(() => {
@@ -258,7 +257,7 @@ export default function ArticlesArchivePage() {
         } else {
             setArticles(filteredLocal);
         }
-        setVisibleCount(3);
+        setCurrentPage(1);
     };
 
     // Bibliotecas/fontes distintas presentes nos resultados actuais — usado
@@ -276,36 +275,22 @@ export default function ArticlesArchivePage() {
         ? articles.filter((article) => getArticleLibrary(article) === selectedLibrary)
         : articles;
 
-    const displayedArticles = visibleArticles.slice(0, visibleCount);
+    const totalPages = Math.max(1, Math.ceil(visibleArticles.length / RESULTS_PAGE_SIZE));
+    const displayedArticles = visibleArticles.slice(
+        (currentPage - 1) * RESULTS_PAGE_SIZE,
+        currentPage * RESULTS_PAGE_SIZE
+    );
 
     const selectLibrary = (name: string | null) => {
         setSelectedLibrary(name);
-        setVisibleCount(3);
+        setCurrentPage(1);
     };
 
-    const handleLoadMore = () => {
-        if (isFetchingMore) return;
-        setIsFetchingMore(true);
-        setTimeout(() => {
-            setVisibleCount(prev => prev + 3);
-            setIsFetchingMore(false);
-        }, 500); // Reduced delay for smoother automatic feel
+    const goToPage = (page: number) => {
+        const clamped = Math.min(Math.max(1, page), totalPages);
+        setCurrentPage(clamped);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
-
-    // Infinite Scroll Observer
-    useEffect(() => {
-        const observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting && !isFetchingMore && visibleCount < visibleArticles.length) {
-                handleLoadMore();
-            }
-        }, { threshold: 0.1 });
-
-        if (loaderRef.current) {
-            observer.observe(loaderRef.current);
-        }
-
-        return () => observer.disconnect();
-    }, [isFetchingMore, visibleCount, visibleArticles.length]);
 
     return (
         <StandardBlogTemplate
@@ -441,7 +426,7 @@ export default function ArticlesArchivePage() {
                 </div>
             </div>
 
-            <div className="pt-10 border-t border-slate-200">
+            <div className="pt-4 border-t border-slate-200">
                 {!isSearchActive ? (
                     // ... (Hero section remains same as it's a large banner/ad)
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -540,10 +525,36 @@ export default function ArticlesArchivePage() {
                                     </div>
                                 )}
 
-                                {/* Automatic Load More Sentinel */}
-                                {visibleCount < visibleArticles.length && (
-                                    <div ref={loaderRef} className="h-12 flex items-center justify-center">
-                                        {isFetchingMore && <Spinner className="w-5 h-5 text-orange-500" />}
+                                {totalPages > 1 && (
+                                    <div className="flex items-center justify-center gap-1.5 pt-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => goToPage(currentPage - 1)}
+                                            disabled={currentPage === 1}
+                                            className="w-9 h-9 flex items-center justify-center rounded-[8px] border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                            aria-label="Página anterior"
+                                        >
+                                            <ChevronLeft className="w-4 h-4" />
+                                        </button>
+                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                            <button
+                                                key={page}
+                                                type="button"
+                                                onClick={() => goToPage(page)}
+                                                className={`w-9 h-9 flex items-center justify-center rounded-[8px] text-xs font-bold transition-colors ${page === currentPage ? 'bg-emerald-600 text-white' : 'border border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                                            >
+                                                {page}
+                                            </button>
+                                        ))}
+                                        <button
+                                            type="button"
+                                            onClick={() => goToPage(currentPage + 1)}
+                                            disabled={currentPage === totalPages}
+                                            className="w-9 h-9 flex items-center justify-center rounded-[8px] border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                            aria-label="Próxima página"
+                                        >
+                                            <ChevronRight className="w-4 h-4" />
+                                        </button>
                                     </div>
                                 )}
                             </>
