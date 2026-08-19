@@ -91,14 +91,6 @@ export default function ArticlesArchivePage() {
                 const combinedLocal = (data && data.length > 0) ? data : FALLBACK_ARTICLES;
                 setLocalArticles(combinedLocal);
                 setArticles(combinedLocal);
-
-                // 2. Auto-Scan Global Scientific Database for Mozambique
-                // This fulfills the "national priority" and "auto-reload/scan" request
-                const mozPapers = await fetchExternalArticles("Moçambique Agricultura");
-                if (mozPapers.length > 0) {
-                    setArticles(prev => [...prev, ...mozPapers]);
-                }
-
             } catch (error) {
                 console.error("Error fetching initial articles:", error);
                 setLocalArticles(FALLBACK_ARTICLES);
@@ -106,6 +98,17 @@ export default function ArticlesArchivePage() {
             } finally {
                 setLoading(false);
                 setIsSearchActive(true); // mostrar a grelha de artigos por defeito, sem exigir pesquisa
+            }
+
+            // 2. Auto-Scan Global Scientific Database for Mozambique — corre em
+            // segundo plano, sem "await" aqui de propósito. O Semantic Scholar
+            // (sem chave de API configurada) pode demorar dezenas de segundos
+            // a responder; a página já mostra os artigos locais, e estes
+            // juntam-se à grelha quando (e se) chegarem, em vez de atrasar a
+            // primeira apresentação com o ecrã genérico de "hero".
+            const mozPapers = await fetchExternalArticles("Moçambique Agricultura");
+            if (mozPapers.length > 0) {
+                setArticles(prev => [...prev, ...mozPapers]);
             }
         }
         fetchInitial();

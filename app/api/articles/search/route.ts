@@ -16,7 +16,11 @@ export async function GET(request: Request) {
             headers: {
                 'Accept': 'application/json',
                 // Add an API key here if you have one: 'x-api-key': 'YOUR_KEY'
-            }
+            },
+            // Sem chave de API, o Semantic Scholar limita/atrasa pedidos e pode
+            // demorar dezenas de segundos a responder — limite para nunca
+            // deixar este pedido pendurado indefinidamente.
+            signal: AbortSignal.timeout(8000),
         });
 
         if (!response.ok) {
