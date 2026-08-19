@@ -80,11 +80,14 @@ export default function ArticlesArchivePage() {
         async function fetchInitial() {
             setLoading(true);
             try {
-                // 1. Fetch Local Verified Content
+                // 1. Fetch Local Verified Content — só tipos científicos (mesmo
+                // conjunto usado em admin/artigos), para não misturar notícias
+                // e outros conteúdos de app/api/articles aqui.
                 const { data, error } = await supabase
                     .from('articles')
                     .select('*')
                     .is('deleted_at', null)
+                    .in('type', ['Dissertações', 'Artigos', 'Livros', 'Outros'])
                     .order('date', { ascending: false });
 
                 // If we have real DB data, we use it. If not, we use fallback to not show an empty page.
