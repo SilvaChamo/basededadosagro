@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
 
-const CACHE_KEY = "admin_dashboard_stats_cache_v1";
 const CACHE_TTL_MS = 8 * 60 * 60 * 1000; // 8 horas
 
 export interface AdminDashboardStats {
@@ -11,32 +10,44 @@ export interface AdminDashboardStats {
     statsRows: number;
 }
 
-interface CacheEntry {
-    data: AdminDashboardStats;
+interface CacheEntry<T> {
+    data: T;
     cachedAt: number;
 }
 
-export function getCachedDashboardStats(): AdminDashboardStats | null {
+// Leitura/escrita genérica em localStorage com TTL — cada chamador escolhe a
+// sua própria chave e TTL consoante a rapidez com que os dados envelhecem.
+function readCache<T>(key: string, ttlMs: number): T | null {
     if (typeof window === "undefined") return null;
     try {
-        const raw = window.localStorage.getItem(CACHE_KEY);
+        const raw = window.localStorage.getItem(key);
         if (!raw) return null;
-        const entry: CacheEntry = JSON.parse(raw);
-        if (Date.now() - entry.cachedAt > CACHE_TTL_MS) return null;
+        const entry: CacheEntry<T> = JSON.parse(raw);
+        if (Date.now() - entry.cachedAt > ttlMs) return null;
         return entry.data;
     } catch {
         return null;
     }
 }
 
-function setCachedDashboardStats(data: AdminDashboardStats) {
+function writeCache<T>(key: string, data: T) {
     if (typeof window === "undefined") return;
     try {
-        const entry: CacheEntry = { data, cachedAt: Date.now() };
-        window.localStorage.setItem(CACHE_KEY, JSON.stringify(entry));
+        const entry: CacheEntry<T> = { data, cachedAt: Date.now() };
+        window.localStorage.setItem(key, JSON.stringify(entry));
     } catch {
         // localStorage indisponível (modo privado, quota cheia, etc.) — sem cache, sem problema.
     }
+}
+
+const STATS_CACHE_KEY = "admin_dashboard_stats_cache_v1";
+
+export function getCachedDashboardStats(): AdminDashboardStats | null {
+    return readCache<AdminDashboardStats>(STATS_CACHE_KEY, CACHE_TTL_MS);
+}
+
+function setCachedDashboardStats(data: AdminDashboardStats) {
+    writeCache(STATS_CACHE_KEY, data);
 }
 
 // Corre as mesmas queries que o dashboard admin precisa e guarda o resultado em cache.
@@ -69,4 +80,69 @@ export function prefetchDashboardStats(maxWaitMs = 4000): Promise<void> {
     const prefetch = fetchAndCacheDashboardStats().then(() => undefined).catch(() => undefined);
     const timeout = new Promise<void>((resolve) => setTimeout(resolve, maxWaitMs));
     return Promise.race([prefetch, timeout]);
+}
+
+export interface RecentItem {
+    id: string;
+    name: string;
+    href: string;
+    type: string;
+    created_at: string;
+}
+
+export interface AdminDashboardExtra {
+    pendingCount: number;
+    weeklyArticlesCount: number;
+    recentItems: RecentItem[];
+}
+
+const EXTRA_CACHE_KEY = "admin_dashboard_extra_cache_v1";
+// TTL curto de propósito: ao contrário dos totais do site (8h, mudam pouco),
+// isto é actividade recente e contagem de pendentes — quer-se que pareça
+// sempre actual, só evita reprocessar tudo a cada clique dentro da mesma sessão curta.
+const EXTRA_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
+
+export function getCachedDashboardExtra(): AdminDashboardExtra | null {
+    return readCache<AdminDashboardExtra>(EXTRA_CACHE_KEY, EXTRA_CACHE_TTL_MS);
+}
+
+// Junta num só Promise.all as contagens (pendentes, notícias da semana) e as
+// listas recentes das 4 tabelas — antes eram dois efeitos separados na página,
+// cada um com o seu próprio grupo de pedidos.
+export async function fetchAndCacheDashboardExtra(): Promise<AdminDashboardExtra> {
+    const sinceOneWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const [pendingResult, weeklyResult, companiesRecent, productsRecent, professionalsRecent, articlesRecent] = await Promise.all([
+        supabase.from('articles_pending').select('*', { count: 'exact', head: true }),
+        supabase.from('articles').select('*', { count: 'exact', head: true }).gte('created_at', sinceOneWeek),
+        supabase.from('companies').select('id, name, created_at').order('created_at', { ascending: false }).limit(15),
+        supabase.from('products').select('id, name, created_at').order('created_at', { ascending: false }).limit(15),
+        supabase.from('professionals').select('id, name, created_at').order('created_at', { ascending: false }).limit(15),
+        supabase.from('articles').select('id, title, created_at').order('created_at', { ascending: false }).limit(15),
+    ]);
+
+    // Descarta linhas sem nome preenchido em vez de mostrar um placeholder —
+    // por isso busca-se mais (15) do que o necessário (3) por tabela.
+    const toItems = (rows: any[] | null, type: string, base: string, field = "name"): RecentItem[] =>
+        (rows || [])
+            .filter((r) => r[field] && String(r[field]).trim())
+            .map((r) => ({ id: r.id, name: r[field], type, created_at: r.created_at, href: `${base}/${r.id}` }));
+
+    const recentItems = [
+        ...toItems(companiesRecent.data, "Empresa", "/admin/empresas"),
+        ...toItems(productsRecent.data, "Produto", "/admin/produtos"),
+        ...toItems(professionalsRecent.data, "Profissional", "/admin/profissionais"),
+        ...toItems(articlesRecent.data, "Notícia", "/admin/noticias", "title"),
+    ]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 3);
+
+    const data: AdminDashboardExtra = {
+        pendingCount: pendingResult.count || 0,
+        weeklyArticlesCount: weeklyResult.count || 0,
+        recentItems,
+    };
+
+    writeCache(EXTRA_CACHE_KEY, data);
+    return data;
 }

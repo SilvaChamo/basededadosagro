@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getCachedDashboardStats, fetchAndCacheDashboardStats } from "@/lib/adminDashboardCache";
+import {
+    getCachedDashboardStats, fetchAndCacheDashboardStats,
+    getCachedDashboardExtra, fetchAndCacheDashboardExtra, type RecentItem,
+} from "@/lib/adminDashboardCache";
 import { supabase } from "@/lib/supabaseClient";
 import {
     Activity,
@@ -15,14 +18,6 @@ import {
     Bot,
 } from "lucide-react";
 import Link from "next/link";
-
-interface RecentItem {
-    id: string;
-    name: string;
-    href: string;
-    type: string;
-    created_at: string;
-}
 
 export default function AdminDashboardPage() {
     const [stats, setStats] = useState({
@@ -53,61 +48,30 @@ export default function AdminDashboardPage() {
             });
         }
 
-        async function fetchUserAndPending() {
-            // As 3 chamadas abaixo não dependem umas das outras (só a busca do
-            // nome tem uma dependência interna: precisa do user.id antes do
-            // profile) — corriam em sequência sem motivo, o que soma 3-4x o
-            // tempo de round-trip ao Supabase nesta única função.
-            const sinceOneWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-
-            const [userName, pendingResult, weeklyResult] = await Promise.all([
-                (async () => {
-                    const { data } = await supabase.auth.getUser();
-                    if (!data.user) return "";
-                    const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', data.user.id).single();
-                    return profile?.full_name || data.user.email || "";
-                })(),
-                supabase.from('articles_pending').select('*', { count: 'exact', head: true }),
-                supabase.from('articles').select('*', { count: 'exact', head: true }).gte('created_at', sinceOneWeek),
-            ]);
-
-            setUserName(userName);
-            setPendingCount(pendingResult.count || 0);
-            setWeeklyArticlesCount(weeklyResult.count || 0);
+        async function fetchUserName() {
+            const { data } = await supabase.auth.getUser();
+            if (!data.user) return;
+            const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', data.user.id).single();
+            setUserName(profile?.full_name || data.user.email || "");
         }
+        fetchUserName();
 
-        fetchUserAndPending();
-
-        async function fetchRecent() {
-            // Busca mais do que o necessário por tabela — algumas linhas não têm
-            // nome preenchido e são descartadas, sem isso podíamos ficar com
-            // menos de 3 itens depois do filtro.
-            const [companiesRecent, productsRecent, professionalsRecent, articlesRecent] = await Promise.all([
-                supabase.from('companies').select('id, name, created_at').order('created_at', { ascending: false }).limit(15),
-                supabase.from('products').select('id, name, created_at').order('created_at', { ascending: false }).limit(15),
-                supabase.from('professionals').select('id, name, created_at').order('created_at', { ascending: false }).limit(15),
-                supabase.from('articles').select('id, title, created_at').order('created_at', { ascending: false }).limit(15),
-            ]);
-
-            const toItems = (rows: any[] | null, type: string, base: string, field = "name"): RecentItem[] =>
-                (rows || [])
-                    .filter((r) => r[field] && String(r[field]).trim())
-                    .map((r) => ({ id: r.id, name: r[field], type, created_at: r.created_at, href: `${base}/${r.id}` }));
-
-            const merged = [
-                ...toItems(companiesRecent.data, "Empresa", "/admin/empresas"),
-                ...toItems(productsRecent.data, "Produto", "/admin/produtos"),
-                ...toItems(professionalsRecent.data, "Profissional", "/admin/profissionais"),
-                ...toItems(articlesRecent.data, "Notícia", "/admin/noticias", "title"),
-            ]
-                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                .slice(0, 3);
-
-            setRecentItems(merged);
+        function applyExtra(data: { pendingCount: number; weeklyArticlesCount: number; recentItems: RecentItem[] }) {
+            setPendingCount(data.pendingCount);
+            setWeeklyArticlesCount(data.weeklyArticlesCount);
+            setRecentItems(data.recentItems);
             setRecentLoading(false);
         }
 
-        fetchRecent();
+        // Pendentes/notícias-da-semana/actividade recente: em cache (5 min),
+        // aparecem de imediato ao navegar de volta ao dashboard dentro da mesma
+        // sessão — sem isso, cada clique voltava a disparar 6 pedidos ao
+        // Supabase e a mostrar "A carregar..." outra vez. Mesmo com cache
+        // válido, actualiza-se sempre em segundo plano (stale-while-revalidate)
+        // para nunca ficar preso a um número desactualizado.
+        const cachedExtra = getCachedDashboardExtra();
+        if (cachedExtra) applyExtra(cachedExtra);
+        fetchAndCacheDashboardExtra().then(applyExtra);
     }, []);
 
     const tiles = [
