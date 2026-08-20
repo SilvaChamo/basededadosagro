@@ -84,7 +84,7 @@ export default function ArticlesArchivePage() {
     const [isScanningGlobal, setIsScanningGlobal] = useState(false);
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [selectedLibrary, setSelectedLibrary] = useState<string | null>(null);
-    const [searchMode, setSearchMode] = useState<'manual' | 'auto'>('manual');
+    const [searchMode, setSearchMode] = useState<'manual' | 'auto'>('auto');
     const [isModeSelectorOpen, setIsModeSelectorOpen] = useState(false);
 
     // Debounced Auto-Search
