@@ -74,6 +74,50 @@ function getRelatedArticles(article: any, all: any[], max = 3) {
 
 const RESULTS_PAGE_SIZE = 10;
 
+const normalize = (text: string) =>
+    text ? text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim() : "";
+
+// Correcção de erros comuns / variantes PT-PT / PT-BR antes de pesquisar.
+const KEYWORD_MAP: Record<string, string> = {
+    "estencionaista": "extensionista",
+    "extensionistas": "extensionista",
+    "civicultura": "silvicultura",
+    "agropecuario": "agropecuaria",
+    "agro-alimentar": "agroalimentar",
+    "agro alimentar": "agroalimentar",
+    "agro-alimenta": "agroalimentar",
+    "agro-industria": "agroindustria",
+    "tecnico": "tecnico",
+    "tecnica": "tecnica",
+    "mocambique": "mocambique",
+    "mozambique": "mocambique",
+    "reflorestamento": "reflorestacao"
+};
+
+function normalizeQuery(query: string): string {
+    const rawQuery = query.toLowerCase().trim();
+    let normalizedQuery = normalize(query);
+    Object.keys(KEYWORD_MAP).forEach((key) => {
+        if (rawQuery.includes(key)) {
+            normalizedQuery = normalizedQuery.replace(normalize(key), normalize(KEYWORD_MAP[key]));
+        }
+    });
+    return normalizedQuery;
+}
+
+// Filtragem local instantânea — mesmo critério (substring, sem mínimo de
+// caracteres) usado na busca da home page (empresas/produtos/etc), para a
+// busca automática desta página se sentir igualmente imediata.
+function filterLocalArticles(query: string, source: any[]) {
+    const normalizedQuery = normalizeQuery(query);
+    const keywords = normalizedQuery.split(/\s+/).filter((k) => k.length > 2);
+    return source.filter((art) => {
+        const content = normalize(`${art.title} ${art.author} ${art.source} ${art.subtitle}`);
+        if (keywords.length > 0) return keywords.some((word) => content.includes(word));
+        return content.includes(normalizedQuery);
+    });
+}
+
 export default function ArticlesArchivePage() {
     const supabase = createClient();
     const [articles, setArticles] = useState<any[]>([]);
@@ -87,18 +131,33 @@ export default function ArticlesArchivePage() {
     const [searchMode, setSearchMode] = useState<'manual' | 'auto'>('auto');
     const [isModeSelectorOpen, setIsModeSelectorOpen] = useState(false);
 
-    // Debounced Auto-Search
+    // Busca automática (local): instantânea, sem mínimo de caracteres — o
+    // mesmo critério usado na busca da home page (empresas/produtos/etc),
+    // para não parecer "travada" a digitar as primeiras letras.
+    useEffect(() => {
+        if (searchMode === 'manual') return;
+        setIsSearchActive(true);
+        setSelectedLibrary(null);
+        setArticles(filterLocalArticles(searchQuery, localArticles));
+        setCurrentPage(1);
+    }, [searchQuery, searchMode, localArticles]);
+
+    // Busca automática (global): com atraso — o Semantic Scholar está
+    // sujeito a limite de pedidos, não convém disparar a cada tecla.
     useEffect(() => {
         if (searchMode === 'manual') return;
 
-        const timeoutId = setTimeout(() => {
-            if (searchQuery.length >= 3) {
-                handleSearch(undefined, true);
+        const timeoutId = setTimeout(async () => {
+            const normalizedQuery = normalizeQuery(searchQuery);
+            if (normalizedQuery.length < 3) return;
+            const external = await fetchExternalArticles(normalizedQuery);
+            if (external.length > 0) {
+                setArticles([...filterLocalArticles(searchQuery, localArticles), ...external]);
             }
-        }, 800); // 800ms debounce
+        }, 800);
 
         return () => clearTimeout(timeoutId);
-    }, [searchQuery, searchMode]);
+    }, [searchQuery, searchMode, localArticles]);
 
     useEffect(() => {
         async function fetchInitial() {
@@ -195,67 +254,19 @@ export default function ArticlesArchivePage() {
         }
     };
 
-    const handleSearch = async (e?: React.KeyboardEvent | React.MouseEvent, isAuto = false) => {
+    const handleSearch = async (e?: React.KeyboardEvent | React.MouseEvent) => {
         if (e && 'key' in e && e.key !== 'Enter') return;
-
-        // Prevent manual search if auto is on (unless forced or different context) - but here simply allow both
-        // If mode is auto, we ignore Enter key to avoid double-firing, UNLESS it's a specific user intent.
-        // Actually, Enter should always force a search regardless of mode, confirming the action.
 
         setIsSearchActive(true);
         setSelectedLibrary(null);
 
-        const normalize = (text: string) =>
-            text ? text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
+        const filteredLocal = filterLocalArticles(searchQuery, localArticles);
+        setArticles(filteredLocal);
 
-        // Expanded Keyword Mapping for robust search (PT-PT / PT-BR / Typos)
-        const KEYWORD_MAP: Record<string, string> = {
-            "estencionaista": "extensionista",
-            "extensionistas": "extensionista",
-            "civicultura": "silvicultura",
-            "agropecuario": "agropecuaria",
-            "agro-alimentar": "agroalimentar",
-            "agro alimentar": "agroalimentar",
-            "agro-alimenta": "agroalimentar",
-            "agro-industria": "agroindustria",
-            "tecnico": "tecnico",
-            "tecnica": "tecnica",
-            "mocambique": "mocambique",
-            "mozambique": "mocambique",
-            "reflorestamento": "reflorestacao"
-        };
-
-        let rawQuery = searchQuery.toLowerCase().trim();
-        let normalizedQuery = normalize(searchQuery);
-
-        Object.keys(KEYWORD_MAP).forEach(key => {
-            if (rawQuery.includes(key)) {
-                normalizedQuery = normalizedQuery.replace(normalize(key), normalize(KEYWORD_MAP[key]));
-            }
-        });
-
-        // Split query into keywords for partial matching (Broad search)
-        const keywords = normalizedQuery.split(/\s+/).filter(k => k.length > 2);
-
-        const filteredLocal = localArticles.filter(art => {
-            const content = normalize(`${art.title} ${art.author} ${art.source} ${art.subtitle}`);
-
-            // If we have keywords, match if ANY keyword is present (OR logic for robustness)
-            if (keywords.length > 0) {
-                return keywords.some(word => content.includes(word));
-            }
-
-            // Fallback to exact-ish match if no significant keywords
-            return content.includes(normalizedQuery);
-        });
-
+        const normalizedQuery = normalizeQuery(searchQuery);
         if (normalizedQuery.length >= 3) {
-            setArticles(filteredLocal);
-            // Search external with normalized query
             const external = await fetchExternalArticles(normalizedQuery);
             setArticles([...filteredLocal, ...external]);
-        } else {
-            setArticles(filteredLocal);
         }
         setCurrentPage(1);
     };
