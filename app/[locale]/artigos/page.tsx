@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { StandardBlogTemplate } from "@/components/StandardBlogTemplate";
 import { BookOpen, Search, ArrowRight, Calendar, User, ChevronDown, ChevronLeft, ChevronRight, Info, Zap, Brain } from "lucide-react";
 import Link from "next/link";
@@ -130,6 +130,9 @@ export default function ArticlesArchivePage() {
     const [selectedLibrary, setSelectedLibrary] = useState<string | null>(null);
     const [searchMode, setSearchMode] = useState<'manual' | 'auto'>('auto');
     const [isModeSelectorOpen, setIsModeSelectorOpen] = useState(false);
+    // Conta pedidos à biblioteca global — uma resposta lenta e antiga não
+    // pode sobrepor-se aos resultados de um pedido mais recente.
+    const searchRequestIdRef = useRef(0);
 
     // Busca automática (local): instantânea, sem mínimo de caracteres — o
     // mesmo critério usado na busca da home page (empresas/produtos/etc),
@@ -151,7 +154,9 @@ export default function ArticlesArchivePage() {
         const timeoutId = setTimeout(async () => {
             const normalizedQuery = normalizeQuery(searchQuery);
             if (normalizedQuery.length < 3) return;
+            const requestId = ++searchRequestIdRef.current;
             const external = await fetchExternalArticles(normalizedQuery);
+            if (requestId !== searchRequestIdRef.current) return; // já há um pedido mais recente — ignora esta resposta
             if (external.length > 0) {
                 setArticles([...filterLocalArticles(searchQuery, localArticles), ...external]);
             }
@@ -266,8 +271,11 @@ export default function ArticlesArchivePage() {
 
         const normalizedQuery = normalizeQuery(searchQuery);
         if (normalizedQuery.length >= 3) {
+            const requestId = ++searchRequestIdRef.current;
             const external = await fetchExternalArticles(normalizedQuery);
-            setArticles([...filteredLocal, ...external]);
+            if (requestId === searchRequestIdRef.current) {
+                setArticles([...filteredLocal, ...external]);
+            }
         }
         setCurrentPage(1);
     };

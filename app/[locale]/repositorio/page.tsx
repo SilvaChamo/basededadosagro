@@ -7,7 +7,7 @@ import { SearchSection } from "@/components/SearchSection";
 import {
     Search, X, Building2,
     User, LandPlot, ShoppingBag, ArrowRight,
-    FileText, BookOpen, GraduationCap, Briefcase
+    FileText, BookOpen, GraduationCap, Briefcase, HardDrive
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { ContactCTA } from "@/components/ContactCTA";
@@ -207,7 +207,7 @@ export default function RepositorioPage() {
             <div className="relative">
                 <PageHeader
                     title="Repositório"
-                    icon={GraduationCap}
+                    icon={HardDrive}
                     backgroundImage="https://images.unsplash.com/photo-1507842217121-9e871299ee18?q=80&w=2000&auto=format&fit=crop"
                     breadcrumbs={[
                         { label: "Início", href: "/" },
