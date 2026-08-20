@@ -136,6 +136,7 @@ export default function ArticlesArchivePage() {
     // para não parecer "travada" a digitar as primeiras letras.
     useEffect(() => {
         if (searchMode === 'manual') return;
+        if (!searchQuery) return; // caixa vazia — deixa o banner principal visível
         setIsSearchActive(true);
         setSelectedLibrary(null);
         setArticles(filterLocalArticles(searchQuery, localArticles));
