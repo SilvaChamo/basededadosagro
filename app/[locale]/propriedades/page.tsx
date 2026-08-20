@@ -64,6 +64,7 @@ function PropertiesContent() {
     return (
         <StandardBlogTemplate
             title={pageTitle}
+            icon={LandPlot}
             backgroundImage="https://images.unsplash.com/photo-1500382017468-9049fee74a62?q=80&w=2000&auto=format&fit=crop"
             breadcrumbs={[
                 { label: "Início", href: "/" },

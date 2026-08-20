@@ -1,6 +1,7 @@
 "use client";
 
 import React, { ReactNode } from "react";
+import { LucideIcon } from "lucide-react";
 import { PageHeader } from "./PageHeader";
 
 interface StandardBlogTemplateProps {
@@ -9,6 +10,10 @@ interface StandardBlogTemplateProps {
     sidebarComponents: ReactNode;
     children: ReactNode;
     backgroundImage?: string;
+    /** Ícone decorativo grande, semi-transparente, no canto inferior direito
+     * do banner — mesma lógica usada nas páginas que chamam PageHeader
+     * directamente (ex: Serviços, Galeria de Apresentações). */
+    icon?: LucideIcon;
     isSidebarLeft?: boolean;
     topFullWidthContent?: ReactNode;
     bottomFullWidthContent?: ReactNode;
@@ -23,6 +28,7 @@ export function StandardBlogTemplate({
     sidebarComponents,
     children,
     backgroundImage = "https://images.unsplash.com/photo-1495107334309-fcf20504a5ab?q=80&w=2000&auto=format&fit=crop",
+    icon,
     isSidebarLeft = false,
     topFullWidthContent,
     bottomFullWidthContent,
@@ -36,6 +42,7 @@ export function StandardBlogTemplate({
                 <PageHeader
                     title={title}
                     backgroundImage={backgroundImage}
+                    icon={icon}
                     breadcrumbs={breadcrumbs}
                     titleClassName={titleClassName}
                 />

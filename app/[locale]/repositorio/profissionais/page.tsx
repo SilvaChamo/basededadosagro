@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { PageHeader } from "@/components/PageHeader";
-import { User, Search, LayoutGrid, List, UserPlus } from "lucide-react";
+import { User, Users, Search, LayoutGrid, List, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -76,6 +76,7 @@ export default function RepositorioProfissionaisPage() {
         <div className="min-h-screen bg-slate-50">
             <PageHeader
                 title="Profissionais"
+                icon={Users}
                 backgroundImage="https://images.unsplash.com/photo-1560493676-04071c5f467b?q=80&w=2000&auto=format&fit=crop"
                 breadcrumbs={[
                     { label: "Início", href: "/" },

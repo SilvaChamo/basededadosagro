@@ -6,6 +6,7 @@ import { createClient } from '@/utils/supabase/client';
 import { ForumCategoryCard } from '@/components/forum/ForumCategoryCard';
 import { PageHeader } from '@/components/PageHeader';
 import { CommunityBanner } from '@/components/CommunityBanner';
+import { MessagesSquare } from 'lucide-react';
 import { Database } from '@/lib/database.types';
 
 export default function ForumPage() {
@@ -33,6 +34,8 @@ export default function ForumPage() {
         <div className="min-h-screen bg-white dark:bg-black">
             <PageHeader
                 title="Fórum de Debate"
+                icon={MessagesSquare}
+                backgroundImage="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=2000&auto=format&fit=crop"
                 breadcrumbs={[
                     { label: "Home", href: "/" },
                     { label: "Fórum" }

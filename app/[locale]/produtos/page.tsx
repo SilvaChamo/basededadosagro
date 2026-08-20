@@ -157,6 +157,7 @@ function ProductsContent() {
     return (
         <StandardBlogTemplate
             title={pageTitle}
+            icon={ShoppingBag}
             backgroundImage="https://images.unsplash.com/photo-1551754655-cd27e38d2076?q=80&w=2000&auto=format&fit=crop"
             breadcrumbs={[
                 { label: "Início", href: "/" },

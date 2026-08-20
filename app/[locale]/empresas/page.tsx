@@ -68,6 +68,8 @@ export default function EmpresasPage() {
     return (
         <StandardBlogTemplate
             title="Repositório de Empresas"
+            icon={Building2}
+            backgroundImage="https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=2000&auto=format&fit=crop"
             breadcrumbs={[
                 { label: "Início", href: "/" },
                 { label: "Repositório", href: "/repositorio" },

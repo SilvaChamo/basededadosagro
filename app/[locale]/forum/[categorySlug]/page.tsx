@@ -7,7 +7,7 @@ import { createClient } from '@/utils/supabase/client';
 import { TopicListItem } from '@/components/forum/TopicListItem';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Plus, ArrowLeft } from 'lucide-react';
+import { Plus, ArrowLeft, MessagesSquare } from 'lucide-react';
 import { Database } from '@/lib/database.types';
 import { Spinner } from "@/components/ui/spinner";
 
@@ -61,6 +61,8 @@ export default function CategoryPage() {
         <div className="min-h-screen bg-white dark:bg-black pt-20">
             <PageHeader
                 title={category?.name || 'Carregando...'}
+                icon={MessagesSquare}
+                backgroundImage="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=2000&auto=format&fit=crop"
                 breadcrumbs={[
                     { label: "Home", href: "/" },
                     { label: "Fórum", href: "/forum" },

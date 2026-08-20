@@ -46,6 +46,7 @@ export default function DocumentsArchivePage() {
     return (
         <StandardBlogTemplate
             title="Documentos e Legislação"
+            icon={FileText}
             backgroundImage="https://images.unsplash.com/photo-1450101499163-18848c4e59e9?q=80&w=2000&auto=format&fit=crop"
             breadcrumbs={[
                 { label: "Início", href: "/" },

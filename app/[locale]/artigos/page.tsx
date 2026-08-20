@@ -306,6 +306,7 @@ export default function ArticlesArchivePage() {
     return (
         <StandardBlogTemplate
             title="Artigos científicos"
+            icon={BookOpen}
             backgroundImage="https://images.unsplash.com/photo-1507842217121-9e871299ee18?q=80&w=2000&auto=format&fit=crop"
             breadcrumbs={[
                 { label: "Início", href: "/" },

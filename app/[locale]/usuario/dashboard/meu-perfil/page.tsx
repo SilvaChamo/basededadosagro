@@ -60,6 +60,7 @@ export default function MeuPerfilProfissionalPage() {
         <div className="min-h-screen bg-slate-50">
             <PageHeader
                 title="Meu Perfil Profissional"
+                icon={User}
                 backgroundImage="https://images.unsplash.com/photo-1541888941297-8591cd6d62ed?q=80&w=2000&auto=format&fit=crop"
                 breadcrumbs={[
                     { label: "Dashboard", href: "/usuario/dashboard" },

@@ -6,7 +6,7 @@ import { createClient } from '@/utils/supabase/client';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Send, Clock, User as UserIcon } from 'lucide-react';
+import { ArrowLeft, Send, Clock, User as UserIcon, MessagesSquare } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Database } from '@/lib/database.types';
@@ -101,6 +101,8 @@ export default function TopicPage() {
         <div className="min-h-screen bg-zinc-50 dark:bg-black pt-20">
             <PageHeader
                 title={topic?.title}
+                icon={MessagesSquare}
+                backgroundImage="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=2000&auto=format&fit=crop"
                 breadcrumbs={[
                     { label: "Home", href: "/" },
                     { label: "Fórum", href: "/forum" },

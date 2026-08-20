@@ -207,6 +207,7 @@ export default function RepositorioPage() {
             <div className="relative">
                 <PageHeader
                     title="Repositório"
+                    icon={GraduationCap}
                     backgroundImage="https://images.unsplash.com/photo-1507842217121-9e871299ee18?q=80&w=2000&auto=format&fit=crop"
                     breadcrumbs={[
                         { label: "Início", href: "/" },

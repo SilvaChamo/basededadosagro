@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, MessagesSquare } from 'lucide-react';
 import { Database } from '@/lib/database.types';
 import { Spinner } from "@/components/ui/spinner";
 
@@ -63,6 +63,8 @@ function NewTopicContent() {
         <>
             <PageHeader
                 title="Novo Tópico"
+                icon={MessagesSquare}
+                backgroundImage="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=2000&auto=format&fit=crop"
                 breadcrumbs={[
                     { label: "Home", href: "/" },
                     { label: "Fórum", href: "/forum" },
