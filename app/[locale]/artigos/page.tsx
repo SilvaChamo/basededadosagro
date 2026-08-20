@@ -234,24 +234,64 @@ export default function ArticlesArchivePage() {
             // Execute search with the most robust query (joined for broader coverage)
             const finalQuery = Array.from(new Set(searchQueries)).join(" ");
 
-            const response = await fetch(`/api/articles/search?query=${encodeURIComponent(finalQuery)}&limit=15`);
-            const data = await response.json();
+            // Varre as três bibliotecas em paralelo — uma falhar não deve
+            // impedir as outras de aparecer (Promise.allSettled).
+            const [ssResult, pubmedResult, doajResult] = await Promise.allSettled([
+                fetch(`/api/articles/search?query=${encodeURIComponent(finalQuery)}&limit=10`).then(r => r.json()),
+                fetch(`/api/articles/search-pubmed?query=${encodeURIComponent(finalQuery)}&limit=10`).then(r => r.json()),
+                fetch(`/api/articles/search-doaj?query=${encodeURIComponent(finalQuery)}&limit=10`).then(r => r.json()),
+            ]);
 
-            if (data && data.data) {
-                return data.data.map((paper: any) => ({
-                    id: paper.paperId,
+            const results: any[] = [];
+
+            if (ssResult.status === 'fulfilled' && ssResult.value?.data) {
+                results.push(...ssResult.value.data.map((paper: any) => ({
+                    id: `ss-${paper.paperId}`,
                     title: paper.title,
                     author: paper.authors && paper.authors.length > 0 ? paper.authors[0].name : "Pesquisador Académico",
-                    source: paper.venue || "Global Science Database",
+                    source: paper.venue || "Semantic Scholar",
                     source_url: paper.url,
-                    slug: `ext-${paper.paperId}`,
+                    slug: `ext-ss-${paper.paperId}`,
                     date: `${paper.year || new Date().getFullYear()}-01-01`,
                     type: "external_article",
                     pdf_url: paper.openAccessPdf?.url || undefined,
-                    subtitle: paper.abstract ? paper.abstract.substring(0, 160) + "..." : "Documento científico recuperado de base de dados global."
+                    subtitle: paper.abstract ? paper.abstract.substring(0, 160) + "..." : "Documento científico recuperado do Semantic Scholar."
+                })));
+            }
+
+            if (pubmedResult.status === 'fulfilled' && pubmedResult.value?.data) {
+                results.push(...pubmedResult.value.data.map((paper: any) => ({
+                    id: `pubmed-${paper.pmid}`,
+                    title: paper.title,
+                    author: paper.authors && paper.authors.length > 0 ? paper.authors[0].name : "Pesquisador Académico",
+                    source: paper.source || "PubMed",
+                    source_url: `https://pubmed.ncbi.nlm.nih.gov/${paper.pmid}/`,
+                    slug: `ext-pubmed-${paper.pmid}`,
+                    date: paper.pubdate || `${new Date().getFullYear()}-01-01`,
+                    type: "external_article",
+                    subtitle: "Documento científico recuperado do PubMed/NCBI."
+                })));
+            }
+
+            if (doajResult.status === 'fulfilled' && doajResult.value?.results) {
+                results.push(...doajResult.value.results.map((item: any) => {
+                    const bib = item.bibjson || {};
+                    const link = (bib.link || []).find((l: any) => l.url)?.url;
+                    return {
+                        id: `doaj-${item.id}`,
+                        title: bib.title,
+                        author: bib.author && bib.author.length > 0 ? bib.author[0].name : "Pesquisador Académico",
+                        source: bib.journal?.title || "DOAJ",
+                        source_url: link,
+                        slug: `ext-doaj-${item.id}`,
+                        date: `${bib.year || new Date().getFullYear()}-01-01`,
+                        type: "external_article",
+                        subtitle: bib.abstract ? bib.abstract.substring(0, 160) + "..." : "Documento científico recuperado do DOAJ."
+                    };
                 }));
             }
-            return [];
+
+            return results;
         } catch (err) {
             console.error("Global search error:", err);
             return [];
