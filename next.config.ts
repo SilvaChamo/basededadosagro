@@ -8,9 +8,22 @@ const withPWA = withPWAInit({
   cacheOnFrontEndNav: true,
   aggressiveFrontEndNavCaching: true,
   reloadOnOnline: true,
+  extendDefaultRuntimeCaching: true,
   workboxOptions: {
     disableDevLogs: true,
     skipWaiting: true,
+    runtimeCaching: [
+      {
+        // A regra "apis" por defeito guardava QUALQUER resposta de /api/*
+        // (NetworkFirst, até 24h) — incluindo pesquisas às bibliotecas
+        // científicas, fazendo pesquisas novas devolverem resultados
+        // antigos ou, se a rota ainda não existia quando foi guardada em
+        // cache, nenhum resultado. Pesquisas nunca podem ficar em cache.
+        urlPattern: ({ sameOrigin, url }: any) =>
+          sameOrigin && url.pathname.startsWith("/api/articles/"),
+        handler: "NetworkOnly",
+      },
+    ],
   },
 });
 
