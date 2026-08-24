@@ -3,14 +3,16 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
-    BarChart3, ArrowLeft, Search, Loader2, Send, CheckCircle2,
+    BarChart3, ArrowLeft, Loader2, Send, CheckCircle2,
     XCircle, Clock, ChevronDown, ChevronUp, Users, Mail
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 
 interface Campaign {
     id: string;
@@ -114,25 +116,38 @@ export default function CampaignsPage() {
     const totalSent = campaigns.reduce((acc, c) => acc + (c.recipient_count || 0), 0);
     const successCount = campaigns.filter(c => c.status === 'enviada').length;
 
+    useAdminTopBar("");
+
     return (
-        <div className="w-full max-w-full px-6 space-y-6 pb-20">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Link href="/admin/mensagens" className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                        <ArrowLeft className="w-5 h-5 text-slate-500" />
+        <div className="w-full max-w-full space-y-6 pb-20">
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle
+                    leading={
+                        <Link href="/admin/mensagens" className="p-2 hover:bg-slate-100 rounded-full transition-colors shrink-0">
+                            <ArrowLeft className="w-5 h-5 text-slate-500" />
+                        </Link>
+                    }
+                    title="Campanhas"
+                    searchValue={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    searchPlaceholder="Pesquisar campanhas..."
+                />
+                <div className="flex items-center gap-2 shrink-0">
+                    <Link href="/admin/mensagens">
+                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-xs font-bold uppercase h-9">
+                            <Send className="w-4 h-4" /> Nova Campanha
+                        </Button>
                     </Link>
-                    <div>
-                        <h1 className="text-2xl font-black text-slate-900 tracking-tight">Campanhas</h1>
-                        <p className="text-sm text-slate-500">Histórico de envios de email marketing.</p>
-                    </div>
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
                 </div>
-                <Link href="/admin/mensagens">
-                    <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-xs font-bold uppercase">
-                        <Send className="w-4 h-4" /> Nova Campanha
-                    </Button>
-                </Link>
-            </div>
+            </AdminListToolbar>
+
+            <p className="text-sm text-slate-500 -mt-4">Histórico de envios de email marketing.</p>
 
             {/* Stats Strip */}
             <div className="grid grid-cols-3 gap-4">
@@ -169,17 +184,6 @@ export default function CampaignsPage() {
                         </div>
                     </div>
                 </div>
-            </div>
-
-            {/* Search */}
-            <div className="relative w-full max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                    placeholder="Pesquisar campanhas..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                />
             </div>
 
             {/* Campaign List */}

@@ -18,7 +18,7 @@ interface AdminListToolbarProps {
 export function AdminListToolbar({ children, className = "" }: AdminListToolbarProps) {
     return (
         <div
-            className={`flex flex-col lg:flex-row items-center justify-between gap-4 bg-white border-b border-slate-200 -mx-8 -mt-2 px-8 py-3 sticky top-0 z-20 lg:h-20 ${className}`}
+            className={`flex flex-row flex-nowrap items-center justify-between gap-4 bg-white border-b border-slate-200 -mx-8 -mt-2 px-8 py-3 sticky top-0 z-20 h-20 overflow-x-auto ${className}`}
         >
             {children}
         </div>
@@ -27,6 +27,8 @@ export function AdminListToolbar({ children, className = "" }: AdminListToolbarP
 
 interface AdminToolbarTitleProps {
     title: string;
+    /** Nó mostrado antes do título (ex.: seta "voltar" nas subpáginas). */
+    leading?: ReactNode;
     /** Nó extra mostrado logo a seguir ao título (ex.: contador "(12)"). */
     extra?: ReactNode;
     searchValue?: string;
@@ -38,9 +40,10 @@ interface AdminToolbarTitleProps {
  * página tem lista pesquisável). A busca tem sempre a mesma largura (w-96)
  * em todas as páginas — por viver aqui, e não repetida em cada page.tsx,
  * não há risco de discrepância de tamanho entre páginas. */
-export function AdminToolbarTitle({ title, extra, searchValue, onSearchChange, searchPlaceholder = "Buscar..." }: AdminToolbarTitleProps) {
+export function AdminToolbarTitle({ title, leading, extra, searchValue, onSearchChange, searchPlaceholder = "Buscar..." }: AdminToolbarTitleProps) {
     return (
         <div className="flex items-center gap-4 min-w-0 shrink-0">
+            {leading}
             <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight shrink-0 leading-none">{title}</h1>
             {extra}
             {onSearchChange && (

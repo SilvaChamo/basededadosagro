@@ -11,6 +11,9 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 
 interface Subscriber {
     id: string;
@@ -159,28 +162,34 @@ export default function SubscribersPage() {
     const activeCount = subscribers.filter(s => s.status === 'active').length;
     const unsubscribedCount = subscribers.filter(s => s.status === 'unsubscribed').length;
 
+    useAdminTopBar("");
+
     return (
-        <div className="w-full max-w-full px-6 space-y-6 pb-20">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Link href="/admin/mensagens" className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+        <div className="w-full max-w-full space-y-6 pb-20">
+            <AdminListToolbar className="flex-nowrap">
+                <div className="flex items-center gap-4 shrink-0">
+                    <Link href="/admin/mensagens" className="p-2 hover:bg-slate-100 rounded-full transition-colors shrink-0">
                         <ArrowLeft className="w-5 h-5 text-slate-500" />
                     </Link>
-                    <div>
-                        <h1 className="text-2xl font-black text-slate-900 tracking-tight">Subscritores</h1>
-                        <p className="text-sm text-slate-500">Gerir lista de subscritores da newsletter.</p>
-                    </div>
+                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight shrink-0 leading-none">Subscritores</h1>
                 </div>
-                <div className="flex items-center gap-3">
-                    <Button variant="outline" size="sm" onClick={() => setShowBulkImport(!showBulkImport)} className="gap-2 text-xs font-bold uppercase">
+                <div className="flex items-center gap-2 shrink-0">
+                    <Button variant="outline" size="sm" onClick={() => setShowBulkImport(!showBulkImport)} className="gap-2 text-xs font-bold uppercase h-9">
                         <Upload className="w-4 h-4" /> Importar
                     </Button>
-                    <Button variant="outline" size="sm" onClick={handleExportCSV} className="gap-2 text-xs font-bold uppercase">
+                    <Button variant="outline" size="sm" onClick={handleExportCSV} className="gap-2 text-xs font-bold uppercase h-9">
                         <Download className="w-4 h-4" /> Exportar CSV
                     </Button>
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
                 </div>
-            </div>
+            </AdminListToolbar>
+
+            <p className="text-sm text-slate-500 -mt-4">Gerir lista de subscritores da newsletter.</p>
 
             {/* Stats Strip */}
             <div className="grid grid-cols-3 gap-4">

@@ -479,12 +479,14 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                                     <LinkItem href="/admin/estatisticas" icon={BarChart3} label="Estatísticas" isSub />
                                     <LinkItem href="/admin/indicadores" icon={Target} label="Indicadores" isSub />
 
-                                    {/* Mensagem Sub-items */}
-                                    <LinkItem href="/admin/mensagens" icon={MailPlus} label="Nova Mensagem" isSub />
-                                    <LinkItem href="/admin/mensagens" icon={Mail} label="Email" isSub />
-                                    <LinkItem href="/admin/mensagens/newsletter" icon={Newspaper} label="Newsletter" isSub />
-                                    <LinkItem href="/admin/mensagens/subscritores" icon={Users} label="Subscritores" isSub />
-                                    <LinkItem href="/admin/mensagens/campanhas" icon={BarChart3} label="Campanhas" isSub />
+                                    {/* Mensagem Sub-items — exact: sem isto, qualquer subpágina
+                                        (newsletter/subscritores/campanhas) faz "startsWith('/admin/mensagens')"
+                                        bater certo e acende Nova Mensagem/Email também. */}
+                                    <LinkItem href="/admin/mensagens" icon={MailPlus} label="Nova Mensagem" isSub exact />
+                                    <LinkItem href="/admin/mensagens" icon={Mail} label="Email" isSub exact />
+                                    <LinkItem href="/admin/mensagens/newsletter" icon={Newspaper} label="Newsletter" isSub exact />
+                                    <LinkItem href="/admin/mensagens/subscritores" icon={Users} label="Subscritores" isSub exact />
+                                    <LinkItem href="/admin/mensagens/campanhas" icon={BarChart3} label="Campanhas" isSub exact />
 
                                     <LinkItem href="/admin/contactos" icon={Contact} label="Contactos" isSub />
                                 </div>

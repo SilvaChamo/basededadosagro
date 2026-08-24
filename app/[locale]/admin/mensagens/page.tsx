@@ -11,6 +11,9 @@ import { MultiFileUpload } from "@/components/admin/MultiFileUpload";
 import { SenderEmailSelector } from "@/components/admin/SenderEmailSelector";
 import { EmailTemplates } from "@/components/admin/EmailTemplates";
 import { Spinner } from "@/components/ui/spinner";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 
 const PLANS = [
     "Gratuito",
@@ -207,14 +210,23 @@ export default function AdminMessagesPage() {
         }
     };
 
+    useAdminTopBar("");
+
     return (
-        <div className="w-full max-w-full px-6 space-y-8 pb-20">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">Enviar Mensagem</h1>
-                    <p className="text-slate-500 mt-2">Envie notificações e emails para grupos de usuários.</p>
+        <div className="w-full max-w-full space-y-8 pb-20">
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle title="Enviar Mensagem" />
+                <div className="flex items-center gap-2 shrink-0">
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
                 </div>
-            </div>
+            </AdminListToolbar>
+
+            <p className="text-slate-500 -mt-4">Envie notificações e emails para grupos de usuários.</p>
 
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
 

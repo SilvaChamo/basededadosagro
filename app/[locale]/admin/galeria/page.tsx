@@ -7,12 +7,14 @@ import {
     Trash2,
     LayoutGrid,
     List as ListIcon,
-    Search,
     ChevronLeft,
     ChevronRight,
     Check,
     X,
 } from "lucide-react";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 
 // Biblioteca multimédia do admin: lista directamente o bucket "public-assets"
 // (todas as imagens/documentos já carregados no site — notícias, artigos,
@@ -303,40 +305,40 @@ function MediaGalleryContent() {
         setUploading(false);
     };
 
+    useAdminTopBar("");
+
     return (
         <div className="text-[#2c3338]">
-            {/* Header estilo WP */}
-            <div className="pt-0 pb-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-2xl font-normal">Multimédia</h1>
-                        <label className="px-3 py-1 bg-white border border-[#2271b1] text-[#2271b1] rounded-[3px] text-sm font-semibold hover:bg-[#f6f7f7] cursor-pointer transition-all">
-                            {uploading ? "A carregar..." : "Adicionar ficheiros multimédia"}
-                            <input
-                                type="file"
-                                className="hidden"
-                                accept="image/*"
-                                multiple
-                                onChange={(e) => handleUpload(e.target.files)}
-                            />
-                        </label>
-                    </div>
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle
+                    title="Multimédia"
+                    searchValue={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    searchPlaceholder="Procurar itens multimédia..."
+                />
 
-                    <div className="relative">
+                <div className="flex items-center gap-2 shrink-0">
+                    <label className="px-3 py-1.5 bg-white border border-[#2271b1] text-[#2271b1] rounded-[3px] text-sm font-semibold hover:bg-[#f6f7f7] cursor-pointer transition-all whitespace-nowrap">
+                        {uploading ? "A carregar..." : "Adicionar ficheiros multimédia"}
                         <input
-                            type="text"
-                            placeholder="Procurar itens multimédia..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="h-8 pl-8 pr-2 bg-white text-[#2c3338] border border-[#ccd0d4] rounded-[3px] text-sm outline-none focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1] w-64"
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            multiple
+                            onChange={(e) => handleUpload(e.target.files)}
                         />
-                        <Search className="absolute left-2.5 top-2 w-3.5 h-3.5 text-[#50575e]" />
-                    </div>
+                    </label>
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
                 </div>
-            </div>
+            </AdminListToolbar>
 
-            {/* Toolbar de filtros */}
-            <div className="sticky top-0 z-40 pt-4 pb-4">
+            {/* Toolbar de filtros — cola-se logo abaixo da AdminListToolbar (80px) */}
+            <div className="sticky top-20 z-10 pt-4 pb-4">
                 <div className="flex flex-col md:flex-row items-center justify-between bg-white border border-[#ccd0d4] p-2 gap-2 shadow-sm">
                     <div className="flex items-center gap-2 flex-wrap">
                         {isBulkMode && (

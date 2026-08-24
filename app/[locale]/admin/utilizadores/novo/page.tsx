@@ -12,6 +12,9 @@ import {
     Eye,
     EyeOff,
 } from "lucide-react";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 
 export default function NewUserPage() {
     const router = useRouter();
@@ -58,22 +61,35 @@ export default function NewUserPage() {
         }
     };
 
+    useAdminTopBar("");
+
     return (
         <div className="w-full animate-in fade-in duration-500 pb-20">
-            {/* Header Area - Outside the white box */}
-            <div className="flex items-center gap-4 mb-10">
-                <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => router.push("/admin/utilizadores")}
-                    className="rounded-full hover:bg-white border-slate-200 w-10 h-10 shadow-sm"
-                >
-                    <ChevronLeft className="w-5 h-5" />
-                </Button>
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none m-0 p-0">Adicionar Novo Utilizador</h1>
-            </div>
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle
+                    leading={
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => router.push("/admin/utilizadores")}
+                            className="rounded-full hover:bg-white border-slate-200 w-10 h-10 shadow-sm shrink-0"
+                        >
+                            <ChevronLeft className="w-5 h-5" />
+                        </Button>
+                    }
+                    title="Adicionar Novo Utilizador"
+                />
+                <div className="flex items-center gap-2 shrink-0">
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
+                </div>
+            </AdminListToolbar>
 
-            <div className="bg-white rounded-[15px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden w-full">
+            <div className="bg-white rounded-[15px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden w-full mt-8">
                 <form onSubmit={handleCreate} className="p-10 space-y-8">
                     {/* Informações Pessoais */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

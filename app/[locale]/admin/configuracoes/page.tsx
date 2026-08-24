@@ -7,6 +7,9 @@ import { Loader2, Save, LayoutTemplate, Type, MousePointerClick, Menu as MenuIco
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Spinner } from "@/components/ui/spinner";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 
 interface StyleSettings {
     color?: string;
@@ -209,6 +212,8 @@ export default function AdminSettingsPage() {
         toast.success("Todas as alterações foram guardadas com sucesso!");
     }
 
+    useAdminTopBar("");
+
     if (loading) {
         return (
             <div className="flex h-[50vh] items-center justify-center">
@@ -219,18 +224,22 @@ export default function AdminSettingsPage() {
 
     return (
         <div className="space-y-6 pb-20">
-            <div className="flex items-center justify-between sticky top-0 bg-slate-100/95 backdrop-blur z-30 py-4 border-b border-white/5">
-                <div>
-                    <h1 className="text-2xl font-black text-slate-900 tracking-tight">Configurações & Editor Visual</h1>
-                </div>
-                <div className="flex items-center gap-3">
-                    {saving && <span className="text-xs font-bold text-emerald-600 animate-pulse flex items-center gap-1"><RefreshCw className="w-3 h-3 animate-spin" /> A guardar...</span>}
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle title="Configurações & Editor Visual" />
+                <div className="flex items-center gap-2 shrink-0">
+                    {saving && <span className="text-xs font-bold text-emerald-600 animate-pulse flex items-center gap-1 whitespace-nowrap"><RefreshCw className="w-3 h-3 animate-spin" /> A guardar...</span>}
                     <Button onClick={handleManualSave} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-600/20">
                         <Save className="w-4 h-4 mr-2" />
                         Salvar Alterações
                     </Button>
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
                 </div>
-            </div>
+            </AdminListToolbar>
 
             <Tabs defaultValue="client_dashboard" className="w-full">
                 <TabsList className="bg-white p-1 border border-slate-200 rounded-xl mb-6 flex flex-wrap h-auto gap-2">

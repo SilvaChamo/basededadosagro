@@ -17,6 +17,9 @@ import {
 } from "lucide-react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { useNewsCategories } from "@/components/admin/central-noticias/useNewsCategories";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 
 interface NewsItem {
     id: string;
@@ -195,39 +198,44 @@ export default function CentralNoticiasPage() {
         }
     };
 
+    useAdminTopBar("");
+
     return (
         <div className="text-[#2c3338]">
-            <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-                <div className="flex items-center gap-4">
-                    <h1 className="text-2xl font-normal">Central de Notícias</h1>
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle
+                    title="Central de Notícias"
+                    searchValue={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    searchPlaceholder="Pesquisar artigos"
+                />
+
+                <div className="flex items-center gap-2 shrink-0">
                     <Link
                         href="/admin/central-noticias/reparar"
-                        className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-md text-sm font-bold hover:bg-amber-600 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-md text-sm font-bold hover:bg-amber-600 transition-colors whitespace-nowrap"
                     >
                         <Wrench className="w-4 h-4" />
                         Reparar Imagens
                     </Link>
                     <Link
                         href="/admin/central-noticias/novo"
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-[#00a651] text-[#00a651] rounded-md text-sm font-semibold hover:bg-[#f6f7f7] transition-all"
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-[#00a651] text-[#00a651] rounded-md text-sm font-semibold hover:bg-[#f6f7f7] transition-all whitespace-nowrap"
                     >
                         <Plus className="w-4 h-4" />
                         Adicionar nova
                     </Link>
-                </div>
-                <div className="flex items-center gap-2">
-                    <input
-                        type="text"
-                        placeholder="Pesquisar artigos"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="h-8 pl-3 pr-3 border border-[#ccd0d4] rounded-md text-sm outline-none focus:border-[#2271b1] w-64"
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
                     />
                 </div>
-            </div>
+            </AdminListToolbar>
 
             {/* Toolbar */}
-            <div className="flex flex-wrap items-center gap-2 mb-4">
+            <div className="flex flex-wrap items-center gap-2 mt-4 mb-4">
                 <select
                     className="h-8 border-[#ccd0d4] rounded-md text-sm bg-white px-2 outline-none focus:border-[#2271b1]"
                     value={bulkAction}

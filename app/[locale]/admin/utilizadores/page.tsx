@@ -17,6 +17,9 @@ import {
 } from "@/components/ui/dialog";
 
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 
 export default function AdminUsersPage() {
     const router = useRouter();
@@ -204,14 +207,14 @@ export default function AdminUsersPage() {
         }
     ];
 
+    useAdminTopBar("");
+
     return (
         <div className="space-y-8">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">Utilizadores</h1>
-                </div>
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle title="Utilizadores" />
 
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                     <select
                         className="h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
                         value={filterPlan}
@@ -276,9 +279,14 @@ export default function AdminUsersPage() {
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
                 </div>
-            </div>
-
+            </AdminListToolbar>
 
             <AdminDataTable
                 title="Utilizadores do Systema"

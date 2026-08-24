@@ -6,6 +6,9 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Facebook, Linkedin, Save, Loader2, Info, Lock } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 
 export default function IntegracoesPage() {
     const [loading, setLoading] = useState(true);
@@ -108,6 +111,8 @@ export default function IntegracoesPage() {
         setSaving(null);
     };
 
+    useAdminTopBar("");
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -118,10 +123,18 @@ export default function IntegracoesPage() {
 
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight">Integrações de Redes Sociais</h1>
-                <p className="text-slate-500 mt-2">Configure as APIs para automatizar a publicação de notícias.</p>
-            </div>
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle title="Integrações de Redes Sociais" />
+                <div className="flex items-center gap-2 shrink-0">
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
+                </div>
+            </AdminListToolbar>
+            <p className="text-slate-500 -mt-4">Configure as APIs para automatizar a publicação de notícias.</p>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 

@@ -6,6 +6,9 @@ import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { RefreshCw, RotateCcw, Trash2, AlertTriangle, ArrowLeft, Archive } from "lucide-react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
 
 interface NewsItem {
     id: string;
@@ -70,18 +73,31 @@ export default function ArquivadasPage() {
         }
     };
 
+    useAdminTopBar("");
+
     return (
         <div className="text-[#2c3338]">
-            <div className="flex items-center gap-4 mb-6">
-                <Link href="/admin/central-noticias" className="text-slate-400 hover:text-slate-600">
-                    <ArrowLeft className="w-5 h-5" />
-                </Link>
-                <h1 className="text-[23px] font-normal text-[#1d2327] flex items-center gap-2">
-                    <Archive className="w-5 h-5 text-gray-500" /> Arquivadas
-                </h1>
-                <span className="text-sm text-gray-400">({news.length} itens)</span>
-            </div>
+            <AdminListToolbar className="flex-nowrap">
+                <div className="flex items-center gap-4 shrink-0">
+                    <Link href="/admin/central-noticias" className="text-slate-400 hover:text-slate-600 shrink-0">
+                        <ArrowLeft className="w-5 h-5" />
+                    </Link>
+                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight shrink-0 leading-none flex items-center gap-2">
+                        <Archive className="w-5 h-5 text-gray-500" /> Arquivadas
+                    </h1>
+                    <span className="text-sm text-gray-400 shrink-0">({news.length} itens)</span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
+                </div>
+            </AdminListToolbar>
 
+            <div className="mt-4">
             {selectedIds.size > 0 && (
                 <div className="flex items-center gap-3 mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
                     <span className="text-sm font-medium text-blue-700">{selectedIds.size} selecionado(s)</span>
@@ -169,6 +185,7 @@ export default function ArquivadasPage() {
                 confirmLabel={confirmAction?.kind === "restore" ? "Publicar" : "Mover para o Lixo"}
                 variant={confirmAction?.kind === "restore" ? "default" : "destructive"}
             />
+            </div>
         </div>
     );
 }

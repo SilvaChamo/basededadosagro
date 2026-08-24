@@ -4,10 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
-import { AdminHeader } from "@/components/admin/AdminHeader";
 import { toast } from "sonner";
-import { Box, Pencil, Trash2, CheckCircle2, XCircle } from "lucide-react";
+import { Box, Pencil, Trash2, CheckCircle2, XCircle, Plus } from "lucide-react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
+import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
+import Link from "next/link";
 
 export default function ServicesPage() {
     const router = useRouter();
@@ -112,16 +115,26 @@ export default function ServicesPage() {
         }
     ];
 
+    useAdminTopBar("");
+
     return (
         <div className="space-y-6">
-            <AdminHeader
-                title="Gestão de Serviços"
-                subtitle="Gerencie as categorias e serviços oferecidos na plataforma"
-                action={{
-                    label: "Novo Serviço",
-                    href: "/admin/servicos/novo"
-                }}
-            />
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle title="Gestão de Serviços" />
+                <div className="flex items-center gap-2 shrink-0">
+                    <Link href="/admin/servicos/novo" className={TOPBAR_NEW_BUTTON_CLASS}>
+                        <Plus className="w-4 h-4" />
+                        Novo Serviço
+                    </Link>
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
+                </div>
+            </AdminListToolbar>
+            <p className="text-slate-500 -mt-2">Gerencie as categorias e serviços oferecidos na plataforma</p>
 
             <AdminDataTable
                 title={`Serviços (${data.length})`}

@@ -4,10 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
-import { AdminHeader } from "@/components/admin/AdminHeader";
 import { toast } from "sonner";
-import { PlayCircle, Pencil, Trash2, CheckCircle2, User, Clock } from "lucide-react";
+import { PlayCircle, Pencil, Trash2, CheckCircle2, User, Clock, Tag, Plus } from "lucide-react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
+import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
+import { LogoutButton } from "@/components/LogoutButton";
+import Link from "next/link";
 
 export default function PodcastPage() {
     const router = useRouter();
@@ -127,25 +130,33 @@ export default function PodcastPage() {
         }
     ];
 
+    useAdminTopBar("");
+
     return (
         <div className="space-y-6">
-            <AdminHeader
-                title="Gestão de Podcast"
-                subtitle="Gerencie os vídeos e episódios do AgroCast"
-                action={{
-                    label: "Novo Episódio",
-                    href: "/admin/podcast/novo"
-                }}
-            />
-
-            <div className="flex justify-end">
-                <a
-                    href="/admin/podcast/categorias"
-                    className="text-sm text-emerald-600 hover:text-emerald-700 font-bold transition-colors"
-                >
-                    Gerir Categorias →
-                </a>
-            </div>
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle title="Gestão de Podcast" />
+                <div className="flex items-center gap-2 shrink-0">
+                    <Link
+                        href="/admin/podcast/categorias"
+                        className="flex items-center gap-2 h-9 px-4 text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors whitespace-nowrap"
+                    >
+                        <Tag className="w-4 h-4" />
+                        Gerir Categorias
+                    </Link>
+                    <Link href="/admin/podcast/novo" className={TOPBAR_NEW_BUTTON_CLASS}>
+                        <Plus className="w-4 h-4" />
+                        Novo Episódio
+                    </Link>
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
+                </div>
+            </AdminListToolbar>
+            <p className="text-slate-500 -mt-2">Gerencie os vídeos e episódios do AgroCast</p>
 
             <AdminDataTable
                 title={`Episódios (${data.length})`}
