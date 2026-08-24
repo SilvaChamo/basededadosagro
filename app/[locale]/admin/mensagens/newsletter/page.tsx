@@ -2,33 +2,35 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Rocket, LayoutTemplate, Image as ImageIcon, Type, Save } from "lucide-react";
-import Link from "next/link";
+import { Rocket, LayoutTemplate, Image as ImageIcon, Type, Save } from "lucide-react";
+import { LogoutButton } from "@/components/LogoutButton";
 
 export default function NewsletterBuilderPage() {
     return (
         <div className="w-full max-w-full min-h-screen bg-slate-50 pb-20">
-            {/* Header */}
-            <div className="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-50 flex items-center justify-between">
+            {/* Header — mesma fronteira com a sidebar que a AdminListToolbar
+                (border-l, z-40): a sombra da sidebar (mantida de propósito)
+                não deve pintar por cima desta barra também. */}
+            <div className="bg-white border-b border-l border-slate-200 px-6 py-4 sticky top-0 z-40 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <Link href="/admin/mensagens" className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                        <ArrowLeft className="w-5 h-5 text-slate-600" />
-                    </Link>
-                    <div>
-                        <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                            Criador de Newsletter
-                            <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] rounded-full uppercase font-bold tracking-wider">Beta</span>
-                        </h1>
-                        <p className="text-xs text-slate-500">Crie emails visualmente ricos com arrastar e soltar (Em Breve).</p>
-                    </div>
+                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-none m-0 flex items-center gap-2">
+                        Criador de Newsletter
+                        <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] rounded-full uppercase font-bold tracking-wider">Beta</span>
+                    </h1>
                 </div>
-                <div className="flex items-center gap-3">
-                    <Button variant="outline" size="sm" className="gap-2 text-xs font-bold uppercase">
+                <div className="flex items-center gap-2 shrink-0">
+                    <Button variant="outline" size="sm" className="gap-2 text-xs font-bold uppercase h-9">
                         <Save className="w-4 h-4" /> Salvar Rascunho
                     </Button>
-                    <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2 text-xs font-bold uppercase">
+                    <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2 text-xs font-bold uppercase h-9">
                         <Rocket className="w-4 h-4" /> Enviar Campanha
                     </Button>
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
                 </div>
             </div>
 
