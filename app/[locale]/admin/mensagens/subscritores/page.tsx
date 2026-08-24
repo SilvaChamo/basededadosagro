@@ -171,7 +171,7 @@ export default function SubscribersPage() {
                     <Link href="/admin/mensagens" className="p-2 hover:bg-slate-100 rounded-full transition-colors shrink-0">
                         <ArrowLeft className="w-5 h-5 text-slate-500" />
                     </Link>
-                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight shrink-0 leading-none">Subscritores</h1>
+                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight shrink-0 leading-none m-0">Subscritores</h1>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                     <Button variant="outline" size="sm" onClick={() => setShowBulkImport(!showBulkImport)} className="gap-2 text-xs font-bold uppercase h-9">

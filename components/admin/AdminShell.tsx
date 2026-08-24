@@ -23,7 +23,6 @@ import {
     Menu,
     ShoppingCart,
     Contact,
-    Mail,
     MailPlus,
     GraduationCap,
     LandPlot,
@@ -481,9 +480,9 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
 
                                     {/* Mensagem Sub-items — exact: sem isto, qualquer subpágina
                                         (newsletter/subscritores/campanhas) faz "startsWith('/admin/mensagens')"
-                                        bater certo e acende Nova Mensagem/Email também. */}
+                                        bater certo e acender Nova Mensagem também. "Email" foi removido
+                                        por duplicar exactamente este mesmo destino (mesma página, sem abas). */}
                                     <LinkItem href="/admin/mensagens" icon={MailPlus} label="Nova Mensagem" isSub exact />
-                                    <LinkItem href="/admin/mensagens" icon={Mail} label="Email" isSub exact />
                                     <LinkItem href="/admin/mensagens/newsletter" icon={Newspaper} label="Newsletter" isSub exact />
                                     <LinkItem href="/admin/mensagens/subscritores" icon={Users} label="Subscritores" isSub exact />
                                     <LinkItem href="/admin/mensagens/campanhas" icon={BarChart3} label="Campanhas" isSub exact />

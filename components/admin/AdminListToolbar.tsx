@@ -44,7 +44,11 @@ export function AdminToolbarTitle({ title, leading, extra, searchValue, onSearch
     return (
         <div className="flex items-center gap-4 min-w-0 shrink-0">
             {leading}
-            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight shrink-0 leading-none">{title}</h1>
+            {/* m-0: neutraliza a regra global "h1 { ... mb-4 }" (globals.css) —
+                sem isto o título fica com 16px de margem por baixo e a
+                margem entra na centragem vertical do flex, empurrando o
+                texto visualmente para cima. */}
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight shrink-0 leading-none m-0">{title}</h1>
             {extra}
             {onSearchChange && (
                 <div className="relative w-96 shrink-0">

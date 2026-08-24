@@ -82,7 +82,7 @@ export default function RascunhoPage() {
                     <Link href="/admin/central-noticias" className="text-slate-400 hover:text-slate-600 shrink-0">
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
-                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight shrink-0 leading-none flex items-center gap-2">
+                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight shrink-0 leading-none m-0 flex items-center gap-2">
                         <FileEdit className="w-5 h-5 text-gray-500" /> Rascunho
                     </h1>
                     <span className="text-sm text-gray-400 shrink-0">({news.length} itens)</span>
