@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import {
-    Store, Plus, Search, Filter, MoreHorizontal,
+    Store, Plus, Filter, MoreHorizontal,
     Edit, Trash2, MapPin, Eye, Loader2, ChevronDown,
     Archive, ArchiveRestore
 } from "lucide-react";
@@ -219,66 +219,64 @@ export default function AdminLojasPage() {
     return (
         <div className="space-y-6">
             {/* Top Bar: Search, Filter and Actions */}
-            <AdminListToolbar>
-                <div className="flex-1 relative w-full">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                        type="text"
-                        placeholder="Buscar por nome, categoria ou local..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-11 pr-4 py-2 text-sm bg-white rounded-lg border border-slate-200 focus:ring-2 focus:ring-orange-500/10 focus:border-orange-500 outline-none transition-all placeholder:text-slate-400"
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle
+                    title="Lojas"
+                    searchValue={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    searchPlaceholder="Buscar por nome, categoria ou local..."
+                />
+
+                <div className="flex items-center gap-2 shrink-0">
+                    <div className="relative min-w-[200px] w-full md:w-auto">
+                        <select
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            className="w-full pl-4 pr-10 py-2 text-sm bg-white rounded-lg border border-slate-200 focus:ring-2 focus:ring-orange-500/10 focus:border-orange-500 outline-none transition-all appearance-none cursor-pointer font-medium text-slate-700"
+                        >
+                            <option value="Todas">Todas categorias</option>
+                            {STORE_CATEGORIES.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    </div>
+
+                    <div className="flex items-center gap-1 h-10">
+                        <button
+                            onClick={() => {
+                                const next = statusFilter === 'archived' ? 'active' : 'archived';
+                                setStatusFilter(next);
+                            }}
+                            className={`p-2 rounded-md transition-all ${statusFilter === 'archived' ? 'bg-amber-100 text-amber-700' : 'text-slate-400 hover:text-slate-600'}`}
+                            title="Arquivo"
+                        >
+                            <Archive className="w-4 h-4" />
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                const next = statusFilter === 'deleted' ? 'active' : 'deleted';
+                                setStatusFilter(next);
+                            }}
+                            className={`p-2 rounded-md transition-all ${statusFilter === 'deleted' ? 'bg-rose-100 text-rose-700' : 'text-slate-400 hover:text-slate-600'}`}
+                            title="Reciclagem"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    <Link href="/admin/lojas/novo" className={TOPBAR_NEW_BUTTON_CLASS}>
+                        <Plus className="w-4 h-4" />
+                        Nova Loja
+                    </Link>
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
                     />
                 </div>
-
-                <div className="relative min-w-[200px] w-full md:w-auto">
-                    <select
-                        value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="w-full pl-4 pr-10 py-2 text-sm bg-white rounded-lg border border-slate-200 focus:ring-2 focus:ring-orange-500/10 focus:border-orange-500 outline-none transition-all appearance-none cursor-pointer font-medium text-slate-700"
-                    >
-                        <option value="Todas">Todas categorias</option>
-                        {STORE_CATEGORIES.map(cat => (
-                            <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                </div>
-
-                <div className="flex items-center gap-1 h-10">
-                    <button
-                        onClick={() => {
-                            const next = statusFilter === 'archived' ? 'active' : 'archived';
-                            setStatusFilter(next);
-                        }}
-                        className={`p-2 rounded-md transition-all ${statusFilter === 'archived' ? 'bg-amber-100 text-amber-700' : 'text-slate-400 hover:text-slate-600'}`}
-                        title="Arquivo"
-                    >
-                        <Archive className="w-4 h-4" />
-                    </button>
-
-                    <button
-                        onClick={() => {
-                            const next = statusFilter === 'deleted' ? 'active' : 'deleted';
-                            setStatusFilter(next);
-                        }}
-                        className={`p-2 rounded-md transition-all ${statusFilter === 'deleted' ? 'bg-rose-100 text-rose-700' : 'text-slate-400 hover:text-slate-600'}`}
-                        title="Reciclagem"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </button>
-                </div>
-
-                <Link href="/admin/lojas/novo" className={TOPBAR_NEW_BUTTON_CLASS}>
-                    <Plus className="w-4 h-4" />
-                    Nova Loja
-                </Link>
-                <LogoutButton
-                    variant="outline"
-                    className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
-                    showIcon
-                    label="Sair"
-                />
             </AdminListToolbar>
 
             {/* Content */}

@@ -3,10 +3,9 @@
 import { useEffect, useState, Suspense } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
-import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import { Button } from "@/components/ui/button";
-import { Plus, LayoutGrid, List, Pencil, Trash2, Calendar, Link as LinkIcon, Search, GraduationCap, FileText, BookOpen, Layers, Archive, RotateCcw, MoreVertical } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Plus, LayoutGrid, List, Pencil, Trash2, Calendar, Link as LinkIcon, GraduationCap, FileText, BookOpen, Layers, Archive, RotateCcw, MoreVertical } from "lucide-react";
 import { NewsCard } from "@/components/NewsCard";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
@@ -323,12 +322,15 @@ function AdminArtigosCientificosContent() {
     return (
         <div className="space-y-8">
             {/* Header & Controls */}
-            <AdminListToolbar>
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Artigos</h1>
-                </div>
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle
+                    title="Artigos"
+                    searchValue={search}
+                    onSearchChange={setSearch}
+                    searchPlaceholder="Buscar documentos..."
+                />
 
-                <div className="flex flex-col md:flex-row items-center gap-3">
+                <div className="flex items-center gap-2 shrink-0">
                     {/* Category Selector */}
                     <select
                         value={activeTab}
@@ -337,23 +339,12 @@ function AdminArtigosCientificosContent() {
                             setStatusFilter('active');
                             if (viewMode === 'list') setViewMode('list');
                         }}
-                        className="bg-white border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wide rounded-lg px-4 py-2 outline-none focus:border-emerald-500 h-10 w-full md:w-40"
+                        className="bg-white border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wide rounded-lg px-4 py-2 outline-none focus:border-emerald-500 h-10 w-40"
                     >
                         {tabs.map((tab: any) => (
                             <option key={tab.id} value={tab.id}>{tab.label}</option>
                         ))}
                     </select>
-
-                    {/* Search Input */}
-                    <div className="relative w-72">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                        <Input
-                            placeholder="Buscar documentos..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="pl-9 h-10 bg-white border-slate-200 text-sm"
-                        />
-                    </div>
 
                     {/* Status Toggles */}
                     <div className="flex items-center bg-white p-1 rounded-lg border border-slate-200 shadow-sm">

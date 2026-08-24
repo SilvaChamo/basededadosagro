@@ -1,6 +1,8 @@
 "use client";
 
 import { ReactNode } from "react";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface AdminListToolbarProps {
     children: ReactNode;
@@ -16,9 +18,42 @@ interface AdminListToolbarProps {
 export function AdminListToolbar({ children, className = "" }: AdminListToolbarProps) {
     return (
         <div
-            className={`flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white border-b border-slate-200 -mx-8 -mt-2 px-8 py-3 sticky top-0 z-20 lg:h-20 ${className}`}
+            className={`flex flex-col lg:flex-row items-center justify-between gap-4 bg-white border-b border-slate-200 -mx-8 -mt-2 px-8 py-3 sticky top-0 z-20 lg:h-20 ${className}`}
         >
             {children}
+        </div>
+    );
+}
+
+interface AdminToolbarTitleProps {
+    title: string;
+    /** Nó extra mostrado logo a seguir ao título (ex.: contador "(12)"). */
+    extra?: ReactNode;
+    searchValue?: string;
+    onSearchChange?: (value: string) => void;
+    searchPlaceholder?: string;
+}
+
+/** Bloco esquerdo padrão de uma AdminListToolbar: título + busca (quando a
+ * página tem lista pesquisável). A busca tem sempre a mesma largura (w-96)
+ * em todas as páginas — por viver aqui, e não repetida em cada page.tsx,
+ * não há risco de discrepância de tamanho entre páginas. */
+export function AdminToolbarTitle({ title, extra, searchValue, onSearchChange, searchPlaceholder = "Buscar..." }: AdminToolbarTitleProps) {
+    return (
+        <div className="flex items-center gap-4 min-w-0 shrink-0">
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight shrink-0 leading-none">{title}</h1>
+            {extra}
+            {onSearchChange && (
+                <div className="relative w-96 shrink-0">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                    <Input
+                        placeholder={searchPlaceholder}
+                        value={searchValue}
+                        onChange={(e) => onSearchChange(e.target.value)}
+                        className="pl-9 h-10 bg-white border-slate-200 text-sm"
+                    />
+                </div>
+            )}
         </div>
     );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
@@ -409,37 +409,42 @@ function AdminNoticiasContent() {
                 fila (não existem no menu lateral) à esquerda; nas restantes vistas,
                 a pesquisa; e à direita os botões de gestão (grelha/lista, arquivo,
                 lixeira, novo artigo), tudo na mesma linha. */}
-            <AdminListToolbar>
-                {activeTab === 'Pendentes' ? (
-                    !pendingLoading && pendingArticles.length > 0 && (
-                        <div className="flex items-center gap-1 bg-emerald-50 p-1 rounded-[8px] border border-emerald-200 flex-wrap">
-                            {pendingCategories.map((cat) => (
-                                <button
-                                    key={cat}
-                                    onClick={() => setPendingCategoryFilter(cat)}
-                                    className={`px-3 py-2 rounded-[8px] text-xs font-bold uppercase tracking-wider transition-all ${pendingCategoryFilter === cat
-                                        ? 'bg-emerald-600 text-white shadow-sm'
-                                        : 'text-slate-600 hover:bg-[#f97316] hover:text-white'
-                                        }`}
-                                >
-                                    {cat}
-                                </button>
-                            ))}
-                        </div>
-                    )
-                ) : (
-                    <div className="relative">
-                        <Search className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-slate-400" />
-                        <Input
-                            placeholder={`Pesquisar...`}
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="pl-8 border-none bg-slate-50 focus-visible:ring-0 text-sm w-48"
-                        />
-                    </div>
-                )}
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle
+                    title="Notícias"
+                    extra={
+                        activeTab === 'Pendentes' ? (
+                            !pendingLoading && pendingArticles.length > 0 && (
+                                <div className="flex items-center gap-1 bg-emerald-50 p-1 rounded-[8px] border border-emerald-200 flex-wrap">
+                                    {pendingCategories.map((cat) => (
+                                        <button
+                                            key={cat}
+                                            onClick={() => setPendingCategoryFilter(cat)}
+                                            className={`px-3 py-2 rounded-[8px] text-xs font-bold uppercase tracking-wider transition-all ${pendingCategoryFilter === cat
+                                                ? 'bg-emerald-600 text-white shadow-sm'
+                                                : 'text-slate-600 hover:bg-[#f97316] hover:text-white'
+                                                }`}
+                                        >
+                                            {cat}
+                                        </button>
+                                    ))}
+                                </div>
+                            )
+                        ) : (
+                            <div className="relative w-96 shrink-0">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                                <Input
+                                    placeholder="Pesquisar..."
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    className="pl-9 h-10 bg-white border-slate-200 text-sm"
+                                />
+                            </div>
+                        )
+                    }
+                />
 
-                <div className="flex items-center gap-2 ml-auto">
+                <div className="flex items-center gap-2 shrink-0">
                     {/* View Mode */}
                     <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-md">
                         <button

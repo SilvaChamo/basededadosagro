@@ -3,10 +3,9 @@
 import { useEffect, useState, Suspense } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
-import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
-import { Plus, LayoutGrid, List, Search, FileText, Scale, Calendar, Link as LinkIcon, Pencil, Trash2, Layers, RotateCcw, Archive, MoreVertical } from "lucide-react";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
+import { Plus, LayoutGrid, List, FileText, Scale, Calendar, Link as LinkIcon, Pencil, Trash2, Layers, RotateCcw, Archive, MoreVertical } from "lucide-react";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import {
@@ -310,12 +309,15 @@ function AdminDocumentosContent() {
     return (
         <div className="space-y-8">
             {/* Header & Controls */}
-            <AdminListToolbar>
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Documentos</h1>
-                </div>
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle
+                    title="Documentos"
+                    searchValue={search}
+                    onSearchChange={setSearch}
+                    searchPlaceholder="Buscar documentos..."
+                />
 
-                <div className="flex flex-col md:flex-row items-center gap-3">
+                <div className="flex items-center gap-2 shrink-0">
                     <select
                         value={activeTab}
                         onChange={(e) => {
@@ -323,69 +325,54 @@ function AdminDocumentosContent() {
                             setStatusFilter('active');
                             if (viewMode === 'list') setViewMode('list');
                         }}
-                        className="bg-white border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wide rounded-lg px-4 py-2 outline-none focus:border-emerald-500 h-10 w-full md:w-40"
+                        className="bg-white border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wide rounded-lg px-4 py-2 outline-none focus:border-emerald-500 h-10 w-40"
                     >
                         {tabs.map(tab => (
                             <option key={tab.id} value={tab.id}>{tab.label}</option>
                         ))}
                     </select>
 
-                    {/* Search Input */}
-                    <div className="relative w-72">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                        <Input
-                            placeholder="Buscar documentos..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="pl-9 h-10 bg-white border-slate-200 text-sm"
-                        />
+                    {/* Status Toggles */}
+                    <div className="flex items-center bg-white p-1 rounded-lg border border-slate-200 shadow-sm">
+                        <button
+                            onClick={() => setStatusFilter('active')}
+                            className={`p-2 rounded-md transition-all ${statusFilter === 'active' ? 'bg-slate-100 text-emerald-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                            title="Activos"
+                        >
+                            <List className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => setStatusFilter('archived')}
+                            className={`p-2 rounded-md transition-all ${statusFilter === 'archived' ? 'bg-amber-50 text-amber-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                            title="Arquivados"
+                        >
+                            <Archive className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => setStatusFilter('deleted')}
+                            className={`p-2 rounded-md transition-all ${statusFilter === 'deleted' ? 'bg-rose-50 text-rose-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                            title="Lixeira"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
                     </div>
-                </div>
 
-                {/* Status Toggles */}
-                <div className="flex items-center bg-white p-1 rounded-lg border border-slate-200 shadow-sm">
-                    <button
-                        onClick={() => setStatusFilter('active')}
-                        className={`p-2 rounded-md transition-all ${statusFilter === 'active' ? 'bg-slate-100 text-emerald-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                        title="Activos"
-                    >
-                        <List className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => setStatusFilter('archived')}
-                        className={`p-2 rounded-md transition-all ${statusFilter === 'archived' ? 'bg-amber-50 text-amber-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                        title="Arquivados"
-                    >
-                        <Archive className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => setStatusFilter('deleted')}
-                        className={`p-2 rounded-md transition-all ${statusFilter === 'deleted' ? 'bg-rose-50 text-rose-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                        title="Lixeira"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </button>
-                </div>
+                    {/* View Toggles */}
+                    <div className="flex items-center bg-white p-1 rounded-lg border border-slate-200 shadow-sm">
+                        <button
+                            onClick={() => setViewMode('grid')}
+                            className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-slate-100 text-emerald-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            <LayoutGrid className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-slate-100 text-emerald-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            <List className="w-4 h-4" />
+                        </button>
+                    </div>
 
-
-
-                {/* View Toggles */}
-                <div className="flex items-center bg-white p-1 rounded-lg border border-slate-200 shadow-sm">
-                    <button
-                        onClick={() => setViewMode('grid')}
-                        className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-slate-100 text-emerald-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                    >
-                        <LayoutGrid className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => setViewMode('list')}
-                        className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-slate-100 text-emerald-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                    >
-                        <List className="w-4 h-4" />
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-2">
                     <button
                         type="button"
                         onClick={() => router.push('/admin/documentos/novo')}

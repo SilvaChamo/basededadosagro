@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
-import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import { Button } from "@/components/ui/button";
 import { MapPin, LayoutGrid, List, Pencil, Trash2, Plus, Ruler, Coins, Archive, RotateCcw, MoreVertical, Layers } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -244,12 +244,10 @@ export default function AdminPropertiesPage() {
 
     return (
         <div className="space-y-8">
-            <AdminListToolbar>
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Gestão de Propriedades</h1>
-                </div>
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle title="Gestão de Propriedades" />
 
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 shrink-0">
                     {/* Status Toggles */}
                     <div className="flex items-center bg-white p-1 rounded-lg border border-slate-200 shadow-sm">
                         <button

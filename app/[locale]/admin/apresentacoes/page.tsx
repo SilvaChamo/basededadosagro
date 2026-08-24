@@ -3,12 +3,11 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
-import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import { Button } from "@/components/ui/button";
-import { Plus, Presentation, Pencil, Trash2, Play, Search, LayoutGrid, List, Archive, ArrowRight, Calendar } from "lucide-react";
+import { Plus, Presentation, Pencil, Trash2, Play, LayoutGrid, List, Archive, ArrowRight, Calendar } from "lucide-react";
 import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
 import { LogoutButton } from "@/components/LogoutButton";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { useRouter } from "next/navigation";
@@ -242,12 +241,15 @@ export default function AdminApresentacoesPage() {
 
     return (
         <div className="space-y-8">
-            <AdminListToolbar>
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Apresentações</h1>
-                </div>
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle
+                    title="Apresentações"
+                    searchValue={search}
+                    onSearchChange={setSearch}
+                    searchPlaceholder="Buscar..."
+                />
 
-                <div className="flex items-center flex-wrap gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                     {/* Category Filter */}
                     <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                         <SelectTrigger className="w-[160px] h-10 bg-white border-slate-200 text-xs font-bold uppercase tracking-wider">
@@ -258,17 +260,6 @@ export default function AdminApresentacoesPage() {
                             <SelectItem value="mine">Minhas</SelectItem>
                         </SelectContent>
                     </Select>
-
-                    {/* Search Input */}
-                    <div className="relative w-72">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                        <Input
-                            placeholder="Buscar..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="pl-9 h-10 bg-white border-slate-200 text-sm"
-                        />
-                    </div>
 
                     {/* Status Toggles */}
                     <div className="flex items-center bg-white p-1 rounded-lg border border-slate-200 shadow-sm gap-1">

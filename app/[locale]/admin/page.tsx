@@ -18,6 +18,9 @@ import {
     Bot,
 } from "lucide-react";
 import Link from "next/link";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
+import { LogoutButton } from "@/components/LogoutButton";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
 
 export default function AdminDashboardPage() {
     const [stats, setStats] = useState({
@@ -88,9 +91,23 @@ export default function AdminDashboardPage() {
         return `${day} às ${time}`;
     };
 
+    useAdminTopBar("");
+
     return (
         <div className="space-y-5">
-            {/* Bem-vindo - o Sair agora vive só na mini-barra partilhada, acima */}
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle title="Dashboard" />
+                <div className="flex items-center gap-2 shrink-0">
+                    <LogoutButton
+                        variant="outline"
+                        className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
+                        showIcon
+                        label="Sair"
+                    />
+                </div>
+            </AdminListToolbar>
+
+            {/* Bem-vindo */}
             <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm p-6">
                 <div>
                     <h2 className="text-xl font-black text-slate-900 leading-tight">Bem-vindo ao painel de administração</h2>

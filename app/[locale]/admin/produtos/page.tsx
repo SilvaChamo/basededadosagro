@@ -3,15 +3,14 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
-import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import { Button } from "@/components/ui/button";
 import { MarketProductForm } from "@/components/admin/MarketProductForm";
-import { ShoppingCart, LayoutGrid, List, Pencil, Trash2, Plus, Tag, Building2, Package, FileText, RotateCcw, Archive, ExternalLink, Search, MoreVertical } from "lucide-react";
+import { ShoppingCart, LayoutGrid, List, Pencil, Trash2, Plus, Tag, Building2, Package, FileText, RotateCcw, Archive, ExternalLink, MoreVertical } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
-import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
 import { getCachedList, setCachedList } from "@/lib/adminListCache";
@@ -364,12 +363,15 @@ export default function AdminProductsPage() {
     return (
         <div className="space-y-8">
             {/* Header & Controls */}
-            <AdminListToolbar>
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Produtos</h1>
-                </div>
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle
+                    title="Produtos"
+                    searchValue={search}
+                    onSearchChange={setSearch}
+                    searchPlaceholder="Buscar..."
+                />
 
-                <div className="flex flex-col md:flex-row items-center gap-3">
+                <div className="flex items-center gap-2 shrink-0">
                     {/* Context Filter (Active Tab) */}
                     <select
                         value={activeTab}
@@ -380,22 +382,11 @@ export default function AdminProductsPage() {
                                 setViewMode('list');
                             }
                         }}
-                        className="bg-white border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wide rounded-lg px-4 py-2 outline-none focus:border-emerald-500 h-10 w-full md:w-32"
+                        className="bg-white border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wide rounded-lg px-4 py-2 outline-none focus:border-emerald-500 h-10 w-32"
                     >
                         <option value="empresas">Empresas</option>
                         <option value="mercado">Cotações</option>
                     </select>
-
-                    {/* Search Input */}
-                    <div className="relative w-72">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                        <Input
-                            placeholder="Buscar..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="pl-9 h-10 bg-white border-slate-200 text-sm"
-                        />
-                    </div>
 
                     {/* Status Toggles */}
                     <div className="flex items-center bg-white p-1 rounded-lg border border-slate-200 shadow-sm">

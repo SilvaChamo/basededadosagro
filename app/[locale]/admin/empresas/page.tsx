@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
-import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import { Button } from "@/components/ui/button";
 import {
     Building2, Eye, Loader2, ChevronDown, LayoutGrid, List,
@@ -305,28 +305,15 @@ export default function AdminEmpresasPage() {
 
     return (
         <div className="space-y-6">
-            <AdminListToolbar>
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Empresas</h1>
-                </div>
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle
+                    title="Empresas"
+                    searchValue={searchTerm}
+                    onSearchChange={(v) => { setSearchTerm(v); setCurrentPage(1); }}
+                    searchPlaceholder="Pesquisar empresas..."
+                />
 
-                <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-                    {/* Search Input */}
-                    <div className="relative w-full md:w-64">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg className="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                            </svg>
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Pesquisar empresas..."
-                            value={searchTerm}
-                            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                            className="pl-10 pr-4 py-2 w-full bg-white border border-slate-200 rounded-lg text-sm outline-none focus:border-emerald-500 transition-colors"
-                        />
-                    </div>
-
+                <div className="flex items-center gap-2 shrink-0">
                     {/* Filter Dropdown (Role/Type) */}
                     <div className="flex items-center gap-2 w-full md:w-auto">
                         <div className="relative flex-1 md:flex-none">

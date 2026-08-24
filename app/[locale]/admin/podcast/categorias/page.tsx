@@ -136,15 +136,15 @@ export default function PodcastCategoriesPage() {
                 subtitle="Gerencie as categorias/temas dos episódios AgroCast"
             />
 
-            <AdminListToolbar>
+            <AdminListToolbar className="flex-nowrap">
                 <Link
                     href="/admin/podcast"
-                    className="text-sm text-slate-500 hover:text-orange-500 font-medium transition-colors"
+                    className="text-sm text-slate-500 hover:text-orange-500 font-medium transition-colors shrink-0"
                 >
                     ← Voltar aos Episódios
                 </Link>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                     <button
                         type="button"
                         onClick={() => { setShowNew(true); setNewName(""); setNewDescription(""); }}

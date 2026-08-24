@@ -3,11 +3,10 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
-import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import { Button } from "@/components/ui/button";
-import { Archive, Trash2, User, Plus, Search, LayoutGrid, List, RefreshCw } from "lucide-react";
+import { Archive, Trash2, User, Plus, LayoutGrid, List, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Spinner } from "@/components/ui/spinner";
@@ -288,12 +287,15 @@ export default function AdminProfessionalsPage() {
 
     return (
         <div className="space-y-8">
-            <AdminListToolbar>
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Gestão</h1>
-                </div>
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle
+                    title="Gestão"
+                    searchValue={search}
+                    onSearchChange={setSearch}
+                    searchPlaceholder="Buscar..."
+                />
 
-                <div className="flex items-center flex-wrap gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                     {/* Profession Filter */}
                     <Select value={professionFilter} onValueChange={setProfessionFilter}>
                         <SelectTrigger className="w-[160px] h-10 bg-white border-slate-200 text-xs font-bold uppercase tracking-wider">
@@ -306,17 +308,6 @@ export default function AdminProfessionalsPage() {
                             ))}
                         </SelectContent>
                     </Select>
-
-                    {/* Search Input */}
-                    <div className="relative w-72">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                        <Input
-                            placeholder="Buscar..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="pl-9 h-10 bg-white border-slate-200 text-sm"
-                        />
-                    </div>
 
                     {/* Status Toggles */}
                     <div className="flex items-center bg-white p-1 rounded-lg border border-slate-200 shadow-sm gap-1">

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
-import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import { Button } from "@/components/ui/button";
 import {
     Phone,
@@ -11,7 +11,6 @@ import {
     Building2,
     Plus,
     Download,
-    Search,
     CheckCircle2,
     Globe,
     Users,
@@ -478,22 +477,15 @@ export default function AdminContactosPage() {
 
     return (
         <div className="flex flex-col">
-            <AdminListToolbar>
-                <div className="flex items-center gap-4">
-                    <h1 className="text-2xl font-black text-slate-800 tracking-tight m-0 p-0 leading-none">Gestão de Contactos</h1>
-                    <span className="text-slate-400 text-sm font-medium mt-1">({filteredContacts.length})</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <input
-                            type="text"
-                            placeholder="Pesquisar..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-orange-500/20 transition-all outline-none w-48 md:w-64"
-                        />
-                    </div>
+            <AdminListToolbar className="flex-nowrap">
+                <AdminToolbarTitle
+                    title="Gestão de Contactos"
+                    extra={<span className="text-slate-400 text-sm font-medium">({filteredContacts.length})</span>}
+                    searchValue={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    searchPlaceholder="Pesquisar..."
+                />
+                <div className="flex items-center gap-2 shrink-0">
                     <Button
                         variant="outline"
                         onClick={handleScrape}
