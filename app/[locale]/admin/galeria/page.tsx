@@ -409,11 +409,11 @@ function MediaGalleryContent() {
 
             {/* Conteúdo */}
             {loading ? (
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
                     {Array.from({ length: 14 }).map((_, i) => <div key={i} className="aspect-square bg-gray-200 animate-pulse" />)}
                 </div>
             ) : viewMode === "grid" ? (
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
                     {paginatedFiles.map((file) => (
                         <div
                             key={file.name}
