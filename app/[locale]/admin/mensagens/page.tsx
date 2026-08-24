@@ -226,8 +226,6 @@ export default function AdminMessagesPage() {
                 </div>
             </AdminListToolbar>
 
-            <p className="text-slate-500 -mt-4">Envie notificações e emails para grupos de usuários.</p>
-
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
 
                 {/* Sender & Targets */}

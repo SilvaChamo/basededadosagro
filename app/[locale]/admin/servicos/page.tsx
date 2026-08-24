@@ -134,8 +134,6 @@ export default function ServicesPage() {
                     />
                 </div>
             </AdminListToolbar>
-            <p className="text-slate-500 -mt-2">Gerencie as categorias e serviços oferecidos na plataforma</p>
-
             <AdminDataTable
                 title={`Serviços (${data.length})`}
                 columns={columns}

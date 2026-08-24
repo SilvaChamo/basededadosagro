@@ -6,12 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
     Users, Plus, Download, Trash2, Search, Loader2, Mail,
-    CheckCircle2, XCircle, ArrowLeft, Upload
+    CheckCircle2, XCircle, Upload
 } from "lucide-react";
-import Link from "next/link";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
-import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import { useAdminTopBar } from "@/components/admin/AdminTopBar";
 import { LogoutButton } from "@/components/LogoutButton";
 
@@ -167,12 +166,7 @@ export default function SubscribersPage() {
     return (
         <div className="w-full max-w-full space-y-6 pb-20">
             <AdminListToolbar className="flex-nowrap">
-                <div className="flex items-center gap-4 shrink-0">
-                    <Link href="/admin/mensagens" className="p-2 hover:bg-slate-100 rounded-full transition-colors shrink-0">
-                        <ArrowLeft className="w-5 h-5 text-slate-500" />
-                    </Link>
-                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight shrink-0 leading-none m-0">Subscritores</h1>
-                </div>
+                <AdminToolbarTitle title="Subscritores" />
                 <div className="flex items-center gap-2 shrink-0">
                     <Button variant="outline" size="sm" onClick={() => setShowBulkImport(!showBulkImport)} className="gap-2 text-xs font-bold uppercase h-9">
                         <Upload className="w-4 h-4" /> Importar
@@ -188,8 +182,6 @@ export default function SubscribersPage() {
                     />
                 </div>
             </AdminListToolbar>
-
-            <p className="text-sm text-slate-500 -mt-4">Gerir lista de subscritores da newsletter.</p>
 
             {/* Stats Strip */}
             <div className="grid grid-cols-3 gap-4">

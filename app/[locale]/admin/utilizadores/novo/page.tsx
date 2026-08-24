@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SuccessModal } from "@/components/ui/SuccessModal";
 import {
-    ChevronLeft,
     Save,
     Eye,
     EyeOff,
@@ -66,19 +65,7 @@ export default function NewUserPage() {
     return (
         <div className="w-full animate-in fade-in duration-500 pb-20">
             <AdminListToolbar className="flex-nowrap">
-                <AdminToolbarTitle
-                    leading={
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => router.push("/admin/utilizadores")}
-                            className="rounded-full hover:bg-white border-slate-200 w-10 h-10 shadow-sm shrink-0"
-                        >
-                            <ChevronLeft className="w-5 h-5" />
-                        </Button>
-                    }
-                    title="Adicionar Novo Utilizador"
-                />
+                <AdminToolbarTitle title="Adicionar Novo Utilizador" />
                 <div className="flex items-center gap-2 shrink-0">
                     <LogoutButton
                         variant="outline"

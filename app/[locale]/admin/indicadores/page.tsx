@@ -21,8 +21,6 @@ export default function AdminIndicadoresPage() {
                     />
                 </div>
             </AdminListToolbar>
-            <p className="text-slate-500 -mt-4">Gestão de indicadores de desempenho do sector.</p>
-
             <div className="bg-white p-20 rounded-2xl border border-slate-200 text-center">
                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Target className="w-8 h-8 text-slate-400" />

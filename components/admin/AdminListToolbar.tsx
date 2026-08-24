@@ -18,7 +18,10 @@ interface AdminListToolbarProps {
 export function AdminListToolbar({ children, className = "" }: AdminListToolbarProps) {
     return (
         <div
-            className={`flex flex-row flex-nowrap items-center justify-between gap-4 bg-white border-b border-slate-200 -mx-8 -mt-2 px-8 py-3 sticky top-0 z-20 h-20 overflow-x-auto ${className}`}
+            // z-40 (> z-30 da aside no desktop): a sombra da barra lateral (shadow-xl,
+            // propositadamente mantida) já não pinta por cima desta barra — a fronteira
+            // com a sidebar passa a ser só o border-l, uma linha simples e suave.
+            className={`flex flex-row flex-nowrap items-center justify-between gap-4 bg-white border-b border-l border-slate-200 -mx-8 -mt-2 px-8 py-3 sticky top-0 z-40 h-20 overflow-x-auto ${className}`}
         >
             {children}
         </div>

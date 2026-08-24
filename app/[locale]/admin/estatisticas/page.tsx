@@ -21,8 +21,6 @@ export default function AdminEstatisticasPage() {
                     />
                 </div>
             </AdminListToolbar>
-            <p className="text-slate-500 -mt-4">Cadastro e visualização de estatísticas agrárias.</p>
-
             <div className="bg-white p-20 rounded-2xl border border-slate-200 text-center">
                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <BarChart3 className="w-8 h-8 text-slate-400" />

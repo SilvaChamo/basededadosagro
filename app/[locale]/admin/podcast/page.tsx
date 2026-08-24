@@ -156,8 +156,6 @@ export default function PodcastPage() {
                     />
                 </div>
             </AdminListToolbar>
-            <p className="text-slate-500 -mt-2">Gerencie os vídeos e episódios do AgroCast</p>
-
             <AdminDataTable
                 title={`Episódios (${data.length})`}
                 columns={columns}

@@ -247,8 +247,12 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
             )}
 
             <aside
-                className={`fixed inset-y-0 left-0 z-[80] bg-white text-slate-800 transition-all duration-300 transform shadow-xl
-                    ${isCollapsed ? "w-24" : "w-72"} 
+                // z-[80] no mobile: tem de ficar acima do overlay (z-[70]) quando aberta.
+                // lg:z-30 no desktop: mais baixo do que a AdminListToolbar de cada página
+                // (z-40) para a sombra (shadow-xl, mantida de propósito) não pintar por
+                // cima da barra de menu — só a linha divisória (border-l) marca a fronteira.
+                className={`fixed inset-y-0 left-0 z-[80] lg:z-30 bg-white text-slate-800 transition-all duration-300 transform shadow-xl
+                    ${isCollapsed ? "w-24" : "w-72"}
                     ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
             >
                 <div className="flex flex-col h-full">

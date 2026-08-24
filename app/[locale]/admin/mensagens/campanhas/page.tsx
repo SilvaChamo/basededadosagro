@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
-    BarChart3, ArrowLeft, Loader2, Send, CheckCircle2,
+    BarChart3, Loader2, Send, CheckCircle2,
     XCircle, Clock, ChevronDown, ChevronUp, Users, Mail
 } from "lucide-react";
 import Link from "next/link";
@@ -122,11 +122,6 @@ export default function CampaignsPage() {
         <div className="w-full max-w-full space-y-6 pb-20">
             <AdminListToolbar className="flex-nowrap">
                 <AdminToolbarTitle
-                    leading={
-                        <Link href="/admin/mensagens" className="p-2 hover:bg-slate-100 rounded-full transition-colors shrink-0">
-                            <ArrowLeft className="w-5 h-5 text-slate-500" />
-                        </Link>
-                    }
                     title="Campanhas"
                     searchValue={searchQuery}
                     onSearchChange={setSearchQuery}
@@ -146,8 +141,6 @@ export default function CampaignsPage() {
                     />
                 </div>
             </AdminListToolbar>
-
-            <p className="text-sm text-slate-500 -mt-4">Histórico de envios de email marketing.</p>
 
             {/* Stats Strip */}
             <div className="grid grid-cols-3 gap-4">

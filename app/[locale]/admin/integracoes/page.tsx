@@ -134,8 +134,6 @@ export default function IntegracoesPage() {
                     />
                 </div>
             </AdminListToolbar>
-            <p className="text-slate-500 -mt-4">Configure as APIs para automatizar a publicação de notícias.</p>
-
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                 {/* Facebook Section */}

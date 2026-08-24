@@ -20,8 +20,6 @@ export default function ActivitiesPage() {
                     />
                 </div>
             </AdminListToolbar>
-            <p className="text-slate-500 -mt-2">Acompanhe as actividades recentes</p>
-
             <div className="bg-white rounded-2xl p-8 text-center border border-slate-100 shadow-sm">
                 <p className="text-slate-500">Módulo em desenvolvimento...</p>
             </div>

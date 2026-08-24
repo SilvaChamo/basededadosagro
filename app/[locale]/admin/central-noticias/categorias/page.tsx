@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { toast } from "sonner";
-import { ArrowLeft, Tag, Plus, Pencil, Trash2, X, Check } from "lucide-react";
+import { Tag, Plus, Pencil, Trash2, X, Check } from "lucide-react";
 import { useNewsCategories, NewsCategory } from "@/components/admin/central-noticias/useNewsCategories";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
@@ -87,9 +86,6 @@ export default function CategoriasPage() {
         <div className="text-[#2c3338]">
             <AdminListToolbar className="flex-nowrap">
                 <div className="flex items-center gap-4 shrink-0">
-                    <Link href="/admin/central-noticias" className="text-slate-400 hover:text-slate-600 shrink-0">
-                        <ArrowLeft className="w-5 h-5" />
-                    </Link>
                     <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight shrink-0 leading-none m-0 flex items-center gap-2">
                         <Tag className="w-5 h-5 text-gray-500" /> Categorias
                     </h1>
