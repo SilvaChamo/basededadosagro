@@ -229,8 +229,8 @@ export default function AdminMessagesPage() {
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
 
                 {/* Sender & Targets */}
-                <div className="space-y-6">
-                    <div className="space-y-3">
+                <div className="flex flex-col md:flex-row md:items-start gap-4">
+                    <div className="space-y-3 w-full md:w-[460px] md:max-w-[460px] shrink-0">
                         <label className="text-xs font-bold text-slate-500 uppercase">Email de Origem</label>
                         <SenderEmailSelector
                             value={senderEmail}
@@ -238,7 +238,7 @@ export default function AdminMessagesPage() {
                         />
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-3 flex-1 min-w-0">
                         <div className="flex justify-between items-center">
                             <label className="text-xs font-bold text-slate-500 uppercase">Destinatários (Planos)</label>
                             <div className="flex gap-2">
@@ -256,7 +256,7 @@ export default function AdminMessagesPage() {
                                 </button>
                             </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-6 p-4 bg-slate-50 rounded-lg border border-slate-100">
+                        <div className="flex flex-nowrap items-center gap-4 px-4 h-9 bg-slate-50 rounded-[8px] border border-slate-100 overflow-x-auto">
                             {PLANS.map(plan => (
                                 <div key={plan} className="flex items-center space-x-2">
                                     <Checkbox

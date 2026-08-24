@@ -82,12 +82,12 @@ export function SenderEmailSelector({ value, onChange }: SenderEmailSelectorProp
     };
 
     return (
-        <div className="flex gap-2 items-center w-full">
+        <div className="flex gap-4 items-center w-full min-w-0">
             <Select value={value} onValueChange={onChange}>
-                <SelectTrigger className="w-full bg-slate-50 border-slate-200">
-                    <div className="flex items-center gap-2 text-slate-700">
-                        <Mail className="w-4 h-4 text-slate-400" />
-                        <SelectValue placeholder="Selecione um email de origem" />
+                <SelectTrigger className="w-full min-w-0 !h-9 bg-slate-50 border-slate-200">
+                    <div className="flex items-center gap-2 text-slate-700 min-w-0">
+                        <Mail className="w-4 h-4 text-slate-400 shrink-0" />
+                        <SelectValue placeholder="Selecione um email de origem" className="truncate" />
                     </div>
                 </SelectTrigger>
                 <SelectContent>
@@ -104,7 +104,7 @@ export function SenderEmailSelector({ value, onChange }: SenderEmailSelectorProp
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                    <Button variant="outline" className="shrink-0 gap-2 border-dashed border-slate-300 text-slate-600 hover:text-emerald-600 hover:border-emerald-500">
+                    <Button variant="outline" className="shrink-0 gap-2 border-emerald-300 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 hover:text-emerald-800">
                         <Plus className="w-4 h-4" />
                         Cadastrar Email
                     </Button>
