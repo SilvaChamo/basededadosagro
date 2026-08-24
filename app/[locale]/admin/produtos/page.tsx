@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
+import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
 import { Button } from "@/components/ui/button";
 import { MarketProductForm } from "@/components/admin/MarketProductForm";
 import { ShoppingCart, LayoutGrid, List, Pencil, Trash2, Plus, Tag, Building2, Package, FileText, RotateCcw, Archive, ExternalLink, Search, MoreVertical } from "lucide-react";
@@ -363,7 +364,7 @@ export default function AdminProductsPage() {
     return (
         <div className="space-y-8">
             {/* Header & Controls */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <AdminListToolbar>
                 <div>
                     <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Produtos</h1>
                 </div>
@@ -450,7 +451,7 @@ export default function AdminProductsPage() {
                         label="Sair"
                     />
                 </div>
-            </div>
+            </AdminListToolbar>
 
             {viewMode === 'list' ? (
                 <AdminDataTable

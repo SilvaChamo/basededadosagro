@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
+import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
 import { Plus, LayoutGrid, List, Search, FileText, Scale, Calendar, Link as LinkIcon, Pencil, Trash2, Layers, RotateCcw, Archive, MoreVertical } from "lucide-react";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Input } from "@/components/ui/input";
@@ -309,7 +310,7 @@ function AdminDocumentosContent() {
     return (
         <div className="space-y-8">
             {/* Header & Controls */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <AdminListToolbar>
                 <div>
                     <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Documentos</h1>
                 </div>
@@ -400,7 +401,7 @@ function AdminDocumentosContent() {
                         label="Sair"
                     />
                 </div>
-            </div>
+            </AdminListToolbar>
 
             {/* Content */}
             <>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
+import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
 import { Button } from "@/components/ui/button";
 import { Archive, Trash2, User, Plus, Search, LayoutGrid, List, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -287,7 +288,7 @@ export default function AdminProfessionalsPage() {
 
     return (
         <div className="space-y-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <AdminListToolbar>
                 <div>
                     <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Gestão</h1>
                 </div>
@@ -377,7 +378,7 @@ export default function AdminProfessionalsPage() {
                         label="Sair"
                     />
                 </div>
-            </div>
+            </AdminListToolbar>
 
             {viewMode === 'list' ? (
                 <AdminDataTable

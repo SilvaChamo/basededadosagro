@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { AdminHeader } from "@/components/admin/AdminHeader";
+import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Save, X, Tag } from "lucide-react";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
@@ -135,7 +136,7 @@ export default function PodcastCategoriesPage() {
                 subtitle="Gerencie as categorias/temas dos episódios AgroCast"
             />
 
-            <div className="flex items-center justify-between">
+            <AdminListToolbar>
                 <Link
                     href="/admin/podcast"
                     className="text-sm text-slate-500 hover:text-orange-500 font-medium transition-colors"
@@ -159,7 +160,7 @@ export default function PodcastCategoriesPage() {
                         label="Sair"
                     />
                 </div>
-            </div>
+            </AdminListToolbar>
 
             {/* New Category Form */}
             {showNew && (

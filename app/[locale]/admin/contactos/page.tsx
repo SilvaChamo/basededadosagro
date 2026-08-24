@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
+import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
 import { Button } from "@/components/ui/button";
 import {
     Phone,
@@ -477,7 +478,7 @@ export default function AdminContactosPage() {
 
     return (
         <div className="flex flex-col">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-0 pb-0">
+            <AdminListToolbar>
                 <div className="flex items-center gap-4">
                     <h1 className="text-2xl font-black text-slate-800 tracking-tight m-0 p-0 leading-none">Gestão de Contactos</h1>
                     <span className="text-slate-400 text-sm font-medium mt-1">({filteredContacts.length})</span>
@@ -517,7 +518,7 @@ export default function AdminContactosPage() {
                         label="Sair"
                     />
                 </div>
-            </div>
+            </AdminListToolbar>
 
             {importStatus && (
                 <div className={`p-4 rounded-lg text-sm font-bold flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300 ${importStatus.includes("Erro") ? "bg-red-50 text-red-600 border border-red-100" : "bg-emerald-50 text-emerald-600 border border-emerald-100"

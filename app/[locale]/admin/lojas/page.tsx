@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
+import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
 import {
     Store, Plus, Search, Filter, MoreHorizontal,
     Edit, Trash2, MapPin, Eye, Loader2, ChevronDown,
@@ -218,7 +219,7 @@ export default function AdminLojasPage() {
     return (
         <div className="space-y-6">
             {/* Top Bar: Search, Filter and Actions */}
-            <div className="flex flex-col md:flex-row gap-2 items-center">
+            <AdminListToolbar>
                 <div className="flex-1 relative w-full">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
@@ -278,7 +279,7 @@ export default function AdminLojasPage() {
                     showIcon
                     label="Sair"
                 />
-            </div>
+            </AdminListToolbar>
 
             {/* Content */}
             {isLoading ? (

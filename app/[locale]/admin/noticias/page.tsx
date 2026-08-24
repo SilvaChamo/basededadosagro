@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
+import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
@@ -408,7 +409,7 @@ function AdminNoticiasContent() {
                 fila (não existem no menu lateral) à esquerda; nas restantes vistas,
                 a pesquisa; e à direita os botões de gestão (grelha/lista, arquivo,
                 lixeira, novo artigo), tudo na mesma linha. */}
-            <div className="flex items-center gap-4 bg-white border-b border-slate-200 -mx-8 -mt-2 px-8 py-3">
+            <AdminListToolbar>
                 {activeTab === 'Pendentes' ? (
                     !pendingLoading && pendingArticles.length > 0 && (
                         <div className="flex items-center gap-1 bg-emerald-50 p-1 rounded-[8px] border border-emerald-200 flex-wrap">
@@ -490,7 +491,7 @@ function AdminNoticiasContent() {
                         label="Sair"
                     />
                 </div>
-            </div>
+            </AdminListToolbar>
 
             {/* Bin Actions - Show when bin is active */}
             {statusFilter === 'deleted' && (

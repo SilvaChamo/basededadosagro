@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
+import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, Plus, Search, LayoutGrid, List, Layers, Briefcase, TrendingUp, Factory, BarChart3, Clock, MapPin, Tag, Trash2, User, Calendar, Laptop, Pencil, RotateCcw, Archive, MoreVertical } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -331,7 +332,7 @@ export default function AdminFormacaoPage() {
     return (
         <div className="space-y-8">
             {/* Header & Controls */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <AdminListToolbar>
                 <div>
                     <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Formações</h1>
                 </div>
@@ -423,7 +424,7 @@ export default function AdminFormacaoPage() {
                         label="Sair"
                     />
                 </div>
-            </div>
+            </AdminListToolbar>
 
             {/* Content */}
             {loading ? (

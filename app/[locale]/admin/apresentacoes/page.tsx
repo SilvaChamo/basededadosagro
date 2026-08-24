@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
+import { AdminListToolbar } from "@/components/admin/AdminListToolbar";
 import { Button } from "@/components/ui/button";
 import { Plus, Presentation, Pencil, Trash2, Play, Search, LayoutGrid, List, Archive, ArrowRight, Calendar } from "lucide-react";
 import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
@@ -241,7 +242,7 @@ export default function AdminApresentacoesPage() {
 
     return (
         <div className="space-y-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <AdminListToolbar>
                 <div>
                     <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Apresentações</h1>
                 </div>
@@ -319,7 +320,7 @@ export default function AdminApresentacoesPage() {
                         label="Sair"
                     />
                 </div>
-            </div>
+            </AdminListToolbar>
 
             {loading ? (
                 <div className="flex justify-center py-20">

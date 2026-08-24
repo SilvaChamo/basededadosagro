@@ -226,7 +226,7 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
     return (
         <div className="flex min-h-screen bg-slate-100 font-sans">
             {/* Mobile Header */}
-            <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-[60] flex items-center justify-between px-4">
+            <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-[80] flex items-center justify-between px-4">
                 <Link href={withLocale("/")} className="flex items-center gap-3 overflow-hidden">
                     <img src="/admin-icon.png" alt="Logo" className="w-8 h-8 object-contain" />
                     <span className="font-black text-lg tracking-wider text-slate-900">PAINEL</span>
