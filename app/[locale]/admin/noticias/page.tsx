@@ -408,7 +408,7 @@ function AdminNoticiasContent() {
                 fila (não existem no menu lateral) à esquerda; nas restantes vistas,
                 a pesquisa; e à direita os botões de gestão (grelha/lista, arquivo,
                 lixeira, novo artigo), tudo na mesma linha. */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 bg-white rounded-lg border border-slate-200 shadow-sm p-3">
                 {activeTab === 'Pendentes' ? (
                     !pendingLoading && pendingArticles.length > 0 && (
                         <div className="flex items-center gap-1 bg-emerald-50 p-1 rounded-[8px] border border-emerald-200 flex-wrap">
