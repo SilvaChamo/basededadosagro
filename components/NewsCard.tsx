@@ -87,8 +87,8 @@ export function NewsCard({
     const displayCategories = categories && categories.length > 0 ? categories : [category || "Artigo"];
 
     return (
-        <div className={`flex flex-col ${image ? 'h-full' : ''}`}>
-            <div className={`group relative flex flex-col ${image ? 'flex-1' : ''} bg-white ${image ? 'rounded-[10px]' : 'rounded-b-[10px] border-t-4 border-t-orange-200 hover:border-t-[#f97316]'} shadow-lg border ${selected ? 'border-emerald-500 ring-2 ring-emerald-500' : 'border-slate-100 hover:border-[#f97316]/50'} transition-all overflow-hidden hover:shadow-xl`}>
+        <div className="flex flex-col h-full">
+            <div className={`group relative flex flex-col flex-1 bg-white ${image ? 'rounded-[10px]' : 'rounded-b-[10px] border-t-4 border-t-orange-200 hover:border-t-[#f97316]'} shadow-lg border ${selected ? 'border-emerald-500 ring-2 ring-emerald-500' : 'border-slate-100 hover:border-[#f97316]/50'} transition-all overflow-hidden hover:shadow-xl`}>
             {selectable && (
                 <div className="absolute top-3 left-3 z-20 flex items-center gap-2">
                     <button
