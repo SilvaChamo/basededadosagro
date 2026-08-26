@@ -87,31 +87,12 @@ export function NewsCard({
     const displayCategories = categories && categories.length > 0 ? categories : [category || "Artigo"];
 
     return (
-        <div className="flex flex-col h-full">
-            <div className={`group relative flex flex-col flex-1 bg-white ${image ? 'rounded-[10px]' : 'rounded-b-[10px] border-t-4 border-t-orange-200 hover:border-t-[#f97316]'} shadow-lg border ${selected ? 'border-emerald-500 ring-2 ring-emerald-500' : 'border-slate-100 hover:border-[#f97316]/50'} transition-all overflow-hidden hover:shadow-xl`}>
-            {selectable && (
-                <div className="absolute top-3 left-3 z-20 flex items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleSelect?.(); }}
-                        title={selected ? "Retirar da selecção" : "Seleccionar"}
-                    >
-                        <span className={`size-5 rounded-full border-2 flex items-center justify-center shadow transition-all ${selected ? 'bg-emerald-600 border-emerald-600' : 'bg-white/90 border-slate-300 hover:border-emerald-500'}`}>
-                            {selected && <Check className="w-3 h-3 text-white" strokeWidth={4} />}
-                        </span>
-                    </button>
-                    {!image && (
-                        <span className="flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-white/90 px-2 py-1 rounded-full shadow">
-                            <Calendar className="w-3 h-3 text-[#f97316]" />
-                            {formattedDate}
-                        </span>
-                    )}
-                </div>
-            )}
+        <div className={`flex flex-col ${image ? 'h-full' : ''}`}>
+            <div className={`group relative flex flex-col ${image ? 'flex-1' : ''} bg-white ${image ? 'rounded-[10px]' : 'rounded-b-[10px] border-t-4 border-t-orange-200 hover:border-t-[#f97316]'} shadow-lg border ${selected ? 'border-emerald-500 ring-2 ring-emerald-500' : 'border-slate-100 hover:border-[#f97316]/50'} transition-all overflow-hidden hover:shadow-xl`}>
             {image ? (
                 /* Image Section */
                 onCtaClick ? (
-                    <button type="button" onClick={onCtaClick} className="relative aspect-[16/10] overflow-hidden block border-b-4 border-[#f97316] w-full text-left">
+                    <button type="button" onClick={onCtaClick} className="relative aspect-[21/9] sm:aspect-[16/10] overflow-hidden block border-b-4 border-[#f97316] w-full text-left">
                         <Image
                             src={image}
                             alt={title}
@@ -119,7 +100,7 @@ export function NewsCard({
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             className="object-cover transition-transform duration-700 group-hover:scale-110"
                         />
-                        <div className="absolute top-4 left-4 right-4 flex flex-wrap gap-1.5">
+                        <div className="absolute top-4 left-4 right-4 flex flex-wrap justify-end gap-1.5">
                             {displayCategories.map((cat, i) => (
                                 <span key={cat} className={`${categoryColor(cat, i)} text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg`}>
                                     {cat}
@@ -128,7 +109,7 @@ export function NewsCard({
                         </div>
                     </button>
                 ) : (
-                    <Link href={`/artigos/${slug}`} className="relative aspect-[16/10] overflow-hidden block border-b-4 border-[#f97316]">
+                    <Link href={`/artigos/${slug}`} className="relative aspect-[21/9] sm:aspect-[16/10] overflow-hidden block border-b-4 border-[#f97316]">
                         <Image
                             src={image}
                             alt={title}
@@ -136,7 +117,7 @@ export function NewsCard({
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             className="object-cover transition-transform duration-700 group-hover:scale-110"
                         />
-                        <div className="absolute top-4 left-4 right-4 flex flex-wrap gap-1.5">
+                        <div className="absolute top-4 left-4 right-4 flex flex-wrap justify-end gap-1.5">
                             {displayCategories.map((cat, i) => (
                                 <span key={cat} className={`${categoryColor(cat, i)} text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg`}>
                                     {cat}
@@ -145,26 +126,35 @@ export function NewsCard({
                         </div>
                     </Link>
                 )
-            ) : (
-                /* Sem imagem: reserva o mesmo espaço da secção de imagem, em
-                   branco, para o conteúdo começar sempre à mesma altura dos
-                   cards com foto na mesma grelha. */
-                <div className="aspect-[16/10]" />
-            )}
+            ) : null}
 
             {/* Content Section */}
-            <div className="p-5 flex flex-col flex-1">
+            <div className="p-3 sm:p-5 flex flex-col flex-1">
                 <div className="flex flex-col">
-                    {/* Date */}
-                    <div className={`flex items-center gap-2 mb-1 ${selectable && !image ? 'justify-end' : 'justify-between'}`}>
-                        {!(selectable && !image) && (
-                            <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                <Calendar className="w-3 h-3 text-[#f97316]" />
-                                <span>{formattedDate}</span>
-                            </div>
+                    {/* Selecção + Data — mesma estrutura em ambos os tipos de card;
+                        categoria só aparece aqui quando não há foto (com foto, fica
+                        sobre a imagem). */}
+                    <div className="flex items-center gap-2 mb-2">
+                        {selectable && (
+                            <button
+                                type="button"
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleSelect?.(); }}
+                                title={selected ? "Retirar da selecção" : "Seleccionar"}
+                            >
+                                <span className={`size-5 rounded-full border-2 flex items-center justify-center transition-all ${selected ? 'bg-emerald-600 border-emerald-600' : 'bg-white border-slate-300 hover:border-emerald-500'}`}>
+                                    {selected && <Check className="w-3 h-3 text-white" strokeWidth={4} />}
+                                </span>
+                            </button>
                         )}
+                        <div className={selectable
+                            ? "flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-white px-2 py-1 rounded-full shadow"
+                            : "flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                        }>
+                            <Calendar className="w-3 h-3 text-[#f97316]" />
+                            <span>{formattedDate}</span>
+                        </div>
                         {!image && (
-                            <div className="flex flex-wrap justify-end gap-1.5 max-w-[65%]">
+                            <div className="ml-auto flex flex-wrap justify-end gap-1.5 max-w-[65%]">
                                 {displayCategories.map((cat, i) => (
                                     <span key={cat} className={`inline-block ${categoryColor(cat, i)} text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px]`}>
                                         {cat}
@@ -178,7 +168,7 @@ export function NewsCard({
                     {onCtaClick ? (
                         <button type="button" onClick={onCtaClick} className="block text-left">
                             <h3
-                                className="text-[16px] font-bold text-slate-800 group-hover:text-[#f97316] transition-colors leading-[1.4] tracking-tighter first-letter:uppercase my-0 mb-1 min-h-[4.2em]"
+                                className="text-[14px] sm:text-[16px] font-bold text-slate-800 group-hover:text-[#f97316] transition-colors leading-[1.4] tracking-tighter first-letter:uppercase my-0 mb-2"
                                 style={{
                                     display: '-webkit-box',
                                     WebkitBoxOrient: 'vertical',
@@ -192,7 +182,7 @@ export function NewsCard({
                     ) : (
                         <Link href={`/artigos/${slug}`} className="block">
                             <h3
-                                className="text-[16px] font-bold text-slate-800 group-hover:text-[#f97316] transition-colors leading-[1.4] tracking-tighter first-letter:uppercase my-0 mb-1 min-h-[4.2em]"
+                                className="text-[14px] sm:text-[16px] font-bold text-slate-800 group-hover:text-[#f97316] transition-colors leading-[1.4] tracking-tighter first-letter:uppercase my-0 mb-2"
                                 style={{
                                     display: '-webkit-box',
                                     WebkitBoxOrient: 'vertical',
@@ -210,7 +200,7 @@ export function NewsCard({
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}
-                            className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 hover:text-emerald-600 transition-colors mt-1 truncate"
+                            className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 hover:text-emerald-600 transition-colors truncate"
                         >
                             <LinkIcon className="w-3 h-3 shrink-0" />
                             {sourceLabel || 'Ver fonte original'}

@@ -62,7 +62,10 @@ function AdminNoticiasContent() {
             .select('*')
             .order('date', { ascending: false, nullsFirst: false });
         // Relatórios pertencem à secção Documentos, nunca à fila de pendentes de Notícias.
-        const withoutReports = (data || []).filter((p: any) => p.category !== 'Relatório' && p.category !== 'Relatórios');
+        // Arquivadas ficam fora da fila principal (mesmo critério do handleArchivePending).
+        const withoutReports = (data || [])
+            .filter((p: any) => p.category !== 'Relatório' && p.category !== 'Relatórios')
+            .filter((p: any) => p.status !== 'archived');
         setPendingArticles(withoutReports);
         setCachedList(PENDING_CACHE_KEY, withoutReports);
         setPendingLoading(false);
@@ -122,8 +125,38 @@ function AdminNoticiasContent() {
         }
     };
 
+    // Tira da fila principal sem eliminar — fica arquivada, tal como para
+    // artigos publicados.
+    const handleArchivePending = async (pending: any) => {
+        const previousPending = [...pendingArticles];
+        try {
+            setPendingArticles(prev => prev.filter((p: any) => p.id !== pending.id));
+            const { error } = await supabase.from('articles_pending').update({ status: 'archived' }).eq('id', pending.id);
+            if (error) throw error;
+            toast.success('Notícia arquivada.');
+        } catch (error: any) {
+            setPendingArticles(previousPending);
+            toast.error(error.message || 'Erro ao arquivar');
+        }
+    };
+
     const togglePendingSelect = (id: string) => {
         setSelectedPendingIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    };
+
+    const handleBulkArchivePending = async () => {
+        const previousPending = [...pendingArticles];
+        const ids = [...selectedPendingIds];
+        try {
+            setPendingArticles(prev => prev.filter((p: any) => !ids.includes(p.id)));
+            setSelectedPendingIds([]);
+            const { error } = await supabase.from('articles_pending').update({ status: 'archived' }).in('id', ids);
+            if (error) throw error;
+            toast.success(`${ids.length} notícias arquivadas.`);
+        } catch (error: any) {
+            setPendingArticles(previousPending);
+            toast.error(error.message || 'Erro ao arquivar em massa');
+        }
     };
 
     const confirmBulkDiscard = async () => {
@@ -414,21 +447,56 @@ function AdminNoticiasContent() {
                     title="Notícias"
                     extra={
                         activeTab === 'Pendentes' ? (
-                            !pendingLoading && pendingArticles.length > 0 && (
-                                <div className="flex items-center gap-1 bg-emerald-50 p-1 rounded-[8px] border border-emerald-200 flex-wrap">
-                                    {pendingCategories.map((cat) => (
-                                        <button
-                                            key={cat}
-                                            onClick={() => setPendingCategoryFilter(cat)}
-                                            className={`px-3 py-2 rounded-[8px] text-xs font-bold uppercase tracking-wider transition-all ${pendingCategoryFilter === cat
-                                                ? 'bg-emerald-600 text-white shadow-sm'
-                                                : 'text-slate-600 hover:bg-[#f97316] hover:text-white'
-                                                }`}
-                                        >
-                                            {cat}
-                                        </button>
-                                    ))}
+                            selectedPendingIds.length > 0 ? (
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => setSelectedPendingIds([])}
+                                        className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+                                        title="Desfazer selecção"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                    <span className="text-xs font-black uppercase tracking-wider text-slate-600 whitespace-nowrap">
+                                        {selectedPendingIds.length} {selectedPendingIds.length === 1 ? 'seleccionado' : 'seleccionados'}
+                                    </span>
+                                    <button
+                                        onClick={() => setSelectedPendingIds(filteredPending.map((p: any) => p.id))}
+                                        className="text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-emerald-600 px-2 py-2 transition-colors whitespace-nowrap"
+                                    >
+                                        Seleccionar tudo
+                                    </button>
+                                    <button
+                                        onClick={handleBulkArchivePending}
+                                        className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider bg-amber-50 text-amber-700 hover:bg-amber-100 px-3 py-2 rounded-[8px] transition-colors whitespace-nowrap"
+                                    >
+                                        <Archive className="w-4 h-4" />
+                                        Arquivar
+                                    </button>
+                                    <button
+                                        onClick={() => setShowBulkDiscardConfirm(true)}
+                                        className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider bg-rose-50 text-rose-700 hover:bg-rose-100 px-3 py-2 rounded-[8px] transition-colors whitespace-nowrap"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        Eliminar
+                                    </button>
                                 </div>
+                            ) : (
+                                !pendingLoading && pendingArticles.length > 0 && (
+                                    <div className="flex items-center gap-1 bg-emerald-50 p-1 rounded-[8px] border border-emerald-200 flex-wrap">
+                                        {pendingCategories.map((cat) => (
+                                            <button
+                                                key={cat}
+                                                onClick={() => setPendingCategoryFilter(cat)}
+                                                className={`px-3 py-2 rounded-[8px] text-xs font-bold uppercase tracking-wider transition-all ${pendingCategoryFilter === cat
+                                                    ? 'bg-emerald-600 text-white shadow-sm'
+                                                    : 'text-slate-600 hover:bg-[#f97316] hover:text-white'
+                                                    }`}
+                                            >
+                                                {cat}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )
                             )
                         ) : (
                             <div className="relative w-96 shrink-0">
@@ -531,30 +599,7 @@ function AdminNoticiasContent() {
                         </div>
                     ) : (
                         <>
-                            {selectedPendingIds.length > 0 && (
-                                <div className="mb-4 flex items-center justify-between bg-emerald-600 text-white rounded-[8px] px-4 py-3">
-                                    <div className="flex items-center gap-3">
-                                        <button
-                                            onClick={() => setSelectedPendingIds([])}
-                                            className="p-1 hover:bg-white/10 rounded transition-colors"
-                                            title="Limpar selecção"
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </button>
-                                        <span className="text-sm font-black tracking-tight">
-                                            {selectedPendingIds.length} {selectedPendingIds.length === 1 ? 'seleccionado' : 'seleccionados'}
-                                        </span>
-                                    </div>
-                                    <button
-                                        onClick={() => setShowBulkDiscardConfirm(true)}
-                                        className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider bg-white/10 hover:bg-white/20 px-3 py-2 rounded-md transition-colors"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                        Descartar seleccionados
-                                    </button>
-                                </div>
-                            )}
-                            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 items-end">
                                 {filteredPending.map((pending: any) => (
                                     <NewsCard
                                         key={pending.id}
@@ -564,6 +609,7 @@ function AdminNoticiasContent() {
                                         image={pending.image_url || undefined}
                                         slug={pending.id}
                                         isAdmin={true}
+                                        onArchive={() => handleArchivePending(pending)}
                                         onDelete={() => setPendingToDiscard(pending)}
                                         ctaLabel="Rever e Publicar"
                                         onCtaClick={() => handleReviewPending(pending)}
@@ -587,7 +633,7 @@ function AdminNoticiasContent() {
                     </div>
                 ) : viewMode === 'grid' ? (
                     // Grid View
-                    <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
                         {filteredArticles.map((article: any) => (
                             <NewsCard
                                 key={article.id}

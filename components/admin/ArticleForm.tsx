@@ -13,6 +13,7 @@ import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { syncManager } from "@/lib/syncManager";
 import { limitWords } from "@/lib/utils";
 import { NEWS_CATEGORIES } from "@/lib/constants";
+import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 
 // Limite de palavras do resumo/subtítulo: o suficiente para caber em 2 linhas
 // no banner de destaque do blog sem cortar o texto a meio.
@@ -189,28 +190,24 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
 
     return (
         <div className="space-y-4">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500" title="Voltar">
-                        <ArrowLeft className="w-5 h-5" />
-                    </button>
-                    <div>
-                        <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-                            {initialData ? "Editar Artigo" : "Novo Artigo"}
-                        </h1>
-                    </div>
-                </div>
-                <div className="flex items-center gap-3">
+            <AdminListToolbar>
+                <AdminToolbarTitle
+                    title={initialData ? "Editar Artigo" : "Novo Artigo"}
+                    leading={
+                        <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500 shrink-0" title="Voltar">
+                            <ArrowLeft className="w-5 h-5" />
+                        </button>
+                    }
+                />
+                <div className="flex items-center gap-3 shrink-0">
                     <Button variant="ghost" type="button" onClick={onClose}>
                         Cancelar
                     </Button>
                     <Button type="submit" form="article-form" disabled={loading} className="bg-emerald-600 hover:bg-emerald-700 min-w-[120px]">
-
                         {initialData ? "Actualizar" : "Publicar"}
                     </Button>
                 </div>
-            </div>
+            </AdminListToolbar>
 
             {/* Body */}
             <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">

@@ -21,7 +21,9 @@ export function AdminListToolbar({ children, className = "" }: AdminListToolbarP
             // z-40 (> z-30 da aside no desktop): a sombra da barra lateral (shadow-xl,
             // propositadamente mantida) já não pinta por cima desta barra — a fronteira
             // com a sidebar passa a ser só o border-l, uma linha simples e suave.
-            className={`flex flex-row flex-nowrap items-center justify-between gap-4 bg-white border-b border-l border-slate-200 -mx-8 -mt-2 px-8 py-3 sticky top-0 z-40 h-20 overflow-x-auto ${className}`}
+            // No mobile: altura automática e quebra de linha em vez de scroll
+            // horizontal — cabe tudo sem forçar rolagem em nenhuma direcção.
+            className={`flex flex-wrap lg:flex-nowrap items-center justify-between gap-3 lg:gap-4 bg-white border-b border-l border-slate-200 -mx-8 -mt-2 px-4 py-2 lg:px-8 lg:py-3 sticky top-0 z-40 h-auto lg:h-20 ${className}`}
         >
             {children}
         </div>
@@ -45,7 +47,7 @@ interface AdminToolbarTitleProps {
  * não há risco de discrepância de tamanho entre páginas. */
 export function AdminToolbarTitle({ title, leading, extra, searchValue, onSearchChange, searchPlaceholder = "Buscar..." }: AdminToolbarTitleProps) {
     return (
-        <div className="flex items-center gap-4 min-w-0 shrink-0">
+        <div className="flex flex-wrap lg:flex-nowrap items-center gap-4 min-w-0 lg:shrink-0">
             {leading}
             {/* m-0: neutraliza a regra global "h1 { ... mb-4 }" (globals.css) —
                 sem isto o título fica com 16px de margem por baixo e a
@@ -54,7 +56,7 @@ export function AdminToolbarTitle({ title, leading, extra, searchValue, onSearch
             <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight shrink-0 leading-none m-0">{title}</h1>
             {extra}
             {onSearchChange && (
-                <div className="relative w-96 shrink-0">
+                <div className="relative w-full sm:w-96 shrink-0">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                     <Input
                         placeholder={searchPlaceholder}
