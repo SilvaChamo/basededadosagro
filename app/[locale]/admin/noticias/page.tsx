@@ -564,7 +564,6 @@ function AdminNoticiasContent() {
                                         image={pending.image_url || undefined}
                                         slug={pending.id}
                                         isAdmin={true}
-                                        onEdit={() => handleReviewPending(pending)}
                                         onDelete={() => setPendingToDiscard(pending)}
                                         ctaLabel="Rever e Publicar"
                                         onCtaClick={() => handleReviewPending(pending)}

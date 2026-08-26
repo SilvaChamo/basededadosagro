@@ -145,7 +145,12 @@ export function NewsCard({
                         </div>
                     </Link>
                 )
-            ) : null}
+            ) : (
+                /* Sem imagem: reserva o mesmo espaço da secção de imagem, em
+                   branco, para o conteúdo começar sempre à mesma altura dos
+                   cards com foto na mesma grelha. */
+                <div className="aspect-[16/10]" />
+            )}
 
             {/* Content Section */}
             <div className="p-5 flex flex-col flex-1">
@@ -219,47 +224,53 @@ export function NewsCard({
                         <button
                             type="button"
                             onClick={onCtaClick}
-                            className="flex items-center gap-2 text-sm font-bold text-emerald-600 group-hover:text-[#f97316] transition-colors"
+                            className="flex items-center gap-2 text-sm font-bold text-emerald-600 group-hover:text-[#f97316] transition-colors whitespace-nowrap"
                         >
-                            {ctaLabel || 'Explorar'} <ArrowRight className="h-4 w-4" />
+                            {ctaLabel || 'Explorar'} <ArrowRight className="h-4 w-4 shrink-0" />
                         </button>
                     ) : (
                         <Link
                             href={`/artigos/${slug}`}
-                            className="flex items-center gap-2 text-sm font-bold text-emerald-600 group-hover:text-[#f97316] transition-colors"
+                            className="flex items-center gap-2 text-sm font-bold text-emerald-600 group-hover:text-[#f97316] transition-colors whitespace-nowrap"
                         >
-                            {ctaLabel || 'Explorar'} <ArrowRight className="h-4 w-4" />
+                            {ctaLabel || 'Explorar'} <ArrowRight className="h-4 w-4 shrink-0" />
                         </Link>
                     )}
 
-                    {isAdmin && (
-                        <div className="flex gap-2">
+                    {isAdmin && (onEdit || onArchive || onDelete || isDeleted) && (
+                        <div className="flex gap-2 shrink-0">
                             {!isDeleted && (
                                 <>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit?.(); }}
-                                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 transition-all border border-slate-100"
-                                        title="Editar"
-                                    >
-                                        <Pencil className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onArchive?.(); }}
-                                        className={`w-8 h-8 flex items-center justify-center rounded-lg ${isArchived ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400 hover:bg-amber-50 hover:text-amber-600'} transition-all border border-slate-100`}
-                                        title={isArchived ? "Desarquivar" : "Arquivar"}
-                                    >
-                                        <Archive className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete?.(); }}
-                                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all border border-slate-100"
-                                        title="Eliminar"
-                                    >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
+                                    {onEdit && (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit?.(); }}
+                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 transition-all border border-slate-100"
+                                            title="Editar"
+                                        >
+                                            <Pencil className="w-3.5 h-3.5" />
+                                        </button>
+                                    )}
+                                    {onArchive && (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onArchive?.(); }}
+                                            className={`w-8 h-8 flex items-center justify-center rounded-lg ${isArchived ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400 hover:bg-amber-50 hover:text-amber-600'} transition-all border border-slate-100`}
+                                            title={isArchived ? "Desarquivar" : "Arquivar"}
+                                        >
+                                            <Archive className="w-3.5 h-3.5" />
+                                        </button>
+                                    )}
+                                    {onDelete && (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete?.(); }}
+                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all border border-slate-100"
+                                            title="Eliminar"
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                    )}
                                 </>
                             )}
                             {isDeleted && (
