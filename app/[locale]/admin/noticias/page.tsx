@@ -416,14 +416,10 @@ function AdminNoticiasContent() {
         }
     ];
 
-    // Barra partilhada só é usada quando o formulário está aberto (título +
-    // Cancelar) — na lista, fica suprimida: o Novo Artigo e o Sair vivem na
-    // mesma linha dos botões de gestão, mais abaixo.
-    useAdminTopBar(
-        isFormOpen ? (editingArticle ? "Editar Artigo" : "Novo Artigo") : "",
-        isFormOpen ? () => { setIsFormOpen(false); setPublishingFromPendingId(null); } : undefined,
-        "Cancelar"
-    );
+    // Sempre suprimida: tanto a lista (Novo Artigo/Sair na linha de gestão)
+    // como o ArticleForm (título+Cancelar na sua própria AdminListToolbar)
+    // já têm a sua própria barra — usar esta também duplicava o título.
+    useAdminTopBar("");
 
     if (isFormOpen) {
         return (
