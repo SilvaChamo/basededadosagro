@@ -416,6 +416,7 @@ function AdminDocumentosContent() {
                         {filteredArticles.map((article) => (
                             <DocumentCard
                                 key={article.id}
+                                id={article.id}
                                 title={article.title}
                                 subtitle={article.subtitle}
                                 category={article.type}

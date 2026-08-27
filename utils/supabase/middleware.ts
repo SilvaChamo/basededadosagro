@@ -58,21 +58,27 @@ export async function updateSession(request: NextRequest) {
         }
     }
 
-    // IMPORTANT: DO NOT REMOVE auth.getUser() — só evitamos CHAMÁ-LO quando não
-    // há nenhuma cookie de sessão Supabase no pedido. Sem cookie não há sessão
-    // possível (user seria sempre null de qualquer forma), por isso poupamos o
-    // pedido de rede lento ao servidor de auth (~1.5-2.5s neste projecto) em
-    // todas as páginas públicas visitadas por visitantes anónimos. Quando a
-    // cookie existe (visitante com sessão), continuamos a validar/renovar
-    // normalmente como antes.
+    // Só olhamos para a sessão quando existe cookie Supabase no pedido — sem
+    // cookie não há sessão possível, por isso poupa-se trabalho em todas as
+    // páginas públicas visitadas por anónimos.
     const hasAuthCookie = request.cookies.getAll().some(
         (c) => c.name.startsWith('sb-') && c.name.includes('auth-token')
     );
 
+    // Este middleware só precisa da sessão para decisões de ROTEAMENTO
+    // (rewrite para 404 em rotas protegidas sem sessão, redirect do
+    // /auth/login quando já há sessão). Usamos getSession(), que lê a cookie
+    // localmente e só vai à rede se o access token tiver expirado (renovação
+    // que é precisa de qualquer forma) — em vez de getUser(), que fazia um
+    // pedido ao servidor de auth (~1.5-2.5s) em CADA navegação de um
+    // utilizador com sessão, o que tornava o painel lento a cada clique.
+    // A verificação AUTORITÁRIA de identidade + role continua a ser feita
+    // server-side com getUser() em app/[locale]/admin/layout.tsx e
+    // app/[locale]/usuario/layout.tsx, e nas rotas /api (requireAdmin).
     let user = null;
     if (hasAuthCookie) {
-        const { data } = await supabase.auth.getUser();
-        user = data.user;
+        const { data } = await supabase.auth.getSession();
+        user = data.session?.user ?? null;
     }
 
     // 1. Obscuridade: Em vez de redirecionar para login, damos rewrite para 404

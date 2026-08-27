@@ -4,13 +4,14 @@ import { FileText, Calendar, Eye, Trash2, RotateCcw, Pencil, AlertCircle, Archiv
 import { Button } from "@/components/ui/button";
 
 interface DocumentCardProps {
+    id: string;
     title: string;
     subtitle?: string;
     category?: string;
     date: string;
     source?: string; // e.g. "MASA"
     sourceUrl?: string;
-    slug: string;
+    slug?: string; // mantido por compatibilidade com quem passa a prop
     isDeleted?: boolean;
     onRestore?: () => void;
     onEdit?: () => void;
@@ -19,12 +20,12 @@ interface DocumentCardProps {
 }
 
 export function DocumentCard({
+    id,
     title,
     subtitle,
     category,
     date,
     source,
-    slug,
     isDeleted,
     onRestore,
     onEdit,
@@ -53,7 +54,7 @@ export function DocumentCard({
                 </div>
 
                 <h3 className="text-lg font-bold text-slate-800 leading-tight line-clamp-2">
-                    <Link href={`/documentos/${slug}`} target="_blank" className="hover:text-emerald-700 transition-colors" title="Abrir página de leitura">
+                    <Link href={`/admin/documentos/${id}/ver`} className="hover:text-emerald-700 transition-colors" title="Ver documento no painel">
                         {title}
                     </Link>
                 </h3>
@@ -100,10 +101,9 @@ export function DocumentCard({
                 ) : (
                     <>
                         <Link
-                            href={`/documentos/${slug}`}
-                            target="_blank"
+                            href={`/admin/documentos/${id}/ver`}
                             className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                            title="Ver Página de Leitura"
+                            title="Ver documento no painel"
                         >
                             <Eye className="w-5 h-5" />
                         </Link>
