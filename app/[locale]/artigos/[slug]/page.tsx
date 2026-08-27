@@ -96,7 +96,10 @@ export default function ArticleReadingPage() {
                     console.error("Supabase Error:", articleError);
                 }
 
-                if (articleData) {
+                // Artigos em "Rascunho" ou "Pendente para revisão" não são públicos.
+                const articleIsPublic = articleData && !['draft', 'review'].includes(articleData.publish_status);
+
+                if (articleIsPublic) {
                     setArticle(articleData);
                 } else {
                     // Check fallback
@@ -114,6 +117,7 @@ export default function ArticleReadingPage() {
                     .from('articles')
                     .select('*')
                     .neq('slug', slug)
+                    .or('publish_status.is.null,publish_status.not.in.(draft,review)')
                     .limit(20);
 
                 if (articleData?.type) {
@@ -128,6 +132,7 @@ export default function ArticleReadingPage() {
                         .from('articles')
                         .select('*')
                         .neq('slug', slug)
+                        .or('publish_status.is.null,publish_status.not.in.(draft,review)')
                         .limit(10);
 
                     if (fallbackData) {

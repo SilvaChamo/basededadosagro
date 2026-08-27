@@ -32,7 +32,9 @@ export default function DocumentReadingPage() {
             if (!slug) return;
             setLoading(true);
             const { data } = await supabase.from('articles').select('*').eq('slug', slug).single();
-            setDoc(data || null);
+            // Documentos em "Rascunho" ou "Pendente para revisão" não são públicos.
+            const isPublic = data && data.deleted_at == null && !['draft', 'review'].includes(data.publish_status);
+            setDoc(isPublic ? data : null);
             setLoading(false);
         };
         fetchDoc();

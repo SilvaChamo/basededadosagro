@@ -4,14 +4,14 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Link as LinkIcon, Calendar, Plus, X, Upload } from "lucide-react";
+import { ArrowLeft, Link as LinkIcon, Calendar, X, Upload, ChevronDown, Check } from "lucide-react";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { ImageSelector } from "@/components/admin/central-noticias/ImageSelector";
 import { MultiFileUpload } from "@/components/admin/MultiFileUpload";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { limitWords } from "@/lib/utils";
+import { limitWords, cn } from "@/lib/utils";
 import { DOCUMENT_CATEGORIES } from "@/lib/constants";
 import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import { useAdminTopBar } from "@/components/admin/AdminTopBar";
@@ -49,6 +49,7 @@ export function DocumentForm({ initialData, isNew = false }: DocumentFormProps) 
         source_url: initialData?.source_url || "",
         date: initialData?.date ? new Date(initialData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         slug: initialData?.slug || "",
+        publish_status: initialData?.publish_status || "published",
     });
 
     useEffect(() => {
@@ -61,20 +62,17 @@ export function DocumentForm({ initialData, isNew = false }: DocumentFormProps) 
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const addCategory = (cat: string) => {
+    // Selecção múltipla de categorias via checkboxes — nunca deixar o
+    // documento sem nenhuma categoria (a primeira continua a ser gravada
+    // em `type`, a categoria principal usada nos filtros antigos).
+    const toggleCategory = (cat: string) => {
         setFormData((prev) => {
-            if (prev.categories.includes(cat)) return prev;
-            const next = [...prev.categories, cat];
+            const has = prev.categories.includes(cat);
+            let next = has
+                ? prev.categories.filter((c: string) => c !== cat)
+                : [...prev.categories, cat];
+            if (next.length === 0) next = [cat];
             return { ...prev, categories: next, type: next[0] };
-        });
-        setIsCategoryOpen(false);
-    };
-
-    const removeCategory = (cat: string) => {
-        setFormData((prev) => {
-            const next = prev.categories.filter((c: string) => c !== cat);
-            const safeNext = next.length > 0 ? next : [cat];
-            return { ...prev, categories: safeNext, type: safeNext[0] };
         });
     };
 
@@ -171,57 +169,55 @@ export function DocumentForm({ initialData, isNew = false }: DocumentFormProps) 
                         <div className="space-y-1.5" ref={categoryRef}>
                             <label className="text-[10px] font-bold text-slate-400 uppercase">Categorias</label>
 
-                            <div className="flex flex-wrap gap-1.5">
-                                {formData.categories.map((cat: string) => (
-                                    <span
-                                        key={cat}
-                                        className="flex items-center gap-1 pl-3 pr-1.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-emerald-600 text-white"
-                                    >
-                                        {cat}
-                                        {formData.categories.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => removeCategory(cat)}
-                                                className="w-4 h-4 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors"
-                                                title="Remover categoria"
-                                            >
-                                                <X className="w-3 h-3" />
-                                            </button>
-                                        )}
-                                    </span>
-                                ))}
-                            </div>
-
                             <div className="relative">
                                 <button
                                     type="button"
                                     onClick={() => setIsCategoryOpen(open => !open)}
-                                    className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 hover:text-emerald-700 transition-colors mt-1"
+                                    className="w-full flex items-center justify-between gap-2 border border-slate-300 rounded-[8px] bg-white px-3 h-11 text-sm text-slate-600 hover:border-emerald-500 transition-colors"
                                 >
-                                    <Plus className="w-3.5 h-3.5" /> Adicionar categoria
+                                    <span className="truncate text-left">
+                                        {formData.categories.length > 0 ? formData.categories.join(", ") : "Selecionar categorias"}
+                                    </span>
+                                    <ChevronDown className={cn("w-4 h-4 text-slate-400 shrink-0 transition-transform", isCategoryOpen && "rotate-180")} />
                                 </button>
 
                                 {isCategoryOpen && (
-                                    <div className="absolute z-10 mt-1.5 w-56 max-h-56 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg py-1">
-                                        {DOCUMENT_CATEGORIES.filter(cat => !formData.categories.includes(cat)).length === 0 ? (
-                                            <p className="px-3 py-2 text-[11px] text-slate-400">Todas as categorias já foram adicionadas.</p>
-                                        ) : (
-                                            DOCUMENT_CATEGORIES
-                                                .filter(cat => !formData.categories.includes(cat))
-                                                .map(cat => (
-                                                    <button
-                                                        key={cat}
-                                                        type="button"
-                                                        onClick={() => addCategory(cat)}
-                                                        className="w-full text-left px-3 py-1.5 text-[12px] text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
-                                                    >
-                                                        {cat}
-                                                    </button>
-                                                ))
-                                        )}
+                                    <div className="absolute z-20 mt-1.5 w-full max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg py-1">
+                                        {DOCUMENT_CATEGORIES.map(cat => {
+                                            const checked = formData.categories.includes(cat);
+                                            return (
+                                                <button
+                                                    key={cat}
+                                                    type="button"
+                                                    onClick={() => toggleCategory(cat)}
+                                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-slate-600 hover:bg-emerald-50 transition-colors"
+                                                >
+                                                    <span className={cn(
+                                                        "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors",
+                                                        checked ? "bg-emerald-600 border-emerald-600 text-white" : "border-slate-300"
+                                                    )}>
+                                                        {checked && <Check className="w-3 h-3" />}
+                                                    </span>
+                                                    {cat}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase">Estado</label>
+                            <select
+                                value={formData.publish_status}
+                                onChange={(e) => setFormData({ ...formData, publish_status: e.target.value })}
+                                className="w-full border border-slate-300 rounded-[8px] bg-white px-3 h-11 text-sm text-slate-600 outline-none hover:border-emerald-500 focus-visible:border-emerald-500 transition-colors"
+                            >
+                                <option value="published">Publicar</option>
+                                <option value="review">Pendente para revisão</option>
+                                <option value="draft">Rascunho</option>
+                            </select>
                         </div>
 
                         <div className="space-y-1.5">

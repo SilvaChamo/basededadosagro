@@ -56,6 +56,7 @@ function BlogContent() {
                     .from('articles')
                     .select('id, title, subtitle, image_url, date, slug, type, categories')
                     .is('deleted_at', null)
+                    .or('publish_status.is.null,publish_status.not.in.(draft,review)')
                     .in('type', newsTypes)
                     .order('date', { ascending: false });
 

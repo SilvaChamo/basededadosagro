@@ -29,6 +29,7 @@ export default async function Home() {
       supabase.from('companies').select('id, name, slug, category, province, location, logo_url, activity, description').eq('is_archived', false).eq('is_featured', true).order('created_at', { ascending: false }).limit(10),
       supabase.from('articles').select('id, title, subtitle, image_url, date, slug, type')
         .is('deleted_at', null)
+        .or('publish_status.is.null,publish_status.not.in.(draft,review)')
         .in('type', ['Notícia', 'Internacional', 'Artigo', 'Artigo Técnico', 'Comunicado', 'Evento', 'Oportunidade', 'Curiosidade', 'Guia'])
         .order('created_at', { ascending: false })
         .limit(5)

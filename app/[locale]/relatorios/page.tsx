@@ -19,6 +19,8 @@ export default function RelatoriosPage() {
                 .select('*')
                 .or('type.eq.Relatório,type.eq.Relatórios')
                 .is('deleted_at', null)
+                // Só relatórios publicados — esconde "Rascunho" e "Pendente para revisão".
+                .or('publish_status.is.null,publish_status.not.in.(draft,review)')
                 .order('created_at', { ascending: false });
 
             if (error) {

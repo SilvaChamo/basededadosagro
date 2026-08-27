@@ -20,6 +20,8 @@ export default function DocumentsArchivePage() {
                     .from('articles')
                     .select('*')
                     .is('deleted_at', null)
+                    // Só documentos publicados — esconde "Rascunho" e "Pendente para revisão".
+                    .or('publish_status.is.null,publish_status.not.in.(draft,review)')
                     .in('type', ['document', 'Relatório', 'Legislação', 'PDF', 'Documento', 'Artigo Técnico'])
                     .order('date', { ascending: false });
 

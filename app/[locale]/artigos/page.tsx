@@ -176,6 +176,7 @@ export default function ArticlesArchivePage() {
                     .from('articles')
                     .select('*')
                     .is('deleted_at', null)
+                    .or('publish_status.is.null,publish_status.not.in.(draft,review)')
                     .in('type', ['Dissertações', 'Artigos', 'Livros', 'Outros'])
                     .order('date', { ascending: false });
 

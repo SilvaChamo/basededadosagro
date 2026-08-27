@@ -68,7 +68,7 @@ export function SearchSection({ isOpen, withBottomBorder = false, extraCategory 
                 supabase.from('products').select('id, name, category, image_url'),
                 supabase.from('professionals').select('*'),
                 supabase.from('properties').select('*'),
-                supabase.from('articles').select('*')
+                supabase.from('articles').select('*').or('publish_status.is.null,publish_status.not.in.(draft,review)')
             ]);
 
             // Formatar Empresas

@@ -45,7 +45,7 @@ export default function RepositorioPage() {
                     supabase.from('products').select('*', { count: 'exact', head: true }),
                     supabase.from('professionals').select('*', { count: 'exact', head: true }),
                     supabase.from('properties').select('*', { count: 'exact', head: true }),
-                    supabase.from('articles').select('*', { count: 'exact', head: true }).or('type.eq.document,type.eq.Relatório'),
+                    supabase.from('articles').select('*', { count: 'exact', head: true }).or('type.eq.document,type.eq.Relatório').or('publish_status.is.null,publish_status.not.in.(draft,review)'),
                     supabase.from('trainings').select('*', { count: 'exact', head: true })
                 ]);
 
