@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
-import { FileText, Loader2, ArrowRight, Download, Calendar, User } from "lucide-react";
+import { FileText, Loader2, ArrowRight, Calendar, User } from "lucide-react";
 import Link from "next/link";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -98,26 +98,16 @@ export default function RelatoriosPage() {
                                         {report.subtitle || report.description || "Consulte este relatório detalhado sobre as actividades e análises do sector agrário."}
                                     </p>
 
+                                    {/* A fonte/download real só fica acessível a partir do resumo do
+                                        documento — esta listagem nunca oferece o link directo. */}
                                     <div className="mt-auto pt-6 border-t border-slate-50">
-                                        {report.source_url ? (
-                                            <a
-                                                href={report.source_url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex items-center justify-between text-xs font-black uppercase tracking-widest text-emerald-600 group/link"
-                                            >
-                                                <span>Baixar Documento</span>
-                                                <Download className="w-4 h-4 transform group-hover/link:translate-y-0.5 transition-transform" />
-                                            </a>
-                                        ) : (
-                                            <Link
-                                                href={`/artigos/${report.slug}`}
-                                                className="flex items-center justify-between text-xs font-black uppercase tracking-widest text-emerald-600 group/link"
-                                            >
-                                                <span>Ver Detalhes</span>
-                                                <ArrowRight className="w-4 h-4 transform group-hover/link:translate-x-1 transition-transform" />
-                                            </Link>
-                                        )}
+                                        <Link
+                                            href={`/documentos/${report.slug}`}
+                                            className="flex items-center justify-between text-xs font-black uppercase tracking-widest text-emerald-600 group/link"
+                                        >
+                                            <span>Ver Resumo</span>
+                                            <ArrowRight className="w-4 h-4 transform group-hover/link:translate-x-1 transition-transform" />
+                                        </Link>
                                     </div>
                                 </div>
                             </div>

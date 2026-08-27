@@ -1,9 +1,5 @@
-import { NewsEditor } from "@/components/admin/NewsEditor";
+import { DocumentForm } from "@/components/admin/DocumentForm";
 
 export default function NewDocumentPage() {
-    return (
-        <div className="max-w-7xl mx-auto py-8">
-            <NewsEditor isNew={true} />
-        </div>
-    );
+    return <DocumentForm isNew={true} />;
 }

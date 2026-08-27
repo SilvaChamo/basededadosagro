@@ -11,6 +11,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
+import { DOCUMENT_TYPES } from "@/lib/constants";
 
 export interface ExtraSearchItem {
     title: string;
@@ -123,7 +124,9 @@ export function SearchSection({ isOpen, withBottomBorder = false, extraCategory 
                 produtos: productsList,
                 profissionais: (pros.data || []).map((p: any) => ({ ...p, title: p.name, sub: p.role, image: p.image_url, icon: Users, type: 'professional' })),
                 propriedades: (props.data || []).map((p: any) => ({ ...p, title: p.name, sub: p.description, image: p.image_url, icon: LandPlot, type: 'property' })),
-                artigos: (arts.data || []).map((a: any) => ({ ...a, title: a.title, sub: a.subtitle || a.type, image: a.image_url, icon: FileText, type: 'article' }))
+                // Documentos/Legislação/Relatórios têm a sua própria página de resumo
+                // (/documentos/[slug]) — não podem ir parar ao template de Notícias.
+                artigos: (arts.data || []).map((a: any) => ({ ...a, title: a.title, sub: a.subtitle || a.type, image: a.image_url, icon: FileText, type: DOCUMENT_TYPES.includes(a.type) ? 'document' : 'article' }))
             });
         };
         fetchAll();
@@ -325,6 +328,8 @@ function SearchResultCard({ item, colorClass, isRound = false }: { item: any, co
         href = `/produtos`;
     } else if (item.type === 'article' && item.slug) {
         href = `/artigos/${item.slug}`;
+    } else if (item.type === 'document' && item.slug) {
+        href = `/documentos/${item.slug}`;
     } else if (item.type === 'professional' && item.id) {
         href = `/repositorio/profissionais/${item.id}`;
     } else if (item.type === 'property') {

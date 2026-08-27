@@ -1,5 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
-import { NewsEditor } from "@/components/admin/NewsEditor";
+import { DocumentForm } from "@/components/admin/DocumentForm";
 import { notFound } from "next/navigation";
 
 export default async function EditDocumentPage({ params }: { params: Promise<{ id: string }> }) {
@@ -11,9 +11,5 @@ export default async function EditDocumentPage({ params }: { params: Promise<{ i
         notFound();
     }
 
-    return (
-        <div className="max-w-7xl mx-auto py-8">
-            <NewsEditor initialData={document} />
-        </div>
-    );
+    return <DocumentForm initialData={document} />;
 }

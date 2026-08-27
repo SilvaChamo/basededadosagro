@@ -201,7 +201,7 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
                     }
                 />
                 <div className="flex items-center gap-3 shrink-0">
-                    <Button variant="ghost" type="button" onClick={onClose}>
+                    <Button variant="ghost" type="button" onClick={onClose} className="bg-slate-100 hover:bg-slate-200 text-slate-500">
                         Cancelar
                     </Button>
                     <Button type="submit" form="article-form" disabled={loading} className="bg-emerald-600 hover:bg-emerald-700 min-w-[120px]">
@@ -211,10 +211,8 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
             </AdminListToolbar>
 
             {/* Body */}
-            <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
-                    <form id="article-form" onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-[7fr_3fr] gap-6">
-                            {/* Main Column */}
+            <form id="article-form" onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-[7fr_3fr] gap-6">
+                            {/* Main Column — Título e Lide soltos; Conteúdo no seu card */}
                             <div className="space-y-5">
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Título Principal</label>
@@ -222,7 +220,7 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
                                         placeholder="Manchete da notícia..."
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        className="font-bold text-lg h-12"
+                                        className="font-bold text-lg h-12 bg-white"
                                         required
                                     />
                                 </div>
@@ -234,17 +232,16 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
                                         value={formData.subtitle}
                                         onChange={(e) => setFormData({ ...formData, subtitle: limitWords(e.target.value, MAX_SUBTITLE_WORDS) })}
                                         rows={3}
-                                        className="resize-y"
+                                        className="resize-y bg-white"
                                     />
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Conteúdo</label>
+                                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
                                     <RichTextEditor
                                         value={formData.content}
                                         onChange={(val) => setFormData({ ...formData, content: val })}
                                         placeholder="Escreva o conteúdo do artigo aqui..."
-                                        className="min-h-[300px]"
+                                        className="min-h-[600px]"
                                         galleryScope="noticias"
                                         articleId={initialData?.id}
                                     />
@@ -430,9 +427,7 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </form>
-            </div>
+            </form>
         </div>
     );
 }

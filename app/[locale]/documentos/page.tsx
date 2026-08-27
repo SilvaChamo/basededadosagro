@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { StandardBlogTemplate } from "@/components/StandardBlogTemplate";
-import { FileText, Search, ArrowDownToLine, Calendar, ExternalLink, Info, Link as LinkIcon } from "lucide-react";
+import { FileText, Search, Calendar, ExternalLink, Info, Link as LinkIcon } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { createClient } from "@supabase/supabase-js";
@@ -99,7 +99,7 @@ export default function DocumentsArchivePage() {
                                 </div>
                                 <div className="space-y-1.5">
                                     <h3 className="text-lg font-bold text-slate-800 group-hover:text-rose-600 transition-colors leading-tight">
-                                        <Link href={`/artigos/${doc.slug}`}>
+                                        <Link href={`/documentos/${doc.slug}`}>
                                             {doc.title}
                                         </Link>
                                     </h3>
@@ -113,38 +113,19 @@ export default function DocumentsArchivePage() {
                                             <Calendar className="w-3 h-3" /> {new Date(doc.date).getFullYear()}
                                         </div>
                                         {doc.source && (
-                                            <a
-                                                href={doc.source_url || '#'}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 hover:underline flex items-center gap-1"
-                                                onClick={(e) => !doc.source_url && e.preventDefault()}
-                                            >
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 flex items-center gap-1">
                                                 <LinkIcon className="w-3 h-3" /> Fonte: {doc.source}
-                                            </a>
+                                            </span>
                                         )}
                                     </div>
                                 </div>
                             </div>
+                            {/* A fonte/download real só fica disponível a partir da página de
+                                resumo — aqui só se entra, nunca se sai directamente. */}
                             <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-                                {doc.source_url ? (
-                                    <a
-                                        href={doc.source_url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="bg-slate-50 text-slate-400 p-2.5 rounded-lg hover:bg-emerald-600 hover:text-white transition-all inline-flex items-center justify-center"
-                                        title="Baixar Documento"
-                                    >
-                                        <ArrowDownToLine className="w-5 h-5" />
-                                    </a>
-                                ) : (
-                                    <button className="bg-slate-50 text-slate-400 p-2.5 rounded-lg hover:bg-emerald-600 hover:text-white transition-all opacity-50 cursor-not-allowed" title="Sem link disponível">
-                                        <ArrowDownToLine className="w-5 h-5" />
-                                    </button>
-                                )}
-                                <Link href={`/artigos/${doc.slug}`}>
-                                    <button className="bg-slate-50 text-slate-400 p-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-all" title="Ver Detalhes">
-                                        <ExternalLink className="w-5 h-5" />
+                                <Link href={`/documentos/${doc.slug}`}>
+                                    <button className="bg-slate-50 text-slate-500 px-4 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition-all inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest" title="Ver Resumo">
+                                        <ExternalLink className="w-4 h-4" /> Ver Resumo
                                     </button>
                                 </Link>
                             </div>

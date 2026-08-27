@@ -1,5 +1,6 @@
 
-import { FileText, Calendar, Link as LinkIcon, Download, ExternalLink, Trash2, RotateCcw, Pencil, AlertCircle, Archive } from "lucide-react";
+import Link from "next/link";
+import { FileText, Calendar, Eye, Trash2, RotateCcw, Pencil, AlertCircle, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface DocumentCardProps {
@@ -23,7 +24,7 @@ export function DocumentCard({
     category,
     date,
     source,
-    sourceUrl,
+    slug,
     isDeleted,
     onRestore,
     onEdit,
@@ -51,8 +52,10 @@ export function DocumentCard({
                     )}
                 </div>
 
-                <h3 className="text-lg font-bold text-slate-800 leading-tight group-hover:text-emerald-700 transition-colors line-clamp-2">
-                    {title}
+                <h3 className="text-lg font-bold text-slate-800 leading-tight line-clamp-2">
+                    <Link href={`/documentos/${slug}`} target="_blank" className="hover:text-emerald-700 transition-colors" title="Abrir página de leitura">
+                        {title}
+                    </Link>
                 </h3>
 
                 {subtitle && (
@@ -96,17 +99,14 @@ export function DocumentCard({
                     </>
                 ) : (
                     <>
-                        {sourceUrl && (
-                            <a
-                                href={sourceUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                                title="Download / Ver Link"
-                            >
-                                <ExternalLink className="w-5 h-5" />
-                            </a>
-                        )}
+                        <Link
+                            href={`/documentos/${slug}`}
+                            target="_blank"
+                            className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                            title="Ver Página de Leitura"
+                        >
+                            <Eye className="w-5 h-5" />
+                        </Link>
                         <Button
                             onClick={onEdit}
                             variant="ghost"

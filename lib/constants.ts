@@ -42,6 +42,29 @@ export const NEWS_CATEGORIES = [
     "Mercado",
 ];
 
+// Tipos que pertencem à secção Documentos (basededados.articles.type) —
+// única fonte de verdade partilhada entre admin/noticias (para excluir
+// estes tipos de "Todas as Notícias") e admin/documentos (para os filtros
+// por separador). Inclui variantes antigas/minúsculas já usadas na base de
+// dados para não perder documentos existentes.
+export const DOCUMENT_TYPES = [
+    "Relatório", "Relatórios",
+    "Legislação", "Política Agrária", "Políticas Agrárias",
+    "Documento", "document", "PDF", "Artigo Técnico",
+];
+
+// Categorias de documentos: única fonte de verdade para o seletor de
+// categorias do editor de Documentos (components/admin/DocumentForm.tsx) —
+// nunca deve incluir categorias de Notícias (ver NEWS_CATEGORIES), mesmo
+// partilhando a tabela `articles`.
+export const DOCUMENT_CATEGORIES = [
+    "Relatório",
+    "Legislação",
+    "Política Agrária",
+    "Documento",
+    "Artigo Técnico",
+];
+
 export const COMPANY_CATEGORIES = [
     "Agricultura de precisão",
     "Agricultura orgânica",

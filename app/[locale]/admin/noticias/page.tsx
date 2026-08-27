@@ -16,6 +16,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { getCachedList, setCachedList } from "@/lib/adminListCache";
 import { useAdminTopBar, TOPBAR_NEW_BUTTON_CLASS } from "@/components/admin/AdminTopBar";
 import { LogoutButton } from "@/components/LogoutButton";
+import { DOCUMENT_TYPES } from "@/lib/constants";
 
 function AdminNoticiasContent() {
     const supabase = createClient();
@@ -371,10 +372,6 @@ function AdminNoticiasContent() {
         }
         setEditingArticle(null);
     };
-
-    // Mesma lista de tipos que a secção Documentos usa (app/[locale]/admin/documentos/page.tsx,
-    // const tabs) — estes tipos pertencem só lá, nunca à Gestão de Notícias.
-    const DOCUMENT_TYPES = ['Relatório', 'Relatórios', 'Legislação', 'Política Agrária', 'Políticas Agrárias', 'Documento', 'document', 'PDF', 'Artigo Técnico'];
 
     const filteredArticles = articles.filter((a: any) => {
         if (DOCUMENT_TYPES.includes(a.type)) return false;

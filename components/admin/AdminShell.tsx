@@ -382,11 +382,13 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
 
                         <div className={`my-2 border-b border-slate-100 ${isCollapsed ? "mx-2" : "mx-6"}`}></div>
 
-                        {/* GROUP: DOCUMENTOS (funde Artigos científicos + Documentos oficiais —
-                            ambos vivem na mesma tabela `articles`, só o `type` muda) */}
+                        {/* GROUP: DOCUMENTOS (documentos oficiais — Relatórios, Legislação, etc.
+                            Separado de Artigos Científicos abaixo: são páginas diferentes
+                            (/admin/documentos vs /admin/artigos), com categorias próprias
+                            e não devem aparecer fundidos como se fossem a mesma coisa) */}
                         <div className="flex flex-col gap-0.5">
                             {!isCollapsed && (
-                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/documentos', '/admin/artigos']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
+                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/documentos']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
                                     <button
                                         onClick={() => handleGroupClick('documentos', '/admin/documentos')}
                                         className="flex items-center gap-2.5 flex-1 min-w-0 pl-6 pr-2 py-1.5 text-[15px] font-semibold text-left transition-all duration-300 ease-out hover:translate-x-1.5 hover:text-orange-500"
@@ -411,6 +413,37 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                                     <LinkItem href="/admin/documentos?tab=relatorios" icon={FileText} label="Relatórios" isSub />
                                     <LinkItem href="/admin/documentos?tab=legislacao" icon={Scale} label="Leis e Regulamentos" isSub />
                                     <LinkItem href="/admin/documentos?tab=outros" icon={Layers} label="Outros Documentos" isSub />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className={`my-2 border-b border-slate-100 ${isCollapsed ? "mx-2" : "mx-6"}`}></div>
+
+                        {/* GROUP: ARTIGOS CIENTÍFICOS (biblioteca científica — separado de
+                            Documentos: página própria /admin/artigos, categorias próprias) */}
+                        <div className="flex flex-col gap-0.5">
+                            {!isCollapsed && (
+                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/artigos']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
+                                    <button
+                                        onClick={() => handleGroupClick('artigos-cientificos', '/admin/artigos')}
+                                        className="flex items-center gap-2.5 flex-1 min-w-0 pl-6 pr-2 py-1.5 text-[15px] font-semibold text-left transition-all duration-300 ease-out hover:translate-x-1.5 hover:text-orange-500"
+                                    >
+                                        <GraduationCap className="w-6 h-6 shrink-0" />
+                                        <span>Artigos Científicos</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleSubmenuOnly('artigos-cientificos')}
+                                        className="pl-2 pr-6 py-1.5 hover:text-orange-500 transition-colors"
+                                        title={openSubmenus.includes('artigos-cientificos') ? "Colapsar" : "Expandir"}
+                                    >
+                                        <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('artigos-cientificos') ? 'rotate-90' : ''}`} />
+                                    </button>
+                                </div>
+                            )}
+                            {openSubmenus.includes('artigos-cientificos') && (
+                                <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
+                                    {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-2 w-[1.5px] bg-slate-100" />}
                                     <LinkItem href="/admin/artigos?tab=Artigos" icon={Newspaper} label="Artigos Científicos" isSub />
                                     <LinkItem href="/admin/artigos?tab=Dissertações" icon={GraduationCap} label="Dissertações" isSub />
                                     <LinkItem href="/admin/artigos?tab=Livros" icon={BookOpen} label="Livros & Manuais" isSub />

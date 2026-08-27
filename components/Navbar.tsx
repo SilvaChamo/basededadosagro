@@ -19,6 +19,7 @@ import { createClient } from "@/utils/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ServicesMegaMenu } from "./ServicesMegaMenu";
 import { MarketMegaMenu } from "./MarketMegaMenu";
+import { getPostLoginPath } from "@/lib/roles";
 
 export function Navbar() {
     const supabase = createClient();
@@ -72,6 +73,27 @@ export function Navbar() {
 
         return () => subscription.unsubscribe();
     }, []);
+
+    // Botão "Painel": volta sempre ao painel certo consoante o perfil (admin,
+    // equipa de notícias ou utilizador normal) — mesma lógica de
+    // getPostLoginPath usada logo a seguir ao login.
+    const [panelPath, setPanelPath] = useState<string | null>(null);
+    useEffect(() => {
+        if (!user) {
+            setPanelPath(null);
+            return;
+        }
+        let cancelled = false;
+        supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", user.id)
+            .single()
+            .then(({ data }: { data: any }) => {
+                if (!cancelled) setPanelPath(getPostLoginPath(data?.role));
+            });
+        return () => { cancelled = true; };
+    }, [user]);
 
     const handleContactSubmit = async () => {
         if (!contactForm.name || !contactForm.message) return;
@@ -333,11 +355,19 @@ export function Navbar() {
                     <button onClick={toggleLanguage} className="notranslate w-9 h-9 flex items-center justify-center rounded-[8px] bg-[#f97316]/10 font-medium text-[13px] text-[#f97316] hover:bg-[#f97316]/20 transition-all uppercase tracking-tight shadow-sm">
                         {language === "PT" ? "EN" : "PT"}
                     </button>
-                    <Link href="/auth/login" className="hidden sm:block">
-                        <Button className="notranslate bg-emerald-600 hover:bg-[#f97316] text-white text-[12px] font-bold px-5 h-9 rounded-[8px] transition-all shadow-sm border-none">
-                            {t("common.login")}
-                        </Button>
-                    </Link>
+                    {user ? (
+                        <Link href={panelPath || "/usuario/dashboard"} className="hidden sm:block">
+                            <Button className="notranslate bg-emerald-600 hover:bg-[#f97316] text-white text-[12px] font-bold px-5 h-9 rounded-[8px] transition-all shadow-sm border-none">
+                                Painel
+                            </Button>
+                        </Link>
+                    ) : (
+                        <Link href="/auth/login" className="hidden sm:block">
+                            <Button className="notranslate bg-emerald-600 hover:bg-[#f97316] text-white text-[12px] font-bold px-5 h-9 rounded-[8px] transition-all shadow-sm border-none">
+                                {t("common.login")}
+                            </Button>
+                        </Link>
+                    )}
 
                     {/* Mobile Menu Trigger */}
                     {!mounted ? (
@@ -413,11 +443,19 @@ export function Navbar() {
                                     </div>
                                 </div>
                                 <div className="p-6 border-t border-slate-50 space-y-4">
-                                    <Link href="/auth/login" className="block w-full">
-                                        <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 rounded-[12px]">
-                                            {t("common.login")}
-                                        </Button>
-                                    </Link>
+                                    {user ? (
+                                        <Link href={panelPath || "/usuario/dashboard"} className="block w-full">
+                                            <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 rounded-[12px]">
+                                                Painel
+                                            </Button>
+                                        </Link>
+                                    ) : (
+                                        <Link href="/auth/login" className="block w-full">
+                                            <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 rounded-[12px]">
+                                                {t("common.login")}
+                                            </Button>
+                                        </Link>
+                                    )}
                                 </div>
                             </div>
                         </SheetContent>
