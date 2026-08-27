@@ -47,7 +47,7 @@ function AdminDocumentosContent() {
     const tabs = [
         { id: 'todos', label: 'Todos', icon: Layers, types: [] },
         { id: 'relatorios', label: 'Relatórios', icon: FileText, types: ['Relatório', 'Relatórios'] },
-        { id: 'legislacao', label: 'Legislação', icon: Scale, types: ['Legislação', 'Políticas Agrárias'] },
+        { id: 'legislacao', label: 'Legislação', icon: Scale, types: ['Legislação', 'Política Agrária', 'Políticas Agrárias'] },
         { id: 'outros', label: 'Outros Documentos', icon: Layers, types: ['Documento', 'document', 'PDF', 'Artigo Técnico'] },
     ];
 

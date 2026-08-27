@@ -649,6 +649,52 @@ font {
   margin-bottom: 0.6em !important;
 }
 
+/* Citação do autor — variante verde do blockquote (o blockquote comum
+   fica laranja, via prose-blockquote:* na página do artigo). Precisa de
+   !important para sobrepor essa regra prose-blockquote:*, que também se
+   aplica a qualquer <blockquote>. Mesmo tamanho/itálico do laranja, só
+   muda a cor de fundo e da barra à esquerda. */
+.article-content blockquote.quote-autor {
+  border-left: 4px solid #059669 !important;
+  background-color: rgba(5, 150, 105, 0.08) !important;
+  border-radius: 0 10px 10px 0 !important;
+  padding: 1.5rem !important;
+  font-style: italic !important;
+  font-size: inherit !important;
+}
+
+/* Remove qualquer fundo (branco, normalmente) que o texto colado do Word/
+   Google Docs traga inline em spans internos — sem isto aparecia um
+   rectângulo claro por trás do texto dentro da citação. Só nos filhos: o
+   próprio blockquote mantém o fundo verde definido acima. */
+.article-content blockquote.quote-autor * {
+  background-color: transparent !important;
+}
+
+/* Aspas decorativas: conteúdo real (spans), não ::before/::after — assim
+   o cursor pode ser colocado antes/depois delas (ex.: escrever o ponto
+   final depois da aspa de fecho). Tamanho grande, ao estilo de ícone. Cor
+   "inherit" para acompanhar sempre o tom do texto da citação, nunca preto. */
+.article-content blockquote.quote-autor .quote-mark-open,
+.article-content blockquote.quote-autor .quote-mark-close {
+  font-family: Georgia, 'Times New Roman', serif !important;
+  font-style: normal !important;
+  font-weight: 700 !important;
+  font-size: 2em !important;
+  line-height: 0 !important;
+  color: inherit !important;
+  vertical-align: -0.35em;
+  display: inline-block;
+}
+
+.article-content blockquote.quote-autor .quote-mark-open {
+  margin-right: 0.15em;
+}
+
+.article-content blockquote.quote-autor .quote-mark-close {
+  margin-left: 0.15em;
+}
+
 /* Editor de conteúdo (RichTextEditor): mesma lógica do .article-content
    acima — força Maven Pro mesmo quando o texto colado (Word/Google Docs)
    traz style="font-family:'Times New Roman'..." inline no HTML colado. */

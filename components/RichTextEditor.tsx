@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Bold, Italic, List, ListOrdered, Indent, Outdent, Image as ImageIcon, Loader2, Trash2, ZoomIn, ZoomOut, AlignCenter, AlignLeft, AlignRight } from "lucide-react";
+import { Bold, Italic, List, ListOrdered, Indent, Outdent, Image as ImageIcon, Loader2, Trash2, ZoomIn, ZoomOut, AlignCenter, AlignLeft, AlignRight, Quote } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
         justifyLeft: false,
         justifyCenter: false,
         justifyRight: false,
+        authorQuote: false,
         fontSize: "",
         color: "#000000",
     });
@@ -90,6 +91,22 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
         }
     };
 
+    // Percorre para cima a partir da selecção actual à procura do bloco de
+    // citação de autor — usado tanto para saber se o botão deve aparecer
+    // "activo" como para decidir, ao clicar, se é para inserir ou remover.
+    const getAuthorQuoteNode = (): HTMLElement | null => {
+        if (typeof window === 'undefined') return null;
+        const selection = window.getSelection();
+        let node = selection?.anchorNode as (Node | null);
+        while (node && node !== editorRef.current) {
+            if (node.nodeType === 1 && (node as HTMLElement).tagName === 'BLOCKQUOTE' && (node as HTMLElement).classList.contains('quote-autor')) {
+                return node as HTMLElement;
+            }
+            node = node.parentNode;
+        }
+        return null;
+    };
+
     // Check current styles based on selection
     const checkStyles = () => {
         if (typeof document !== 'undefined') {
@@ -99,6 +116,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
                 justifyLeft: document.queryCommandState("justifyLeft"),
                 justifyCenter: document.queryCommandState("justifyCenter"),
                 justifyRight: document.queryCommandState("justifyRight"),
+                authorQuote: !!getAuthorQuoteNode(),
                 // Detect current color (approximate)
                 color: document.queryCommandValue("foreColor"),
                 // Only update font size if input is NOT focused
@@ -166,6 +184,65 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
         document.execCommand(command, false, value);
         if (editorRef.current) {
             editorRef.current.focus();
+        }
+        checkStyles();
+    };
+
+    // Citação de autor: bloco com fundo verde transparente e barra à
+    // esquerda (ver globals.css .article-content blockquote.quote-autor e
+    // o :global(...) logo abaixo, para a pré-visualização aqui coincidir
+    // com o que aparece na notícia publicada). formatBlock só cria um
+    // <blockquote> simples — a classe é acrescentada a seguir, à mão.
+    // Botão é um toggle: se a selecção já está dentro da citação, o clique
+    // remove-a (volta a parágrafo normal) em vez de criar outra.
+    const insertAuthorQuote = () => {
+        const existing = getAuthorQuoteNode();
+        if (existing) {
+            // Remove as aspas (spans) antes de voltar a parágrafo normal —
+            // senão ficam soltas, sem sentido, dentro do texto normal.
+            existing.querySelectorAll('.quote-mark-open, .quote-mark-close').forEach(el => el.remove());
+            document.execCommand('formatBlock', false, '<p>');
+        } else {
+            document.execCommand('formatBlock', false, '<blockquote>');
+            const selection = window.getSelection();
+            let node = selection?.anchorNode as (Node | null);
+            while (node && (node as HTMLElement).tagName !== 'BLOCKQUOTE') {
+                node = node.parentNode;
+            }
+            if (node) {
+                const blockquote = node as HTMLElement;
+                blockquote.classList.add('quote-autor');
+                // Aspas como conteúdo real (spans), não CSS ::before/::after
+                // — assim o cursor pode ser colocado antes/depois delas,
+                // por exemplo para escrever o ponto final depois da aspa de
+                // fecho. contentEditable=false torna cada uma uma unidade
+                // só (não editável carácter a carácter, mas o cursor anda à
+                // volta dela normalmente).
+                const openMark = document.createElement('span');
+                openMark.className = 'quote-mark-open';
+                openMark.contentEditable = 'false';
+                openMark.textContent = '“';
+                blockquote.insertBefore(openMark, blockquote.firstChild);
+
+                const closeMark = document.createElement('span');
+                closeMark.className = 'quote-mark-close';
+                closeMark.contentEditable = 'false';
+                closeMark.textContent = '”';
+                blockquote.appendChild(closeMark);
+
+                // Garante que há sempre um parágrafo a seguir à citação —
+                // sem isto, se ela ficar como último bloco do editor, não
+                // há onde clicar para continuar a escrever por baixo dela.
+                if (!blockquote.nextElementSibling) {
+                    const p = document.createElement('p');
+                    p.innerHTML = '<br>';
+                    blockquote.insertAdjacentElement('afterend', p);
+                }
+            }
+        }
+        if (editorRef.current) {
+            editorRef.current.focus();
+            onChange(editorRef.current.innerHTML);
         }
         checkStyles();
     };
@@ -497,6 +574,10 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
 
                 <div className="w-px h-4 bg-slate-300 mx-1" />
 
+                <ToolbarButton onClick={insertAuthorQuote} icon={<Quote className="w-4 h-4 text-[#f97316]" />} title="Citação do autor" isActive={activeStyles.authorQuote} />
+
+                <div className="w-px h-4 bg-slate-300 mx-1" />
+
                 <ToolbarButton onClick={() => execCommand("outdent")} icon={<Outdent className="w-4 h-4" />} title="Diminuir Recuo (Tab)" />
                 <ToolbarButton onClick={() => execCommand("indent")} icon={<Indent className="w-4 h-4" />} title="Aumentar Recuo (Tab)" />
 
@@ -631,6 +712,35 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
                 }
                 :global([contenteditable] p:last-child), :global([contenteditable] div:last-child) {
                     margin-bottom: 0 !important;
+                }
+                :global([contenteditable] blockquote.quote-autor) {
+                    border-left: 4px solid #059669 !important;
+                    background-color: rgba(5, 150, 105, 0.08) !important;
+                    border-radius: 0 10px 10px 0 !important;
+                    padding: 1.5rem !important;
+                    font-style: italic !important;
+                    font-size: inherit !important;
+                    margin: 1em 0 !important;
+                }
+                :global([contenteditable] blockquote.quote-autor *) {
+                    background-color: transparent !important;
+                }
+                :global([contenteditable] .quote-mark-open),
+                :global([contenteditable] .quote-mark-close) {
+                    font-family: Georgia, 'Times New Roman', serif !important;
+                    font-style: normal !important;
+                    font-weight: 700 !important;
+                    font-size: 2em !important;
+                    line-height: 0 !important;
+                    color: inherit !important;
+                    vertical-align: -0.35em;
+                    display: inline-block;
+                }
+                :global([contenteditable] .quote-mark-open) {
+                    margin-right: 0.15em;
+                }
+                :global([contenteditable] .quote-mark-close) {
+                    margin-left: 0.15em;
                 }
             `}</style>
             {/* Placeholder Overlay */}

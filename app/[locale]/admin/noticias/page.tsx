@@ -372,9 +372,12 @@ function AdminNoticiasContent() {
         setEditingArticle(null);
     };
 
+    // Mesma lista de tipos que a secção Documentos usa (app/[locale]/admin/documentos/page.tsx,
+    // const tabs) — estes tipos pertencem só lá, nunca à Gestão de Notícias.
+    const DOCUMENT_TYPES = ['Relatório', 'Relatórios', 'Legislação', 'Política Agrária', 'Políticas Agrárias', 'Documento', 'document', 'PDF', 'Artigo Técnico'];
+
     const filteredArticles = articles.filter((a: any) => {
-        // Relatórios pertencem à secção Documentos, nunca à Gestão de Notícias.
-        if (a.type === 'Relatório' || a.type === 'Relatórios') return false;
+        if (DOCUMENT_TYPES.includes(a.type)) return false;
 
         const matchesSearch = a.title.toLowerCase().includes(search.toLowerCase()) ||
             a.type?.toLowerCase().includes(search.toLowerCase());

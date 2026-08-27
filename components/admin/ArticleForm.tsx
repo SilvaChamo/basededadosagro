@@ -3,9 +3,9 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, Type, Link as LinkIcon, Calendar, Plus, X } from "lucide-react";
+import { Loader2, ArrowLeft, Type, Link as LinkIcon, Calendar, Plus, X, Upload } from "lucide-react";
 import { RichTextEditor } from "@/components/RichTextEditor";
-import { ImageUpload } from "@/components/admin/ImageUpload";
+import { ImageSelector } from "@/components/admin/central-noticias/ImageSelector";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -31,6 +31,7 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
     const { isOnline } = useNetworkStatus();
     const [loading, setLoading] = useState(false);
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+    const [showImageSelector, setShowImageSelector] = useState(false);
     const categoryRef = useRef<HTMLDivElement>(null);
     const [tagInput, setTagInput] = useState("");
     const [formData, setFormData] = useState({
@@ -212,9 +213,9 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
             {/* Body */}
             <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
                     <form id="article-form" onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-[7fr_3fr] gap-6">
                             {/* Main Column */}
-                            <div className="md:col-span-2 space-y-5">
+                            <div className="space-y-5">
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Título Principal</label>
                                     <Input
@@ -244,6 +245,8 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
                                         onChange={(val) => setFormData({ ...formData, content: val })}
                                         placeholder="Escreva o conteúdo do artigo aqui..."
                                         className="min-h-[300px]"
+                                        galleryScope="noticias"
+                                        articleId={initialData?.id}
                                     />
                                 </div>
                             </div>
@@ -367,21 +370,38 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
 
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-bold text-slate-400 uppercase">Imagem de Destaque</label>
-                                        <div className="h-[160px]">
-                                            <ImageUpload
-                                                label="Imagem de Destaque"
-                                                value={formData.image_url}
-                                                onChange={(url) => setFormData({ ...formData, image_url: url })}
-                                                recommendedSize="1200x630"
-                                                maxWidth={1200}
-                                                maxHeight={630}
-                                                hardCapMB={0.3}
-                                                bucket="public-assets"
-                                                folder="artigos"
-                                                imageClassName="object-cover w-full h-full"
-                                                showRecommendedBadge={false}
-                                            />
+                                        <div
+                                            onClick={() => setShowImageSelector(true)}
+                                            className="relative h-[160px] rounded-xl border border-dashed border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-all cursor-pointer group flex items-center justify-center overflow-hidden"
+                                        >
+                                            {formData.image_url ? (
+                                                <>
+                                                    <img src={formData.image_url} alt="Imagem de destaque" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => { e.stopPropagation(); setFormData({ ...formData, image_url: "" }); }}
+                                                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        title="Remover"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <div className="flex flex-col items-center gap-2 p-4 text-center">
+                                                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
+                                                        <Upload className="w-5 h-5 text-slate-400 group-hover:text-emerald-500" />
+                                                    </div>
+                                                    <p className="text-xs font-bold text-slate-600">Clique para escolher</p>
+                                                    <p className="text-[10px] text-emerald-600 font-bold tracking-tight">recomendado: 1200x630</p>
+                                                </div>
+                                            )}
                                         </div>
+                                        {showImageSelector && (
+                                            <ImageSelector
+                                                onSelect={(url) => setFormData({ ...formData, image_url: url })}
+                                                onClose={() => setShowImageSelector(false)}
+                                            />
+                                        )}
                                     </div>
                                 </div>
 

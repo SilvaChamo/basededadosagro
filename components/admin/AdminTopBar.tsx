@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
+import { createContext, useContext, useLayoutEffect, useRef, useState, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { LogoutButton } from "@/components/LogoutButton";
 
@@ -61,7 +61,11 @@ export function useAdminTopBar(
     const showLogoutRef = useRef(options?.showLogout);
     showLogoutRef.current = options?.showLogout;
 
-    useEffect(() => {
+    // useLayoutEffect (não useEffect): corre antes do browser pintar o ecrã —
+    // sem isto, há um instante em que o contexto ainda está a null e a
+    // AdminTopBar mostra a sua barra por omissão (só "Sair"), visível por
+    // cima/antes da barra própria de cada página aparecer.
+    useLayoutEffect(() => {
         if (!ctx) return;
         ctx.setConfig({
             title,
