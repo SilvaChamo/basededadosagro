@@ -28,6 +28,19 @@ const mavenPro = localFont({
   variable: "--font-maven-pro",
 });
 
+// Montserrat local — usada apenas no título principal (h1). Ver app/globals.css.
+const montserrat = localFont({
+  src: [
+    { path: "../fonts/montserrat/Montserrat-Regular.ttf", weight: "400", style: "normal" },
+    { path: "../fonts/montserrat/Montserrat-Medium.ttf", weight: "500", style: "normal" },
+    { path: "../fonts/montserrat/Montserrat-SemiBold.ttf", weight: "600", style: "normal" },
+    { path: "../fonts/montserrat/Montserrat-Bold.ttf", weight: "700", style: "normal" },
+    { path: "../fonts/montserrat/Montserrat-ExtraBold.ttf", weight: "800", style: "normal" },
+    { path: "../fonts/montserrat/Montserrat-Black.ttf", weight: "900", style: "normal" },
+  ],
+  variable: "--font-montserrat",
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://basededadosagro.com"),
   title: "Base de Dados Agro",
@@ -61,7 +74,7 @@ export default async function RootLayout({
         <OrganizationJsonLd />
       </head>
       <body
-        className={`${mavenPro.variable} font-sans antialiased bg-background min-h-screen flex flex-col`}
+        className={`${mavenPro.variable} ${montserrat.variable} font-sans antialiased bg-background min-h-screen flex flex-col`}
         suppressHydrationWarning
       >
         {/* Global Identification Bar - 6px Green */}

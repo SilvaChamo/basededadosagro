@@ -235,7 +235,7 @@ export function DocumentForm({ initialData, isNew = false }: DocumentFormProps) 
                                 <button
                                     type="button"
                                     onClick={() => setIsCategoryOpen(open => !open)}
-                                    className="w-full flex items-center justify-between gap-2 border border-slate-300 rounded-[8px] bg-white px-3 h-11 text-sm text-slate-600 hover:border-emerald-500 transition-colors"
+                                    className="w-full flex items-center justify-between gap-2 border border-slate-300 rounded-[8px] bg-white px-3 h-10 text-sm text-slate-600 hover:border-emerald-500 transition-colors"
                                 >
                                     <span className="truncate text-left">
                                         {formData.categories.length > 0 ? formData.categories.join(", ") : "Seleccionar categoria"}
@@ -296,12 +296,12 @@ export function DocumentForm({ initialData, isNew = false }: DocumentFormProps) 
                                     onChange={(e) => setTagInput(e.target.value)}
                                     onKeyDown={handleTagInputKeyDown}
                                     placeholder="Adicionar tags"
-                                    className="h-11 text-sm bg-white"
+                                    className="h-10 text-sm bg-white"
                                 />
                                 <button
                                     type="button"
                                     onClick={addTag}
-                                    className="shrink-0 h-11 w-11 flex items-center justify-center rounded-[8px] border border-slate-300 text-slate-500 hover:text-emerald-600 hover:border-emerald-500 transition-colors"
+                                    className="shrink-0 h-10 w-10 flex items-center justify-center rounded-[8px] border border-slate-300 text-slate-500 hover:text-emerald-600 hover:border-emerald-500 transition-colors"
                                     title="Adicionar tag"
                                 >
                                     <Plus className="w-4 h-4" />
@@ -313,7 +313,7 @@ export function DocumentForm({ initialData, isNew = false }: DocumentFormProps) 
                             <select
                                 value={formData.publish_status}
                                 onChange={(e) => setFormData({ ...formData, publish_status: e.target.value })}
-                                className="w-full border border-slate-300 rounded-[8px] bg-white px-3 h-11 text-sm text-slate-600 outline-none hover:border-emerald-500 focus-visible:border-emerald-500 transition-colors"
+                                className="w-full border border-slate-300 rounded-[8px] bg-white px-3 h-10 text-sm text-slate-600 outline-none hover:border-emerald-500 focus-visible:border-emerald-500 transition-colors"
                             >
                                 <option value="published">Publicar</option>
                                 <option value="review">Pendente para revisão</option>
@@ -329,7 +329,7 @@ export function DocumentForm({ initialData, isNew = false }: DocumentFormProps) 
                                     type="date"
                                     value={formData.date}
                                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                    className="pl-9"
+                                    className="pl-9 h-10"
                                 />
                             </div>
                         </div>

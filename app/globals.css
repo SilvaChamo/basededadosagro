@@ -146,7 +146,8 @@
 
   /* TYPOGRAPHY SYSTEM */
   h1 {
-    @apply font-heading font-black leading-[1.1] tracking-tight mb-4;
+    @apply font-black leading-[1.1] tracking-tight mb-4;
+    font-family: var(--font-montserrat), sans-serif;
     font-size: 35px;
     color: rgba(0, 0, 0, 0.75);
   }
@@ -195,6 +196,15 @@
     -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
     transition: background-color 5000s ease-in-out 0s;
   }
+}
+
+/* Título principal (h1) sempre em Montserrat; todo o resto da UI fica em
+   Maven Pro. O !important vence a classe utilitária .font-heading que
+   alguns componentes põem directamente no <h1>. Não afecta
+   .article-content h1 (conteúdo publicado), protegido pela regra
+   `.article-content *` mais específica, também !important. */
+h1 {
+  font-family: var(--font-montserrat), sans-serif !important;
 }
 
 @layer components {
