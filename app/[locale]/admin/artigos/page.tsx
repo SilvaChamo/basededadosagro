@@ -586,6 +586,10 @@ function AdminArtigosCientificosContent() {
 }
 
 export default function AdminArtigosCientificosPage() {
+    // Suprime a barra "Sair" antiga já no 1.º render da rota, antes de o
+    // Suspense resolver — senão o AdminTopBar mostrava o "Sair" por omissão
+    // em duplicado ao carregar a página.
+    useAdminTopBar("");
     return (
         <Suspense fallback={<div className="flex justify-center py-20"><Spinner className="h-8 w-8" /></div>}>
             <AdminArtigosCientificosContent />

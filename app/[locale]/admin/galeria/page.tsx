@@ -647,6 +647,10 @@ function MediaGalleryContent() {
 }
 
 export default function MediaGalleryPage() {
+    // Suprime a barra "Sair" antiga já no 1.º render da rota, antes de o
+    // Suspense resolver — senão o AdminTopBar mostrava o "Sair" por omissão
+    // em duplicado ao carregar a página.
+    useAdminTopBar("");
     return (
         <Suspense fallback={<div>A carregar...</div>}>
             <MediaGalleryContent />

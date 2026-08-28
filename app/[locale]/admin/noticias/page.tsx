@@ -746,6 +746,12 @@ function AdminNoticiasContent() {
 }
 
 export default function AdminNoticiasPage() {
+    // Suprime a barra "Sair" antiga já no 1.º render da rota — antes de o
+    // Suspense de <AdminNoticiasContent> (que usa useSearchParams) resolver.
+    // Sem isto, enquanto o conteúdo está suspenso o AdminTopBar mostrava o
+    // seu "Sair" por omissão, aparecendo em duplicado com o da barra da
+    // própria página assim que ela montava.
+    useAdminTopBar("");
     return (
         <Suspense fallback={<div className="flex justify-center py-20"><Spinner className="h-8 w-8" /></div>}>
             <AdminNoticiasContent />

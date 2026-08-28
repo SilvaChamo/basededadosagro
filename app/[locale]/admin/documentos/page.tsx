@@ -567,6 +567,10 @@ function AdminDocumentosContent() {
 }
 
 export default function AdminDocumentosPage() {
+    // Suprime a barra "Sair" antiga já no 1.º render da rota, antes de o
+    // Suspense de <AdminDocumentosContent> resolver — senão o AdminTopBar
+    // mostrava o "Sair" por omissão em duplicado ao carregar a página.
+    useAdminTopBar("");
     return (
         <Suspense fallback={<div className="flex justify-center py-20"><Spinner className="h-8 w-8" /></div>}>
             <AdminDocumentosContent />
