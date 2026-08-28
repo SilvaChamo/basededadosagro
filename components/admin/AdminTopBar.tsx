@@ -1,8 +1,16 @@
 "use client";
 
 import { createContext, useContext, useLayoutEffect, useRef, useState, ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { LogoutButton } from "@/components/LogoutButton";
+
+// Secções cujas páginas trazem sempre o seu próprio "Sair" na AdminListToolbar
+// — aqui a barra genérica não deve mostrar NADA por omissão. Feito por
+// pathname (não por useAdminTopBar, que só corre num useLayoutEffect do
+// cliente) para que já no HTML do servidor / refresh não haja "Sair"
+// duplicado a piscar até a hidratação.
+const ROUTE_OWNS_TOPBAR = /\/admin\/(noticias|documentos|artigos|galeria)(\/|$)/;
 
 interface TopBarConfig {
     title: string;
@@ -84,6 +92,13 @@ export function useAdminTopBar(
  * existe fora do Dashboard, por isso fica sempre visível por omissão. */
 export function AdminTopBar() {
     const config = useAdminTopBarValue();
+    const pathname = usePathname();
+
+    // Estas secções trazem sempre o seu próprio "Sair"/cabeçalho na
+    // AdminListToolbar — a barra genérica NUNCA aparece aqui, seja qual for
+    // o config (evita o "Sair" duplicado a piscar em cada refresh, e também
+    // um config residual da página anterior durante a transição).
+    if (ROUTE_OWNS_TOPBAR.test(pathname || "")) return null;
 
     if (!config) {
         return (
