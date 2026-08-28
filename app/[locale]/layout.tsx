@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
 import localFont from "next/font/local";
 import Scripts from "next/script";
 import "../globals.css";
@@ -13,11 +12,6 @@ import { Toaster } from "sonner";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
-
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  variable: "--font-montserrat",
-});
 
 // Ficheiros locais em vez de next/font/google — o download do Google Fonts
 // em build/dev falha silenciosamente em alguns ambientes e a fonte cai
@@ -67,7 +61,7 @@ export default async function RootLayout({
         <OrganizationJsonLd />
       </head>
       <body
-        className={`${montserrat.variable} ${mavenPro.variable} font-sans antialiased bg-background min-h-screen flex flex-col`}
+        className={`${mavenPro.variable} font-sans antialiased bg-background min-h-screen flex flex-col`}
         suppressHydrationWarning
       >
         {/* Global Identification Bar - 6px Green */}

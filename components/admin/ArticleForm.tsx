@@ -249,116 +249,6 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
                             {/* Sidebar Column */}
                             <div className="space-y-5">
                                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-4">
-                                    <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-2">Meta Dados</h3>
-
-                                    <div className="space-y-1.5" ref={categoryRef}>
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase">Categorias</label>
-
-                                        <div className="relative">
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsCategoryOpen(open => !open)}
-                                                className="w-full flex items-center justify-between gap-2 border border-slate-300 rounded-[8px] bg-white px-3 h-11 text-sm text-slate-600 hover:border-emerald-500 transition-colors"
-                                            >
-                                                <span className="truncate text-left">
-                                                    {formData.categories.length > 0 ? formData.categories.join(", ") : "Selecionar categorias"}
-                                                </span>
-                                                <ChevronDown className={cn("w-4 h-4 text-slate-400 shrink-0 transition-transform", isCategoryOpen && "rotate-180")} />
-                                            </button>
-
-                                            {isCategoryOpen && (
-                                                <div className="absolute z-20 mt-1.5 w-full max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg py-1">
-                                                    {categories.map(cat => {
-                                                        const checked = formData.categories.includes(cat);
-                                                        return (
-                                                            <button
-                                                                key={cat}
-                                                                type="button"
-                                                                onClick={() => toggleCategory(cat)}
-                                                                className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-slate-600 hover:bg-emerald-50 transition-colors"
-                                                            >
-                                                                <span className={cn(
-                                                                    "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors",
-                                                                    checked ? "bg-emerald-600 border-emerald-600 text-white" : "border-slate-300"
-                                                                )}>
-                                                                    {checked && <Check className="w-3 h-3" />}
-                                                                </span>
-                                                                {cat}
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase">Tags</label>
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {formData.tags.map((tag: string) => (
-                                                <span
-                                                    key={tag}
-                                                    className="flex items-center gap-1 pl-3 pr-1.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600"
-                                                >
-                                                    {tag}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeTag(tag)}
-                                                        className="w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors"
-                                                        title="Remover tag"
-                                                    >
-                                                        <X className="w-3 h-3" />
-                                                    </button>
-                                                </span>
-                                            ))}
-                                        </div>
-                                        <div className="flex gap-1.5">
-                                            <Input
-                                                value={tagInput}
-                                                onChange={(e) => setTagInput(e.target.value)}
-                                                onKeyDown={handleTagInputKeyDown}
-                                                placeholder="Escreva e prima Enter..."
-                                                className="h-8 text-[12px]"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={addTag}
-                                                className="shrink-0 px-2.5 rounded-md border border-slate-200 text-slate-500 hover:text-emerald-600 hover:border-emerald-300 transition-colors"
-                                                title="Adicionar tag"
-                                            >
-                                                <Plus className="w-3.5 h-3.5" />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase">Estado</label>
-                                        <select
-                                            value={formData.publish_status}
-                                            onChange={(e) => setFormData({ ...formData, publish_status: e.target.value })}
-                                            className="w-full border border-slate-300 rounded-[8px] bg-white px-3 h-11 text-sm text-slate-600 outline-none hover:border-emerald-500 focus-visible:border-emerald-500 transition-colors"
-                                        >
-                                            <option value="published">Publicar</option>
-                                            <option value="review">Pendente para revisão</option>
-                                            <option value="draft">Rascunho</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase">Data Publicação</label>
-                                        <div className="relative">
-                                            <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                                            <Input
-                                                type="date"
-                                                value={formData.date}
-                                                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                                className="pl-9"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-4">
                                     <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-2">Multimédia</h3>
 
                                     <div className="space-y-1.5">
@@ -395,6 +285,112 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
                                                 onClose={() => setShowImageSelector(false)}
                                             />
                                         )}
+                                    </div>
+                                </div>
+
+                                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                                    <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-2">Meta Dados</h3>
+
+                                    <div className="relative" ref={categoryRef}>
+                                        <div className="relative">
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsCategoryOpen(open => !open)}
+                                                className="w-full flex items-center justify-between gap-2 border border-slate-300 rounded-[8px] bg-white px-3 h-11 text-sm text-slate-600 hover:border-emerald-500 transition-colors"
+                                            >
+                                                <span className="truncate text-left">
+                                                    {formData.categories.length > 0 ? formData.categories.join(", ") : "Seleccionar categoria"}
+                                                </span>
+                                                <ChevronDown className={cn("w-4 h-4 text-slate-400 shrink-0 transition-transform", isCategoryOpen && "rotate-180")} />
+                                            </button>
+
+                                            {isCategoryOpen && (
+                                                <div className="absolute z-20 mt-1.5 w-full max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg py-1">
+                                                    {categories.map(cat => {
+                                                        const checked = formData.categories.includes(cat);
+                                                        return (
+                                                            <button
+                                                                key={cat}
+                                                                type="button"
+                                                                onClick={() => toggleCategory(cat)}
+                                                                className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-slate-600 hover:bg-emerald-50 transition-colors"
+                                                            >
+                                                                <span className={cn(
+                                                                    "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors",
+                                                                    checked ? "bg-emerald-600 border-emerald-600 text-white" : "border-slate-300"
+                                                                )}>
+                                                                    {checked && <Check className="w-3 h-3" />}
+                                                                </span>
+                                                                {cat}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {formData.tags.map((tag: string) => (
+                                                <span
+                                                    key={tag}
+                                                    className="flex items-center gap-1 pl-3 pr-1.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600"
+                                                >
+                                                    {tag}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeTag(tag)}
+                                                        className="w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors"
+                                                        title="Remover tag"
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                        <div className="flex gap-1.5">
+                                            <Input
+                                                value={tagInput}
+                                                onChange={(e) => setTagInput(e.target.value)}
+                                                onKeyDown={handleTagInputKeyDown}
+                                                placeholder="Adicionar tags"
+                                                className="h-11 text-sm bg-white"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={addTag}
+                                                className="shrink-0 h-11 w-11 flex items-center justify-center rounded-[8px] border border-slate-300 text-slate-500 hover:text-emerald-600 hover:border-emerald-500 transition-colors"
+                                                title="Adicionar tag"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <select
+                                            value={formData.publish_status}
+                                            onChange={(e) => setFormData({ ...formData, publish_status: e.target.value })}
+                                            className="w-full border border-slate-300 rounded-[8px] bg-white px-3 h-11 text-sm text-slate-600 outline-none hover:border-emerald-500 focus-visible:border-emerald-500 transition-colors"
+                                        >
+                                            <option value="published">Publicar</option>
+                                            <option value="review">Pendente para revisão</option>
+                                            <option value="draft">Rascunho</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase">Data Publicação</label>
+                                        <div className="relative">
+                                            <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                                            <Input
+                                                type="date"
+                                                value={formData.date}
+                                                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                                className="pl-9"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 

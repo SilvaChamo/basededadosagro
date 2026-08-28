@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Link as LinkIcon, Calendar, X, Upload, ChevronDown, Check } from "lucide-react";
+import { ArrowLeft, Link as LinkIcon, Calendar, X, Upload, ChevronDown, Check, Plus } from "lucide-react";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { ImageSelector } from "@/components/admin/central-noticias/ImageSelector";
 import { MultiFileUpload } from "@/components/admin/MultiFileUpload";
@@ -34,6 +34,7 @@ export function DocumentForm({ initialData, isNew = false }: DocumentFormProps) 
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
     const [showImageSelector, setShowImageSelector] = useState(false);
     const categoryRef = useRef<HTMLDivElement>(null);
+    const [tagInput, setTagInput] = useState("");
 
     const [formData, setFormData] = useState({
         title: initialData?.title || "",
@@ -42,6 +43,7 @@ export function DocumentForm({ initialData, isNew = false }: DocumentFormProps) 
         categories: (initialData?.categories && initialData.categories.length > 0)
             ? initialData.categories
             : [initialData?.type || DOCUMENT_CATEGORIES[0]],
+        tags: (initialData?.tags as string[]) || [],
         content: initialData?.content || "",
         image_url: initialData?.image_url || "",
         files: (initialData?.files as string[]) || [],
@@ -74,6 +76,29 @@ export function DocumentForm({ initialData, isNew = false }: DocumentFormProps) 
             if (next.length === 0) next = [cat];
             return { ...prev, categories: next, type: next[0] };
         });
+    };
+
+    // Tags: texto livre (Enter ou vírgula adiciona), igual ao editor de Notícias.
+    const addTag = () => {
+        const value = tagInput.trim();
+        if (!value) return;
+        setFormData((prev) => (
+            prev.tags.includes(value) ? prev : { ...prev, tags: [...prev.tags, value] }
+        ));
+        setTagInput("");
+    };
+
+    const removeTag = (tag: string) => {
+        setFormData((prev) => ({ ...prev, tags: prev.tags.filter((t: string) => t !== tag) }));
+    };
+
+    const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter" || e.key === ",") {
+            e.preventDefault();
+            addTag();
+        } else if (e.key === "Backspace" && !tagInput && formData.tags.length > 0) {
+            removeTag(formData.tags[formData.tags.length - 1]);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -164,77 +189,6 @@ export function DocumentForm({ initialData, isNew = false }: DocumentFormProps) 
                 {/* Sidebar — colunas próprias, sem card partilhado com o conteúdo */}
                 <div className="space-y-5">
                     <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-4">
-                        <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-2">Meta Dados</h3>
-
-                        <div className="space-y-1.5" ref={categoryRef}>
-                            <label className="text-[10px] font-bold text-slate-400 uppercase">Categorias</label>
-
-                            <div className="relative">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsCategoryOpen(open => !open)}
-                                    className="w-full flex items-center justify-between gap-2 border border-slate-300 rounded-[8px] bg-white px-3 h-11 text-sm text-slate-600 hover:border-emerald-500 transition-colors"
-                                >
-                                    <span className="truncate text-left">
-                                        {formData.categories.length > 0 ? formData.categories.join(", ") : "Selecionar categorias"}
-                                    </span>
-                                    <ChevronDown className={cn("w-4 h-4 text-slate-400 shrink-0 transition-transform", isCategoryOpen && "rotate-180")} />
-                                </button>
-
-                                {isCategoryOpen && (
-                                    <div className="absolute z-20 mt-1.5 w-full max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg py-1">
-                                        {DOCUMENT_CATEGORIES.map(cat => {
-                                            const checked = formData.categories.includes(cat);
-                                            return (
-                                                <button
-                                                    key={cat}
-                                                    type="button"
-                                                    onClick={() => toggleCategory(cat)}
-                                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-slate-600 hover:bg-emerald-50 transition-colors"
-                                                >
-                                                    <span className={cn(
-                                                        "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors",
-                                                        checked ? "bg-emerald-600 border-emerald-600 text-white" : "border-slate-300"
-                                                    )}>
-                                                        {checked && <Check className="w-3 h-3" />}
-                                                    </span>
-                                                    {cat}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase">Estado</label>
-                            <select
-                                value={formData.publish_status}
-                                onChange={(e) => setFormData({ ...formData, publish_status: e.target.value })}
-                                className="w-full border border-slate-300 rounded-[8px] bg-white px-3 h-11 text-sm text-slate-600 outline-none hover:border-emerald-500 focus-visible:border-emerald-500 transition-colors"
-                            >
-                                <option value="published">Publicar</option>
-                                <option value="review">Pendente para revisão</option>
-                                <option value="draft">Rascunho</option>
-                            </select>
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase">Data Publicação</label>
-                            <div className="relative">
-                                <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                                <Input
-                                    type="date"
-                                    value={formData.date}
-                                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                    className="pl-9"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-4">
                         <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-2">Imagem de Capa</h3>
 
                         <div className="space-y-1.5">
@@ -270,6 +224,114 @@ export function DocumentForm({ initialData, isNew = false }: DocumentFormProps) 
                                     onClose={() => setShowImageSelector(false)}
                                 />
                             )}
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                        <h3 className="text-sm font-bold text-slate-800 border-b pb-2 mb-2">Meta Dados</h3>
+
+                        <div className="relative" ref={categoryRef}>
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsCategoryOpen(open => !open)}
+                                    className="w-full flex items-center justify-between gap-2 border border-slate-300 rounded-[8px] bg-white px-3 h-11 text-sm text-slate-600 hover:border-emerald-500 transition-colors"
+                                >
+                                    <span className="truncate text-left">
+                                        {formData.categories.length > 0 ? formData.categories.join(", ") : "Seleccionar categoria"}
+                                    </span>
+                                    <ChevronDown className={cn("w-4 h-4 text-slate-400 shrink-0 transition-transform", isCategoryOpen && "rotate-180")} />
+                                </button>
+
+                                {isCategoryOpen && (
+                                    <div className="absolute z-20 mt-1.5 w-full max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg py-1">
+                                        {DOCUMENT_CATEGORIES.map(cat => {
+                                            const checked = formData.categories.includes(cat);
+                                            return (
+                                                <button
+                                                    key={cat}
+                                                    type="button"
+                                                    onClick={() => toggleCategory(cat)}
+                                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-slate-600 hover:bg-emerald-50 transition-colors"
+                                                >
+                                                    <span className={cn(
+                                                        "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors",
+                                                        checked ? "bg-emerald-600 border-emerald-600 text-white" : "border-slate-300"
+                                                    )}>
+                                                        {checked && <Check className="w-3 h-3" />}
+                                                    </span>
+                                                    {cat}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            {formData.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5">
+                                    {formData.tags.map((tag: string) => (
+                                        <span
+                                            key={tag}
+                                            className="flex items-center gap-1 pl-3 pr-1.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600"
+                                        >
+                                            {tag}
+                                            <button
+                                                type="button"
+                                                onClick={() => removeTag(tag)}
+                                                className="w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors"
+                                                title="Remover tag"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                            <div className="flex gap-1.5">
+                                <Input
+                                    value={tagInput}
+                                    onChange={(e) => setTagInput(e.target.value)}
+                                    onKeyDown={handleTagInputKeyDown}
+                                    placeholder="Adicionar tags"
+                                    className="h-11 text-sm bg-white"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={addTag}
+                                    className="shrink-0 h-11 w-11 flex items-center justify-center rounded-[8px] border border-slate-300 text-slate-500 hover:text-emerald-600 hover:border-emerald-500 transition-colors"
+                                    title="Adicionar tag"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <select
+                                value={formData.publish_status}
+                                onChange={(e) => setFormData({ ...formData, publish_status: e.target.value })}
+                                className="w-full border border-slate-300 rounded-[8px] bg-white px-3 h-11 text-sm text-slate-600 outline-none hover:border-emerald-500 focus-visible:border-emerald-500 transition-colors"
+                            >
+                                <option value="published">Publicar</option>
+                                <option value="review">Pendente para revisão</option>
+                                <option value="draft">Rascunho</option>
+                            </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase">Data Publicação</label>
+                            <div className="relative">
+                                <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                                <Input
+                                    type="date"
+                                    value={formData.date}
+                                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                    className="pl-9"
+                                />
+                            </div>
                         </div>
                     </div>
 

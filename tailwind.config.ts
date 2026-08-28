@@ -77,8 +77,11 @@ const config: Config = {
                 "agro-btn": "var(--radius-agro-btn)",
             },
             fontFamily: {
-                sans: ["var(--font-maven-pro)"],
-                heading: ["var(--font-montserrat)"],
+                // Maven Pro em toda a app, sem mistura — heading e serif
+                // apontam para a mesma fonte que sans.
+                sans: ["var(--font-maven-pro)", "sans-serif"],
+                heading: ["var(--font-maven-pro)", "sans-serif"],
+                serif: ["var(--font-maven-pro)", "sans-serif"],
             },
             spacing: {
                 agro: "var(--gap-agro)",
