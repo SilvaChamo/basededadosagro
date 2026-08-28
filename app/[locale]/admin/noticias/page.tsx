@@ -53,7 +53,7 @@ function AdminNoticiasContent() {
     // do robô (articles_pending); "rascunho" = artigos com
     // publish_status='draft' ou status='draft' (apanha também os rascunhos do
     // painel do colaborador) — aparecem SÓ neste separador.
-    const [pendingTab, setPendingTab] = useState<'todas' | 'novas' | 'rascunho'>('todas');
+    const [pendingTab, setPendingTab] = useState<'todas' | 'revisao' | 'rascunho'>('todas');
     const [reviewArticles, setReviewArticles] = useState<any[]>([]);
     const [draftArticles, setDraftArticles] = useState<any[]>([]);
     const [reviewDraftLoading, setReviewDraftLoading] = useState(false);
@@ -423,7 +423,6 @@ function AdminNoticiasContent() {
         return matchesSearch && matchesType;
     });
 
-    const reviewDraftList = pendingTab === 'todas' ? reviewArticles : draftArticles;
 
     const columns = [
         {
@@ -482,19 +481,19 @@ function AdminNoticiasContent() {
                     extra={
                         activeTab === 'Pendentes' ? (
                             <div className="flex items-center gap-6 flex-wrap">
-                                {/* Separadores — menu simples, sem fundo; activo e hover a laranja */}
+                                {/* Separadores — menu simples, sem fundo nem linha: só a cor muda (laranja no activo e no hover) */}
                                 <div className="flex items-center gap-6">
                                     {([
                                         { id: 'todas', label: 'Todas as Notícias' },
-                                        { id: 'novas', label: 'Novas publicações' },
+                                        { id: 'revisao', label: 'Pendentes para revisão' },
                                         { id: 'rascunho', label: 'Rascunho' },
                                     ] as const).map((t) => (
                                         <button
                                             key={t.id}
                                             onClick={() => { setPendingTab(t.id); setSelectedPendingIds([]); }}
-                                            className={`text-xs font-bold uppercase tracking-wider pb-1 border-b-2 transition-colors ${pendingTab === t.id
-                                                ? 'text-[#f97316] border-[#f97316]'
-                                                : 'text-slate-500 border-transparent hover:text-[#f97316]'
+                                            className={`text-xs font-bold uppercase tracking-wider transition-colors ${pendingTab === t.id
+                                                ? 'text-[#f97316]'
+                                                : 'text-slate-500 hover:text-[#f97316]'
                                                 }`}
                                         >
                                             {t.label}
@@ -502,7 +501,7 @@ function AdminNoticiasContent() {
                                     ))}
                                 </div>
 
-                                {pendingTab === 'novas' && selectedPendingIds.length > 0 && (
+                                {pendingTab === 'todas' && selectedPendingIds.length > 0 && (
                                     <div className="flex items-center gap-3">
                                         <button
                                             onClick={() => setSelectedPendingIds([])}
@@ -628,14 +627,73 @@ function AdminNoticiasContent() {
             {/* Content - with 40px margin from menu */}
             <div className="pt-10">
                 {activeTab === 'Pendentes' ? (
-                    pendingTab === 'novas' ? (
-                        pendingLoading ? (
+                    pendingTab === 'rascunho' ? (
+                        reviewDraftLoading ? (
                             <div className="flex justify-center py-20">
                                 <Spinner className="h-8 w-8" />
                             </div>
-                        ) : pendingArticles.length === 0 ? (
+                        ) : draftArticles.length === 0 ? (
                             <div className="text-center py-20 text-slate-400">
-                                Sem novas publicações de momento.
+                                Sem rascunhos.
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 items-end">
+                                {draftArticles.map((a: any) => (
+                                    <NewsCard
+                                        key={a.id}
+                                        title={a.title}
+                                        subtitle={a.subtitle}
+                                        category={a.type}
+                                        categories={a.categories}
+                                        date={a.date || a.created_at}
+                                        image={a.image_url || undefined}
+                                        slug={a.slug}
+                                        isAdmin={true}
+                                        onEdit={() => handleEdit(a)}
+                                        onDelete={() => handleDelete(a)}
+                                    />
+                                ))}
+                            </div>
+                        )
+                    ) : pendingTab === 'revisao' ? (
+                        reviewDraftLoading ? (
+                            <div className="flex justify-center py-20">
+                                <Spinner className="h-8 w-8" />
+                            </div>
+                        ) : reviewArticles.length === 0 ? (
+                            <div className="text-center py-20 text-slate-400">
+                                Sem notícias pendentes de revisão.
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 items-end">
+                                {reviewArticles.map((a: any) => (
+                                    <NewsCard
+                                        key={a.id}
+                                        title={a.title}
+                                        subtitle={a.subtitle}
+                                        category={a.type}
+                                        categories={a.categories}
+                                        statusBadge="Pendente revisão"
+                                        date={a.date || a.created_at}
+                                        image={a.image_url || undefined}
+                                        slug={a.slug}
+                                        isAdmin={true}
+                                        onEdit={() => handleEdit(a)}
+                                        onDelete={() => handleDelete(a)}
+                                    />
+                                ))}
+                            </div>
+                        )
+                    ) : (
+                        /* "Todas as Notícias" — fila do robô / manuais + pendentes de
+                           revisão (estas com badge), na mesma grelha. */
+                        (pendingLoading || reviewDraftLoading) && (pendingArticles.length + reviewArticles.length === 0) ? (
+                            <div className="flex justify-center py-20">
+                                <Spinner className="h-8 w-8" />
+                            </div>
+                        ) : (pendingArticles.length + reviewArticles.length === 0) ? (
+                            <div className="text-center py-20 text-slate-400">
+                                Sem notícias pendentes de momento.
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 items-end">
@@ -659,34 +717,24 @@ function AdminNoticiasContent() {
                                         onToggleSelect={() => togglePendingSelect(pending.id)}
                                     />
                                 ))}
+                                {reviewArticles.map((a: any) => (
+                                    <NewsCard
+                                        key={a.id}
+                                        title={a.title}
+                                        subtitle={a.subtitle}
+                                        category={a.type}
+                                        categories={a.categories}
+                                        statusBadge="Pendente revisão"
+                                        date={a.date || a.created_at}
+                                        image={a.image_url || undefined}
+                                        slug={a.slug}
+                                        isAdmin={true}
+                                        onEdit={() => handleEdit(a)}
+                                        onDelete={() => handleDelete(a)}
+                                    />
+                                ))}
                             </div>
                         )
-                    ) : reviewDraftLoading ? (
-                        <div className="flex justify-center py-20">
-                            <Spinner className="h-8 w-8" />
-                        </div>
-                    ) : reviewDraftList.length === 0 ? (
-                        <div className="text-center py-20 text-slate-400">
-                            {pendingTab === 'todas' ? 'Sem notícias pendentes de revisão.' : 'Sem rascunhos.'}
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 items-end">
-                            {reviewDraftList.map((a: any) => (
-                                <NewsCard
-                                    key={a.id}
-                                    title={a.title}
-                                    subtitle={a.subtitle}
-                                    category={a.type}
-                                    categories={a.categories}
-                                    date={a.date || a.created_at}
-                                    image={a.image_url || undefined}
-                                    slug={a.slug}
-                                    isAdmin={true}
-                                    onEdit={() => handleEdit(a)}
-                                    onDelete={() => handleDelete(a)}
-                                />
-                            ))}
-                        </div>
                     )
                 ) : loading ? (
                     <div className="flex justify-center py-20">
