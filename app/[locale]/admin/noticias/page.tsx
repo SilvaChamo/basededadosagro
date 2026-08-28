@@ -48,11 +48,12 @@ function AdminNoticiasContent() {
     const [selectedPendingIds, setSelectedPendingIds] = useState<string[]>([]);
     const [showBulkDiscardConfirm, setShowBulkDiscardConfirm] = useState(false);
 
-    // Sub-separadores da vista "Pendentes": "novas" = fila do robô
-    // (articles_pending); "pendentes" = artigos com publish_status='review';
-    // "rascunho" = artigos com publish_status='draft' ou status='draft'
-    // (este último apanha também os rascunhos do painel do colaborador).
-    const [pendingTab, setPendingTab] = useState<'novas' | 'pendentes' | 'rascunho'>('novas');
+    // Sub-separadores da vista "Pendentes": "todas" = todas as notícias
+    // pendentes de revisão (articles.publish_status='review'); "novas" = fila
+    // do robô (articles_pending); "rascunho" = artigos com
+    // publish_status='draft' ou status='draft' (apanha também os rascunhos do
+    // painel do colaborador) — aparecem SÓ neste separador.
+    const [pendingTab, setPendingTab] = useState<'todas' | 'novas' | 'rascunho'>('todas');
     const [reviewArticles, setReviewArticles] = useState<any[]>([]);
     const [draftArticles, setDraftArticles] = useState<any[]>([]);
     const [reviewDraftLoading, setReviewDraftLoading] = useState(false);
@@ -222,7 +223,12 @@ function AdminNoticiasContent() {
             // esconder artigos antigos criados antes desta coluna existir).
             if (statusFilter === 'deleted') query = query.not('deleted_at', 'is', null);
             else if (statusFilter === 'archived') query = query.eq('status', 'archived').is('deleted_at', null);
-            else query = query.is('deleted_at', null).or('status.is.null,status.neq.archived');
+            else query = query.is('deleted_at', null)
+                .or('status.is.null,status.neq.archived')
+                // A lista "Todas" é só de notícias já revistas e publicadas — as
+                // pendentes de revisão e os rascunhos vivem no separador Pendentes.
+                .or('publish_status.is.null,publish_status.eq.published')
+                .or('status.is.null,status.neq.draft');
 
             const { data, error } = await query;
 
@@ -417,15 +423,7 @@ function AdminNoticiasContent() {
         return matchesSearch && matchesType;
     });
 
-    // Badge de estado editorial mostrado no card (lista principal + separadores
-    // Pendentes/Rascunho). Só aparece quando o artigo não está publicado.
-    const statusBadgeFor = (a: any): string | undefined => {
-        if (a.publish_status === 'review') return 'Pendente revisão';
-        if (a.publish_status === 'draft' || a.status === 'draft') return 'Rascunho';
-        return undefined;
-    };
-
-    const reviewDraftList = pendingTab === 'pendentes' ? reviewArticles : draftArticles;
+    const reviewDraftList = pendingTab === 'todas' ? reviewArticles : draftArticles;
 
     const columns = [
         {
@@ -487,8 +485,8 @@ function AdminNoticiasContent() {
                                 {/* Separadores — menu simples, sem fundo; activo e hover a laranja */}
                                 <div className="flex items-center gap-6">
                                     {([
+                                        { id: 'todas', label: 'Todas as Notícias' },
                                         { id: 'novas', label: 'Novas publicações' },
-                                        { id: 'pendentes', label: 'Pendentes' },
                                         { id: 'rascunho', label: 'Rascunho' },
                                     ] as const).map((t) => (
                                         <button
@@ -669,7 +667,7 @@ function AdminNoticiasContent() {
                         </div>
                     ) : reviewDraftList.length === 0 ? (
                         <div className="text-center py-20 text-slate-400">
-                            {pendingTab === 'pendentes' ? 'Sem notícias pendentes de revisão.' : 'Sem rascunhos.'}
+                            {pendingTab === 'todas' ? 'Sem notícias pendentes de revisão.' : 'Sem rascunhos.'}
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 items-end">
@@ -680,7 +678,6 @@ function AdminNoticiasContent() {
                                     subtitle={a.subtitle}
                                     category={a.type}
                                     categories={a.categories}
-                                    statusBadge={statusBadgeFor(a)}
                                     date={a.date || a.created_at}
                                     image={a.image_url || undefined}
                                     slug={a.slug}
@@ -709,7 +706,6 @@ function AdminNoticiasContent() {
                                 subtitle={article.subtitle}
                                 category={article.type}
                                 categories={article.categories}
-                                statusBadge={statusBadgeFor(article)}
                                 date={article.date || article.created_at}
                                 image={article.image_url}
                                 slug={article.slug}

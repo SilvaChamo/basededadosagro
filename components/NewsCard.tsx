@@ -28,9 +28,6 @@ interface NewsCardProps {
      * definida, cada uma aparece como um badge de cor própria; sem ela,
      * cai-se de volta ao badge único de `category`. */
     categories?: string[];
-    /** Badge extra de estado editorial (ex.: "Pendente revisão", "Rascunho"),
-     * mostrado ao lado dos badges de categoria. */
-    statusBadge?: string;
     date: string | Date;
     image?: string;
     slug: string;
@@ -63,7 +60,6 @@ export function NewsCard({
     excerpt,
     category,
     categories,
-    statusBadge,
     date,
     image,
     slug,
@@ -110,11 +106,6 @@ export function NewsCard({
                                     {cat}
                                 </span>
                             ))}
-                            {statusBadge && (
-                                <span className="bg-slate-800 text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg">
-                                    {statusBadge}
-                                </span>
-                            )}
                         </div>
                     </button>
                 ) : (
@@ -132,11 +123,6 @@ export function NewsCard({
                                     {cat}
                                 </span>
                             ))}
-                            {statusBadge && (
-                                <span className="bg-slate-800 text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg">
-                                    {statusBadge}
-                                </span>
-                            )}
                         </div>
                     </Link>
                 )
@@ -174,11 +160,6 @@ export function NewsCard({
                                         {cat}
                                     </span>
                                 ))}
-                                {statusBadge && (
-                                    <span className="inline-block bg-slate-800 text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px]">
-                                        {statusBadge}
-                                    </span>
-                                )}
                             </div>
                         )}
                     </div>
