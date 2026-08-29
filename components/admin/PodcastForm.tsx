@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -39,6 +40,7 @@ interface PodcastFormProps {
 
 export function PodcastForm({ initialData, isEditing = false }: PodcastFormProps) {
     const router = useRouter();
+    useAdminTopBar("");
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
 

@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
 
 // Same mock data as in the list page - for editing mockups
 const MOCK_DATA = [
@@ -21,6 +22,7 @@ const MOCK_DATA = [
 ];
 
 export default function EditProfessionalPage() {
+    useAdminTopBar("");
     const params = useParams();
     const router = useRouter();
     const [data, setData] = useState<any>(null);

@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2, Save, X, Calendar, Link as LinkIcon, Type, Image as
 import { ImageUpload } from "./ImageUpload";
 import { RichTextEditor } from "../RichTextEditor";
 import { useRouter } from "next/navigation";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
@@ -27,6 +28,7 @@ interface NewsEditorProps {
 export function NewsEditor({ initialData, isNew = false }: NewsEditorProps) {
     const supabase = createClient();
     const router = useRouter();
+    useAdminTopBar("");
     const { isOnline } = useNetworkStatus();
 
     const [loading, setLoading] = useState(false);
@@ -175,11 +177,11 @@ export function NewsEditor({ initialData, isNew = false }: NewsEditorProps) {
     return (
         <div className="bg-white rounded-agro-lg shadow-[0_0_10px_rgba(0,0,0,0.1)] border border-slate-200 flex flex-col h-full">
             {/* Header */}
-            <div className="px-6 py-8 border-b border-slate-200 flex items-center justify-between bg-slate-300/40 transition-all shrink-0">
+            <div className="px-6 h-20 border-b border-slate-200 flex items-center justify-between bg-white shrink-0">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                     <button
                         onClick={() => router.back()}
-                        className="p-2 hover:bg-slate-300 rounded-full transition-colors flex-shrink-0 flex items-center justify-center"
+                        className="p-2 hover:bg-slate-100 rounded-full transition-colors flex-shrink-0 flex items-center justify-center"
                     >
                         <ArrowLeft className="w-5 h-5 text-slate-500" />
                     </button>

@@ -20,8 +20,10 @@ import {
     Key,
     Loader2
 } from "lucide-react";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
 
 export default function EditUserPage() {
+    useAdminTopBar("");
     const params = useParams();
     const userId = params.id as string;
 

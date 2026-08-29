@@ -6,8 +6,10 @@ import { createClient } from "@/utils/supabase/client";
 import { NewsForm } from "@/components/admin/central-noticias/NewsForm";
 import { Loader2 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
 
 export default function EditarNoticiaPage() {
+    useAdminTopBar("");
     const { id } = useParams<{ id: string }>();
     const supabase = createClient();
     const [article, setArticle] = useState<any>(null);

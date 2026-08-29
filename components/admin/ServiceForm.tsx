@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -43,6 +44,7 @@ interface ServiceFormProps {
 
 export function ServiceForm({ initialData, isEditing = false }: ServiceFormProps) {
     const router = useRouter();
+    useAdminTopBar("");
     const [loading, setLoading] = useState(false);
 
     const form = useForm<FormValues>({

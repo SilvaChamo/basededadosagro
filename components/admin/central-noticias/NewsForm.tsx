@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAdminTopBar } from "@/components/admin/AdminTopBar";
 import { toast } from "sonner";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { ImageSelector } from "./ImageSelector";
@@ -32,6 +33,7 @@ function toDateInputValue(value: any): string {
 
 export function NewsForm({ initialData, isEdit = false }: NewsFormProps) {
     const router = useRouter();
+    useAdminTopBar("");
     const categories = useNewsCategories();
     const [loading, setLoading] = useState(false);
     const [isImageSelectorOpen, setIsImageSelectorOpen] = useState(false);
