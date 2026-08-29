@@ -12,9 +12,11 @@ import {
     Check,
     X,
 } from "lucide-react";
+import { DownloadCloud } from "lucide-react";
 import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import { useAdminTopBar } from "@/components/admin/AdminTopBar";
 import { LogoutButton } from "@/components/LogoutButton";
+import { GalleryImportPanel } from "@/components/admin/GalleryImportPanel";
 
 // Biblioteca multimédia do admin: lista directamente o bucket "public-assets"
 // (todas as imagens/documentos já carregados no site — notícias, artigos,
@@ -42,6 +44,7 @@ function MediaGalleryContent() {
     const [loading, setLoading] = useState(true);
     const [selectedFile, setSelectedFile] = useState<StorageFile | null>(null);
     const [uploading, setUploading] = useState(false);
+    const [showImport, setShowImport] = useState(false);
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -318,6 +321,15 @@ function MediaGalleryContent() {
                 />
 
                 <div className="flex items-center gap-2 shrink-0">
+                    <button
+                        type="button"
+                        onClick={() => setShowImport(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#2271b1] text-[#2271b1] rounded-[3px] text-sm font-semibold hover:bg-[#f6f7f7] transition-all whitespace-nowrap"
+                        title="Descarregar para a galeria as imagens do site que ainda são URLs externos"
+                    >
+                        <DownloadCloud className="w-4 h-4" />
+                        Importar imagens do site
+                    </button>
                     <label className="px-3 py-1.5 bg-white border border-[#2271b1] text-[#2271b1] rounded-[3px] text-sm font-semibold hover:bg-[#f6f7f7] cursor-pointer transition-all whitespace-nowrap">
                         {uploading ? "A carregar..." : "Adicionar ficheiros multimédia"}
                         <input
@@ -642,6 +654,13 @@ function MediaGalleryContent() {
                     background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
                 }
             `}</style>
+
+            {showImport && (
+                <GalleryImportPanel
+                    onClose={() => setShowImport(false)}
+                    onDone={() => loadImages()}
+                />
+            )}
         </div>
     );
 }
