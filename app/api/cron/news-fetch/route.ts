@@ -12,9 +12,24 @@ const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 
 // Fontes com feed RSS directo (link real do artigo, não um redirect do
 // Google) — só assim conseguimos ir buscar o texto e a imagem reais.
-const FEEDS = [
-    'https://jornalnoticias.co.mz/feed/',
-    'https://clubofmozambique.com/feed/',
+//
+//  - `label`      nome amigável que aparece como "Fonte:" na notícia.
+//  - `maxAgeDays` (opcional) janela de recolha própria da fonte. Sem isto:
+//                 fonte generalista => só o mês em curso; fonte `dedicated`
+//                 => sem limite de data (traz tudo o que estiver no feed).
+//  - `dedicated`  fonte 100 % sobre agricultura/ambiente. Passa à mesma
+//                 pelo filtro de relevância (também serve de barreira
+//                 anti-spam caso o site da fonte seja poluído), mas SEM
+//                 corte por data — o feed só expõe ~10-20 artigos e o
+//                 utilizador quer todos. Runs seguintes não repetem
+//                 (dedup por `source_url`).
+const FEEDS: { url: string; label: string; maxAgeDays?: number; dedicated?: boolean }[] = [
+    // Generalistas — o filtro de agricultura faz aqui a triagem pesada.
+    { url: 'https://jornalnoticias.co.mz/feed/', label: 'Jornal Notícias' },
+    { url: 'https://clubofmozambique.com/feed/', label: 'Club of Mozambique' },
+    // Especializadas em agricultura em Moçambique (pedido do utilizador).
+    { url: 'https://www.agricultura.gov.mz/feed/', label: 'Ministério da Agricultura', dedicated: true },
+    { url: 'https://revistaterraonline.com/destaques/feed/', label: 'Revista Terra', dedicated: true },
 ];
 
 // Só guardamos notícias do mês em curso (pedido do utilizador, 17 ago — as
@@ -28,9 +43,131 @@ function startOfCurrentMonthMaputo(): number {
     return startMaputo - MOZAMBIQUE_OFFSET_MS;
 }
 
-// Filtro de relevância por palavra-chave (as fontes são generalistas, não só
-// de agricultura).
-const RELEVANCE_PATTERN = /\b(agr[ií]cola|agricultura|agr[oó]nomo|agron[eé]gocio|agropecu[aá]ria|pecu[aá]ria|gado|milho|arroz|algod[aã]o|cajueiro|caju|semente|colheita|planta[çc][aã]o|irriga[çc][aã]o|fertilizante|adubo|praga|seca|chuvas?|clima\b.*cultura|iiam|camponeses?|agricultores?|farm(ing|er)?|crop|livestock|harvest|irrigation|agri(business|culture)?)\b/i;
+// Filtro de relevância (ver isRelevantNews mais abaixo). A plataforma é
+// sobre agricultura + clima/ambiente em Moçambique, por isso entram:
+//   • qualquer notícia de agricultura / sector agrário  (AGRI_TERMS)
+//   • qualquer notícia de clima, tempo, ambiente ou desastre natural,
+//     mesmo sem ligação directa à lavoura                (CLIMATE_ENV_TERMS)
+// e ficam de fora política, desporto, crime e entretenimento (BLOCK_TERMS).
+// A sigla do ministério (MADER/MAAP) fica de fora de propósito — aparece
+// em todos os comunicados, qualquer que seja o tema.
+const AGRI_TERMS = [
+    // Núcleo agrícola / agro / agrário
+    'agr[ií]cola', 'agricultur\\w*', 'agr[oó]nom\\w*', 'agroneg[oó]cio',
+    'agr[oó]\\s?-?\\s?ind[uú]stri\\w*', 'agropecu[aá]ri\\w*', 'agro\\s?-?\\s?pecu[aá]ri\\w*',
+    'agr[aá]ri[oa]s?', 'agroprocessa\\w*', 'agroflorest\\w*', 'agro-?ecolog\\w*',
+    // Pecuária e criação animal
+    'pecu[aá]ri\\w*', 'avicultur\\w*', 'suinicultur\\w*', 'bovinicultur\\w*',
+    'piscicultur\\w*', 'aqui?cultur\\w*', 'apicultur\\w*',
+    '\\bgado\\b', 'rebanho\\w*', 'bovinos?', 'caprinos?', 'su[ií]nos?', 'capoeira',
+    // Gente do campo
+    'campon[eê]s\\w*', 'agricultor\\w*', 'lavrador\\w*', 'pequenos? produtor\\w*',
+    // Actividade agrícola
+    'lavoura\\w*', 'colheita\\w*', '\\bsafra\\b', 'campanha agr[aá]ria', 'planta[çc][aã]o',
+    'sementeir\\w*', '\\bsementes?\\b', 'plant[ií]o', '\\bcultivo\\w*', 'produ[çc][aã]o agr[ií]cola',
+    'produ[çc][aã]o de alimentos', 'produ[çc][aã]o alimentar', 'produtiv\\w* agr[ií]cola',
+    // Água, solo, insumos
+    'irriga[çc]\\w*', 'regadio', 'fertilizante\\w*', '\\baduba?o\\w*', 'cal[çc][aá]rio agr[ií]cola',
+    'insumos? agr[ií]cola\\w*', 'mecaniza[çc][aã]o agr[ií]cola', 'semente\\w* melhorada\\w*',
+    // Pragas / sanidade
+    '\\bpraga\\w*', 'gafanhoto\\w*', 'lagarta\\w*', 'peste su[ií]na', 'gripe aviária',
+    'fitossanit[aá]ri\\w*',
+    // Culturas
+    '\\bmilho\\b', '\\barroz\\b', '\\btrigo\\b', '\\bfeij[aã]o\\b', '\\bsoja\\b', 'mapira',
+    'mexoeira', '\\bsorgo\\b', 'mandioca', 'batata\\s?-?doce', 'hort[ií]cola\\w*',
+    'hortali[çc]a\\w*', 'oler[ií]cola\\w*', 'gergelim', 'amendoim', 'girassol',
+    'cana\\s?-?de\\s?-?a[çc][uú]car', '\\btabaco\\b', 'cajueiro\\w*', 'castanha de caju',
+    '\\bcaju\\b', 'algod[aã]o', 'macad[aâ]mia', '\\bcitrinos\\b',
+    // Sistema agrário / instituições especializadas
+    'extens[aã]o rural', 'desenvolvimento rural', 'seguran[çc]a alimentar',
+    'soberania alimentar', 'cadeia\\w* de valor agr\\w*', 'sistema\\w* alimentar\\w*',
+    '\\bIIAM\\b', '\\bINIR\\b', '\\bSETSAN\\b',
+    // Inglês (Club of Mozambique publica em inglês)
+    'agricultur\\w*', 'agri-?business', 'agronom\\w*', '\\bfarm(?:ers?|ing|land|s)\\b',
+    '\\bcrops?\\b', '\\bharvest\\w*', '\\blivestock\\b', '\\birrigation\\b',
+    '\\bfertili[sz]er\\w*', '\\bseeds?\\b', '\\bmaize\\b', '\\bcassava\\b',
+    '\\bsmallholder\\w*', 'food security', 'food production', 'agri-?food',
+    'beekeep\\w*', 'apicultur\\w*', '\\bpoultry\\b', '\\bcattle\\b', '\\bgrain\\b',
+    'horticultur\\w*', 'plantation\\w*', 'greenhouse\\w*', 'estufas? agr\\w*',
+];
+const AGRI_PATTERN = new RegExp(AGRI_TERMS.join('|'), 'i');
+
+// Clima + tempo + ambiente + desastres naturais. O utilizador quer estes
+// temas TODOS, mesmo sem ligação directa à lavoura ("chuvas cortam
+// estradas", "ciclone destrói Quelimane", "nível do mar sobe").
+const CLIMATE_ENV_TERMS = [
+    // Clima / carbono
+    'clima\\b', 'clim[aá]tic\\w*', 'mudan[çc]as? clim\\w*', 'altera[çc][õo]es? clim\\w*',
+    'aquecimento global', 'crise clim\\w*', 'emerg[êe]ncia clim\\w*', 'resili[êe]ncia clim\\w*',
+    'ac[çc][aã]o clim\\w*', 'adapta[çc][aã]o clim\\w*', 'clima-?smart', 'climate-?smart', 'climate change',
+    'gases? com efeito de estufa', 'emiss[õo]es de (?:carbono|gases|co2|di[óo]xido)',
+    'cr[ée]ditos? de carbono', 'neutralidade carb[óo]nica', 'pegada de carbono', 'sequestro de carbono',
+    'transi[çc][aã]o energ[ée]tica', 'energias? renov\\w*', 'fotovoltaic\\w*', 'e[óo]lic[ao]s?\\b',
+    // Seca / água / desertificação
+    '\\bseca\\b', '\\bsecas\\b', 'estiagem', 'aridez', 'desertifica[çc][aã]o',
+    'degrada[çc][aã]o (?:do solo|da terra|dos solos)', 'eros[aã]o (?:do solo|costeira|dos solos)',
+    'd[ée]fice h[ií]drico', 'stress h[ií]drico', 'escassez de [aá]gua', 'seguran[çc]a h[ií]drica',
+    'recursos h[ií]dricos', 'bacia hidrogr[aá]fica', 'barragem\\w*', 'len[çc]ol fre[aá]tico',
+    // Chuva / tempo / meteorologia
+    '\\bchuvas?\\b', 'precipita[çc][aã]o', '[ée]poca chuvosa', '\\bsequeiro\\b', 'irregularidade das chuvas',
+    'meteorolog\\w*', '\\bINAM\\b', 'previs[aã]o do tempo', 'mau tempo', 'vento\\w* fort\\w*',
+    'ventos? ciclonic\\w*', 'temporal\\b', 'trovoada\\w*', 'granizo', 'onda de calor', 'vaga de calor',
+    // Ciclones / cheias / calamidades
+    '\\bcheias?\\b', 'inunda[çc][õo]es?', 'enxurrada\\w*', 'aluvi[aã]o', 'ciclone\\w*',
+    'depress[aã]o tropical', 'tempestade tropical', 'desliza\\w* de terras?', 'calamidade\\w*',
+    'desastres? naturais?', 'cat[aá]strofe\\w* natural\\w*', '\\bINGD\\b', 'popula[çc][õo]es? afectad\\w*',
+    'el ni[nñ]o', 'la ni[nñ]a', 'fen[óo]meno\\w* clim\\w*', 'eventos? clim\\w*', 'extremos clim\\w*',
+    'n[íi]vel do mar', 'zona\\w* costeira\\w*',
+    // Ambiente / natureza / floresta
+    'meio ambiente', 'ambient(?:al|ais)\\w*', 'ambientalist\\w*', 'sustentabilidade', 'desenvolvimento sustent\\w*',
+    'biodiversidade', 'ecossistema\\w*', 'conserva[çc][aã]o (?:da natureza|ambiental|de recursos|marinha)',
+    '[aá]reas? de conserva[çc][aã]o', '[aá]reas? protegidas?', 'parque nacional', 'reserva natural',
+    '\\bfauna\\b', 'vida selvagem', 'esp[ée]cies? amea[çc]ad\\w*', 'ca[çc]a furtiva',
+    'floresta\\w*', 'desfloresta[çc][aã]o', 'reflorest\\w*', 'queimadas?', 'inc[êe]ndios? florest\\w*',
+    '\\bmangal\\b', 'mangais', 'polui[çc][aã]o', 'res[íi]duos s[óo]lidos', 'lixo pl[aá]stico',
+    // Inglês
+    '\\bdrought\\b', '\\brainfall\\b', 'greenhouse gas', 'climate resilien\\w*', 'sea[- ]level',
+    'deforestation', 'biodiversity', 'cyclone\\w*', 'flooding', '\\bfloods?\\b',
+    'national park', 'wildlife', 'conservation area', 'mangrove\\w*', 'reforestation',
+];
+const CLIMATE_ENV_PATTERN = new RegExp(CLIMATE_ENV_TERMS.join('|'), 'i');
+
+// Fora do âmbito da plataforma: política, desporto, crime, entretenimento.
+// Só é consultado depois de AGRI e CLIMATE_ENV falharem — portanto uma
+// notícia de agricultura ou de clima nunca é barrada aqui, mesmo que
+// mencione um político. Na prática só serve para "limpar" as fontes
+// dedicadas (que às vezes publicam algo institucional/político puro).
+const BLOCK_TERMS = [
+    // Política
+    '\\belei[çc][õo]es\\b', 'eleitoral\\w*', 'recenseamento eleitoral', '\\bpartido\\b', '\\bpartid[áa]ri\\w*',
+    '\\bFrelimo\\b', '\\bRenamo\\b', '\\bMDM\\b', 'parlament\\w*', 'assembleia da rep[uú]blica',
+    'assembleia municipal', '\\bbancada\\b', 'deputad\\w*', 'remodela[çc][aã]o governament\\w*',
+    'toma(?:da|r) de posse', 'conselho de ministros', 'mo[çc][aã]o de censura', 'referendo',
+    'campanha eleitoral', '\\bsondagem\\w*', 'l[íi]der da oposi[çc][aã]o', 'oposi[çc][aã]o pol[ií]tica',
+    '\\bgreve\\w*', 'd[íi]vidas ocultas', 'processo-?crime',
+    // Desporto
+    '\\bfutebol\\b', '\\bMambas\\b', '\\bgolos?\\b', 'ta[çc]a das na[çc][õo]es', '\\bCOSAFA\\b',
+    'mo[çc]ambola', 'campeonato\\w*', 'est[aá]dio\\w*', 'treinador\\w*', 'atletismo', 'basquetebol',
+    'andebol', 'jogos escolares', 'sele[çc][çc][aã]o nacional', 'liga (?:mo[çc]|desport|dos campe)',
+    // Crime / faits divers
+    'esfaquead\\w*', 'homic[íi]dio\\w*', 'assassinad\\w*', 'assassinato\\w*', 'raptad\\w*',
+    'sequestrad\\w*', '\\brapto\\w*', 'roubo à mão armada', 'assalto à mão armada',
+    'tr[aá]fico de droga\\w*', 'estupefacientes', 'viola[çc][aã]o sexual', 'corpo sem vida',
+    'linchamento\\w*', 'detid\\w* pela pol[íi]cia',
+    // Entretenimento / cultura
+    '\\bm[uú]sica\\b', 'concerto\\w*', 'espect[aá]culo\\w*', '\\bartista\\w*', '\\bcantor\\w*',
+    '\\brapper\\b', '\\bfilme\\w*', 'celebridade\\w*', 'desfile de moda', 'passadeira vermelha',
+    'festival (?:de m[uú]sica|de cinema|cultural)',
+];
+const BLOCK_PATTERN = new RegExp(BLOCK_TERMS.join('|'), 'i');
+
+// `dedicated`: fonte cuja linha editorial é toda agricultura/ambiente.
+function isRelevantNews(text: string, dedicated = false): boolean {
+    if (AGRI_PATTERN.test(text)) return true;          // agricultura — sempre
+    if (CLIMATE_ENV_PATTERN.test(text)) return true;   // clima / tempo / ambiente / desastres — sempre
+    if (BLOCK_PATTERN.test(text)) return false;        // política / desporto / crime / entretenimento — fora
+    return dedicated;                                  // fonte dedicada: aproveita o resto; generalista: descarta
+}
 
 const CATEGORY_RULES: { pattern: RegExp; category: string }[] = [
     { pattern: /\b(evento|feira|conferência|congresso|workshop|seminário|conference|summit)\b/i, category: 'Evento' },
@@ -152,7 +289,7 @@ async function sendAlertEmail(count: number) {
             from: `"Base Agro Data" <${process.env.SMTP_USER}>`,
             to: process.env.SMTP_USER,
             subject: `${count} nova(s) notícia(s) à espera de revisão`,
-            html: `<p>Foram encontradas <strong>${count}</strong> notícia(s) nova(s) sobre o sector agrário.</p>
+            html: `<p>Foram encontradas <strong>${count}</strong> notícia(s) nova(s) sobre agricultura, clima e ambiente.</p>
                    <p>Reveja, edite o texto e publique em:
                    <a href="https://basededadosagro.com/pt/admin/noticias">Painel &rarr; Notícias &rarr; Notícias pendentes</a>.</p>`,
         });
@@ -178,21 +315,33 @@ export async function GET(req: Request) {
             ...(existingPending || []).map((a: any) => a.source_url).filter(Boolean),
         ]);
 
-        const cutoff = startOfCurrentMonthMaputo();
+        const monthCutoff = startOfCurrentMonthMaputo();
         const candidates: any[] = [];
+        const perFeed: Record<string, { found: number; kept: number }> = {};
 
-        for (const feedUrl of FEEDS) {
+        for (const feed of FEEDS) {
             let items: RssItem[] = [];
             try {
-                items = await fetchFeed(feedUrl);
+                items = await fetchFeed(feed.url);
             } catch (err) {
-                console.error(`news-fetch: falha no feed "${feedUrl}":`, err);
+                console.error(`news-fetch: falha no feed "${feed.url}":`, err);
                 continue;
             }
 
+            // Janela de tempo: `maxAgeDays` se definido; senão, fonte
+            // dedicada => sem corte (0 nunca é > timestamp); generalista
+            // => só o mês em curso.
+            const cutoff = feed.maxAgeDays
+                ? Date.now() - feed.maxAgeDays * 24 * 60 * 60 * 1000
+                : (feed.dedicated ? 0 : monthCutoff);
+
+            perFeed[feed.label] = { found: items.length, kept: 0 };
+
             for (const item of items) {
                 if (!item.link || knownUrls.has(item.link)) continue;
-                if (!RELEVANCE_PATTERN.test(`${item.title} ${item.description}`)) continue;
+                // Agricultura (+ clima enquadrado na agricultura) em TODAS as
+                // fontes. Barra também spam/SEO de feeds poluídos.
+                if (!isRelevantNews(`${item.title} ${item.description}`, feed.dedicated)) continue;
 
                 const ts = item.pubDate ? new Date(item.pubDate).getTime() : NaN;
                 if (!isNaN(ts) && ts < cutoff) continue;
@@ -207,12 +356,13 @@ export async function GET(req: Request) {
                 candidates.push({
                     title: item.title,
                     snippet: snippet || item.description || null,
-                    source: sourceHost,
+                    source: feed.label || sourceHost,
                     source_url: item.link,
                     image_url: image,
                     date: !isNaN(ts) ? new Date(ts).toISOString().slice(0, 10) : null,
                     category: guessCategory(`${item.title} ${item.description}`),
                 });
+                perFeed[feed.label].kept++;
             }
         }
 
@@ -233,7 +383,7 @@ export async function GET(req: Request) {
             await sendAlertEmail(inserted);
         }
 
-        return NextResponse.json({ found: candidates.length, inserted });
+        return NextResponse.json({ found: candidates.length, inserted, perFeed });
     } catch (err: any) {
         console.error('news-fetch: erro geral:', err);
         return NextResponse.json({ error: err.message || 'erro desconhecido' }, { status: 500 });
