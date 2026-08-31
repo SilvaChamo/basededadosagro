@@ -14,34 +14,26 @@ const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 // Google) — só assim conseguimos ir buscar o texto e a imagem reais.
 //
 //  - `label`      nome amigável que aparece como "Fonte:" na notícia.
-//  - `maxAgeDays` (opcional) janela de recolha própria da fonte. Sem isto:
-//                 fonte generalista => só o mês em curso; fonte `dedicated`
-//                 => sem limite de data (traz tudo o que estiver no feed).
-//  - `dedicated`  fonte 100 % sobre agricultura/ambiente. Passa à mesma
-//                 pelo filtro de relevância (também serve de barreira
-//                 anti-spam caso o site da fonte seja poluído), mas SEM
-//                 corte por data — o feed só expõe ~10-20 artigos e o
-//                 utilizador quer todos. Runs seguintes não repetem
-//                 (dedup por `source_url`).
-const FEEDS: { url: string; label: string; maxAgeDays?: number; dedicated?: boolean }[] = [
-    // Generalistas — o filtro de agricultura faz aqui a triagem pesada.
+//  - `maxAgeDays` (opcional) encurta a janela de recolha só para esta fonte.
+//                 Nunca a alarga: o tecto global MAX_AGE_DAYS manda sempre.
+//
+// As fontes generalistas entram só como "rede de pesca": um artigo delas só
+// passa se o filtro de relevância o marcar como agricultura ou clima/ambiente
+// (ver isRelevantNews). Notícia geral nunca entra, venha de onde vier.
+const FEEDS: { url: string; label: string; maxAgeDays?: number }[] = [
+    // Generalistas — filtradas a agricultura/clima; nada de notícia geral.
     { url: 'https://jornalnoticias.co.mz/feed/', label: 'Jornal Notícias' },
     { url: 'https://clubofmozambique.com/feed/', label: 'Club of Mozambique' },
     // Especializadas em agricultura em Moçambique (pedido do utilizador).
-    { url: 'https://www.agricultura.gov.mz/feed/', label: 'Ministério da Agricultura', dedicated: true },
-    { url: 'https://revistaterraonline.com/destaques/feed/', label: 'Revista Terra', dedicated: true },
+    { url: 'https://www.agricultura.gov.mz/feed/', label: 'Ministério da Agricultura' },
+    { url: 'https://revistaterraonline.com/destaques/feed/', label: 'Revista Terra' },
 ];
 
-// Só guardamos notícias do mês em curso (pedido do utilizador, 17 ago — as
-// já publicadas em `articles` nunca são tocadas por este filtro). Calculado
-// no fuso de Moçambique (UTC+2) para o "1º do mês" bater certo com o que o
-// utilizador vê, não com a meia-noite UTC do servidor.
-const MOZAMBIQUE_OFFSET_MS = 2 * 60 * 60 * 1000;
-function startOfCurrentMonthMaputo(): number {
-    const nowMaputo = new Date(Date.now() + MOZAMBIQUE_OFFSET_MS);
-    const startMaputo = Date.UTC(nowMaputo.getUTCFullYear(), nowMaputo.getUTCMonth(), 1);
-    return startMaputo - MOZAMBIQUE_OFFSET_MS;
-}
+// Só guardamos notícias recentes: nada com mais de 14 dias, em TODAS as
+// fontes (pedido do utilizador, 31 ago — antes era "mês em curso", e as
+// fontes dedicadas não tinham corte de data nenhum). As já publicadas em
+// `articles` nunca são tocadas por este filtro.
+const MAX_AGE_DAYS = 14;
 
 // Filtro de relevância (ver isRelevantNews mais abaixo). A plataforma é
 // sobre agricultura + clima/ambiente em Moçambique, por isso entram:
@@ -133,10 +125,9 @@ const CLIMATE_ENV_TERMS = [
 const CLIMATE_ENV_PATTERN = new RegExp(CLIMATE_ENV_TERMS.join('|'), 'i');
 
 // Fora do âmbito da plataforma: política, desporto, crime, entretenimento.
-// Só é consultado depois de AGRI e CLIMATE_ENV falharem — portanto uma
-// notícia de agricultura ou de clima nunca é barrada aqui, mesmo que
-// mencione um político. Na prática só serve para "limpar" as fontes
-// dedicadas (que às vezes publicam algo institucional/político puro).
+// NOTA (31 ago): já não é usado — o filtro passou a "só entra agricultura ou
+// clima", por isso tudo o resto fica de fora sem precisar desta lista. Fica
+// aqui guardado caso se volte a querer uma barreira explícita a estes temas.
 const BLOCK_TERMS = [
     // Política
     '\\belei[çc][õo]es\\b', 'eleitoral\\w*', 'recenseamento eleitoral', '\\bpartido\\b', '\\bpartid[áa]ri\\w*',
@@ -161,12 +152,13 @@ const BLOCK_TERMS = [
 ];
 const BLOCK_PATTERN = new RegExp(BLOCK_TERMS.join('|'), 'i');
 
-// `dedicated`: fonte cuja linha editorial é toda agricultura/ambiente.
-function isRelevantNews(text: string, dedicated = false): boolean {
-    if (AGRI_PATTERN.test(text)) return true;          // agricultura — sempre
-    if (CLIMATE_ENV_PATTERN.test(text)) return true;   // clima / tempo / ambiente / desastres — sempre
-    if (BLOCK_PATTERN.test(text)) return false;        // política / desporto / crime / entretenimento — fora
-    return dedicated;                                  // fonte dedicada: aproveita o resto; generalista: descarta
+// Só passa quem fala mesmo de agricultura ou de clima/ambiente. Tudo o
+// resto fica de fora, venha de fonte generalista ou especializada — o
+// utilizador quer a plataforma apenas com estes dois temas (31 ago).
+function isRelevantNews(text: string): boolean {
+    if (AGRI_PATTERN.test(text)) return true;          // agricultura — entra
+    if (CLIMATE_ENV_PATTERN.test(text)) return true;   // clima / tempo / ambiente / desastres — entra
+    return false;                                      // qualquer outra coisa — fora
 }
 
 const CATEGORY_RULES: { pattern: RegExp; category: string }[] = [
@@ -315,7 +307,6 @@ export async function GET(req: Request) {
             ...(existingPending || []).map((a: any) => a.source_url).filter(Boolean),
         ]);
 
-        const monthCutoff = startOfCurrentMonthMaputo();
         const candidates: any[] = [];
         const perFeed: Record<string, { found: number; kept: number }> = {};
 
@@ -328,20 +319,17 @@ export async function GET(req: Request) {
                 continue;
             }
 
-            // Janela de tempo: `maxAgeDays` se definido; senão, fonte
-            // dedicada => sem corte (0 nunca é > timestamp); generalista
-            // => só o mês em curso.
-            const cutoff = feed.maxAgeDays
-                ? Date.now() - feed.maxAgeDays * 24 * 60 * 60 * 1000
-                : (feed.dedicated ? 0 : monthCutoff);
+            // Janela de tempo: tecto global de MAX_AGE_DAYS dias para todas
+            // as fontes; `maxAgeDays` na fonte só pode encurtar, nunca alargar.
+            const ageDays = Math.min(feed.maxAgeDays ?? MAX_AGE_DAYS, MAX_AGE_DAYS);
+            const cutoff = Date.now() - ageDays * 24 * 60 * 60 * 1000;
 
             perFeed[feed.label] = { found: items.length, kept: 0 };
 
             for (const item of items) {
                 if (!item.link || knownUrls.has(item.link)) continue;
-                // Agricultura (+ clima enquadrado na agricultura) em TODAS as
-                // fontes. Barra também spam/SEO de feeds poluídos.
-                if (!isRelevantNews(`${item.title} ${item.description}`, feed.dedicated)) continue;
+                // Só agricultura ou clima/ambiente, em TODAS as fontes.
+                if (!isRelevantNews(`${item.title} ${item.description}`)) continue;
 
                 const ts = item.pubDate ? new Date(item.pubDate).getTime() : NaN;
                 if (!isNaN(ts) && ts < cutoff) continue;
