@@ -37,11 +37,12 @@ const FEEDS: { url: string; label: string; maxAgeDays?: number }[] = [
     // Club of Mozambique saiu: o feed passou a responder 403 (bloqueio de bots).
 ];
 
-// Só guardamos notícias recentes: nada com mais de 14 dias, em TODAS as
-// fontes (pedido do utilizador, 31 ago — antes era "mês em curso", e as
-// fontes dedicadas não tinham corte de data nenhum). As já publicadas em
-// `articles` nunca são tocadas por este filtro.
-const MAX_AGE_DAYS = 14;
+// Só guardamos notícias recentes. Janela alargada de 14 -> 30 dias (1 set)
+// porque as fontes dedicadas (Ministério da Agricultura, Revista Terra)
+// publicam com pouca frequência e a janela de 14 dias deixava-as quase
+// sempre a zero. As já publicadas em `articles` nunca são tocadas por este
+// filtro.
+const MAX_AGE_DAYS = 30;
 
 // Filtro de relevância (ver isRelevantNews mais abaixo). A plataforma é
 // sobre agricultura + clima/ambiente em Moçambique, por isso entram:
