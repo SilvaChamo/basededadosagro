@@ -29,10 +29,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         ? company.bio.substring(0, 160) + (company.bio.length > 160 ? '...' : '')
         : `Saiba mais sobre ${company.company_name}, actuando na área de ${company.activity || 'Agro-negócio'} em Moçambique.`;
 
-    const images = [];
+    const images: string[] = [];
     if (company.banner_url) images.push(company.banner_url);
     if (company.logo_url) images.push(company.logo_url);
-    if (images.length === 0) images.push('/images/Prototipo/sala1.jpg'); // Fallback
+    // Sem banner/logo: não forçamos imagem aqui — o Next cai para o
+    // opengraph-image.png genérico do site (app/[locale]/opengraph-image.png).
 
     return {
         title: title,
@@ -40,14 +41,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         openGraph: {
             title: title,
             description: description,
-            images: images,
+            ...(images.length > 0 ? { images } : {}),
             type: 'website',
         },
         twitter: {
             card: 'summary_large_image',
             title: title,
             description: description,
-            images: images,
+            ...(images.length > 0 ? { images } : {}),
         }
     };
 }
