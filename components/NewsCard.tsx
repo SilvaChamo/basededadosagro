@@ -92,8 +92,8 @@ export function NewsCard({
     const displayCategories = categories && categories.length > 0 ? categories : [category || "Artigo"];
 
     return (
-        <div className={`flex flex-col ${image ? 'h-full' : ''}`}>
-            <div className={`group relative flex flex-col ${image ? 'flex-1' : ''} bg-white ${image ? 'rounded-[10px]' : 'rounded-b-[10px] border-t-4 border-t-orange-200 hover:border-t-[#f97316]'} shadow-lg border ${selected ? 'border-emerald-500 ring-2 ring-emerald-500' : 'border-slate-100 hover:border-[#f97316]/50'} transition-all overflow-hidden hover:shadow-xl`}>
+        <div className="flex flex-col h-full">
+            <div className={`group relative flex flex-col flex-1 bg-white rounded-[10px] shadow-lg border ${selected ? 'border-emerald-500 ring-2 ring-emerald-500' : 'border-slate-100 hover:border-[#f97316]/50'} transition-all overflow-hidden hover:shadow-xl`}>
             {image ? (
                 /* Image Section */
                 onCtaClick ? (
@@ -141,14 +141,31 @@ export function NewsCard({
                         </div>
                     </Link>
                 )
-            ) : null}
+            ) : (
+                /* Sem foto: painel neutro do mesmo tamanho da área de imagem,
+                   para o card ter a mesma altura e o conteúdo alinhar com os
+                   restantes (rodapé fixo em baixo). */
+                <div className="relative aspect-[21/9] sm:aspect-[16/10] bg-slate-100 border-b-4 border-[#f97316]">
+                    <div className="absolute top-4 left-4 right-4 flex flex-wrap justify-end gap-1.5">
+                        {displayCategories.map((cat, i) => (
+                            <span key={cat} className={`${categoryColor(cat, i)} text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg`}>
+                                {cat}
+                            </span>
+                        ))}
+                        {statusBadge && (
+                            <span className="bg-slate-800 text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg">
+                                {statusBadge}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Content Section */}
             <div className="p-3 sm:p-5 flex flex-col flex-1">
                 <div className="flex flex-col">
-                    {/* Selecção + Data — mesma estrutura em ambos os tipos de card;
-                        categoria só aparece aqui quando não há foto (com foto, fica
-                        sobre a imagem). */}
+                    {/* Selecção + Data. A categoria aparece sempre sobre a
+                        área de imagem (foto real ou painel neutro). */}
                     <div className="flex items-center gap-2 mb-2">
                         {selectable && (
                             <button
@@ -168,20 +185,6 @@ export function NewsCard({
                             <Calendar className="w-3 h-3 text-[#f97316]" />
                             <span>{formattedDate}</span>
                         </div>
-                        {!image && (
-                            <div className="ml-auto flex flex-wrap justify-end gap-1.5 max-w-[65%]">
-                                {displayCategories.map((cat, i) => (
-                                    <span key={cat} className={`inline-block ${categoryColor(cat, i)} text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px]`}>
-                                        {cat}
-                                    </span>
-                                ))}
-                                {statusBadge && (
-                                    <span className="inline-block bg-slate-800 text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px]">
-                                        {statusBadge}
-                                    </span>
-                                )}
-                            </div>
-                        )}
                     </div>
 
                     {/* Title */}

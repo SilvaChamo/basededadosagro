@@ -34,6 +34,10 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
     const [showImageSelector, setShowImageSelector] = useState(false);
     const categoryRef = useRef<HTMLDivElement>(null);
     const [tagInput, setTagInput] = useState("");
+    // Chave de recuperação por artigo (edição) ou "new" (criação). Evita que
+    // o rascunho de um artigo apareça noutro.
+    const draftKey = `agro_article_draft:${initialData?.id || "new"}`;
+    const [recovered, setRecovered] = useState<null | { formData: any; savedAt: number }>(null);
     const [formData, setFormData] = useState({
         title: initialData?.title || "",
         subtitle: initialData?.subtitle || "",
@@ -51,30 +55,51 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
         publish_status: initialData?.publish_status || "published"
     });
 
-    // 1. Recover Draft if New
-    useEffect(() => {
-        if (!initialData) {
-            const draft = localStorage.getItem("agro_article_draft");
-            if (draft) {
-                try {
-                    const parsed = JSON.parse(draft);
-                    const mergedData = { ...formData, ...parsed };
-                    setFormData(mergedData);
-                    toast.info("Rascunho recuperado automaticamente");
-                } catch (e) { }
-            }
-        }
-    }, [initialData]);
+    // Estado "carregado" do artigo, para saber se o formulário está sujo
+    // (alterado mas por gravar). Calculado uma vez.
+    const initialJsonRef = useRef<string | null>(null);
+    if (initialJsonRef.current === null) initialJsonRef.current = JSON.stringify(formData);
+    const isDirty = () => JSON.stringify(formData) !== initialJsonRef.current;
 
-    // 2. Autosave Draft if New
+    // 1. Recuperação — vale para artigo novo E para edição. Se o computador
+    //    ou o browser fecharem antes de gravar, o último autosave (≤1,2 s)
+    //    fica aqui e a notícia é oferecida para recuperar ao reabri-la.
     useEffect(() => {
-        if (!initialData && formData.title) {
-            const timer = setTimeout(() => {
-                localStorage.setItem("agro_article_draft", JSON.stringify(formData));
-            }, 1000);
-            return () => clearTimeout(timer);
-        }
-    }, [formData, initialData]);
+        try {
+            const raw = localStorage.getItem(draftKey);
+            if (!raw) return;
+            const parsed = JSON.parse(raw);
+            const saved = parsed.formData ?? parsed; // compat. com formato antigo
+            if (JSON.stringify(saved) === initialJsonRef.current) {
+                localStorage.removeItem(draftKey);
+                return;
+            }
+            setRecovered({ formData: saved, savedAt: parsed.savedAt || Date.now() });
+        } catch { /* ignora rascunho corrompido */ }
+    }, [draftKey]);
+
+    // 2. Autosave — sempre que o formulário está sujo (novo ou edição).
+    useEffect(() => {
+        if (!isDirty()) return;
+        if (!formData.title && !formData.content) return;
+        const timer = setTimeout(() => {
+            try {
+                localStorage.setItem(draftKey, JSON.stringify({ formData, savedAt: Date.now() }));
+            } catch { /* localStorage cheio / indisponível */ }
+        }, 1200);
+        return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [formData, draftKey]);
+
+    // 3. Aviso do browser se tentar sair com alterações por gravar.
+    useEffect(() => {
+        const handler = (e: BeforeUnloadEvent) => {
+            if (isDirty()) { e.preventDefault(); e.returnValue = ""; }
+        };
+        window.addEventListener("beforeunload", handler);
+        return () => window.removeEventListener("beforeunload", handler);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [formData]);
 
     // Fecha o dropdown de categorias ao clicar fora dele
     useEffect(() => {
@@ -148,7 +173,7 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
                     payload: initialData?.id ? { ...payload, id: initialData.id } : payload
                 });
 
-                if (!initialData) localStorage.removeItem("agro_article_draft");
+                localStorage.removeItem(draftKey);
                 toast.warning("Trabalhando Offline: Alteração guardada localmente. Será sincronizada assim que tiver internet!");
                 onSuccess();
                 onClose();
@@ -176,7 +201,7 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
             const result = await res.json();
             if (!res.ok) throw new Error(result.error || 'Erro ao guardar o artigo.');
 
-            if (!initialData) localStorage.removeItem("agro_article_draft");
+            localStorage.removeItem(draftKey);
             toast.success(initialData?.id ? "Artigo actualizado!" : "Artigo publicado!");
             onSuccess();
             onClose();
@@ -207,6 +232,36 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
                     </Button>
                 </div>
             </AdminListToolbar>
+
+            {recovered && (
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-900">
+                    <span className="flex-1">
+                        Encontrámos alterações desta notícia que não chegaram a ser gravadas
+                        {recovered.savedAt ? ` (guardadas ${new Date(recovered.savedAt).toLocaleString('pt-PT')})` : ""}.
+                        Recuperar?
+                    </span>
+                    <div className="flex gap-2 shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setFormData((prev) => ({ ...prev, ...recovered.formData }));
+                                setRecovered(null);
+                                toast.success("Alterações recuperadas. Rever e Actualizar para gravar.");
+                            }}
+                            className="px-3 py-1.5 rounded bg-amber-600 text-white font-semibold hover:bg-amber-700"
+                        >
+                            Recuperar
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => { localStorage.removeItem(draftKey); setRecovered(null); }}
+                            className="px-3 py-1.5 rounded border border-amber-300 text-amber-800 hover:bg-amber-100"
+                        >
+                            Ignorar
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Body */}
             <form id="article-form" onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-[7fr_3fr] gap-6">
