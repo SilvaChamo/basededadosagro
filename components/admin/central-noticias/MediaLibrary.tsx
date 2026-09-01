@@ -154,19 +154,19 @@ export function MediaLibrary({ onSelect, isModal }: MediaLibraryProps) {
                 </div>
 
                 <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-md">
-                    <button onClick={() => setViewMode("grid")} className={`p-1.5 rounded ${viewMode === "grid" ? "bg-white shadow text-[#2271b1]" : "text-slate-400"}`}>
+                    <button type="button" onClick={() => setViewMode("grid")} className={`p-1.5 rounded ${viewMode === "grid" ? "bg-white shadow text-[#2271b1]" : "text-slate-400"}`}>
                         <LayoutGrid className="w-4 h-4" />
                     </button>
-                    <button onClick={() => setViewMode("list")} className={`p-1.5 rounded ${viewMode === "list" ? "bg-white shadow text-[#2271b1]" : "text-slate-400"}`}>
+                    <button type="button" onClick={() => setViewMode("list")} className={`p-1.5 rounded ${viewMode === "list" ? "bg-white shadow text-[#2271b1]" : "text-slate-400"}`}>
                         <ListIcon className="w-4 h-4" />
                     </button>
                 </div>
 
-                <button onClick={loadImages} className="p-2 text-slate-400 hover:text-[#2271b1]" title="Actualizar">
+                <button type="button" onClick={loadImages} className="p-2 text-slate-400 hover:text-[#2271b1]" title="Actualizar">
                     <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
                 </button>
 
-                <button
+                <button type="button"
                     onClick={syncFromNews}
                     disabled={syncing}
                     className="flex items-center gap-1.5 px-3 py-1.5 border border-[#2271b1] text-[#2271b1] text-sm rounded-md hover:bg-blue-50 disabled:opacity-50"
@@ -177,7 +177,7 @@ export function MediaLibrary({ onSelect, isModal }: MediaLibraryProps) {
                 </button>
 
                 {selectedIds.size > 0 && (
-                    <button
+                    <button type="button"
                         onClick={() => setConfirmBulkDelete(true)}
                         className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-[#d63638] text-white text-sm rounded-md hover:bg-[#b32d2e]"
                     >
@@ -193,7 +193,7 @@ export function MediaLibrary({ onSelect, isModal }: MediaLibraryProps) {
                     <div className="flex flex-col items-center justify-center py-20 text-slate-400 text-center">
                         <ImageIcon className="w-10 h-10 mb-2" />
                         Nenhuma imagem na galeria.
-                        <button onClick={syncFromNews} className="mt-3 text-[#2271b1] text-sm hover:underline">
+                        <button type="button" onClick={syncFromNews} className="mt-3 text-[#2271b1] text-sm hover:underline">
                             Sincronizar com notícias existentes
                         </button>
                     </div>
@@ -207,7 +207,7 @@ export function MediaLibrary({ onSelect, isModal }: MediaLibraryProps) {
                             >
                                 <img src={file.url} className="w-full h-full object-cover" alt={file.alt_text || file.filename} />
                                 {!onSelect && (
-                                    <button
+                                    <button type="button"
                                         onClick={(e) => { e.stopPropagation(); toggleSelect(file.id); }}
                                         className={`absolute top-1.5 left-1.5 w-5 h-5 rounded-full flex items-center justify-center border ${selectedIds.has(file.id) ? "bg-[#2271b1] border-[#2271b1]" : "bg-white/80 border-slate-300 opacity-0 group-hover:opacity-100"}`}
                                     >
@@ -218,11 +218,11 @@ export function MediaLibrary({ onSelect, isModal }: MediaLibraryProps) {
                                     <span className="text-white text-[9px] truncate">{file.filename}</span>
                                     <div className="flex items-center gap-1.5 shrink-0">
                                         {!onSelect && (
-                                            <button onClick={(e) => { e.stopPropagation(); openEdit(file); }} className="text-white">
+                                            <button type="button" onClick={(e) => { e.stopPropagation(); openEdit(file); }} className="text-white">
                                                 <Pencil className="w-3 h-3" />
                                             </button>
                                         )}
-                                        <button onClick={(e) => { e.stopPropagation(); copyUrl(file.url); }} className="text-white">
+                                        <button type="button" onClick={(e) => { e.stopPropagation(); copyUrl(file.url); }} className="text-white">
                                             <Copy className="w-3 h-3" />
                                         </button>
                                     </div>
@@ -242,11 +242,11 @@ export function MediaLibrary({ onSelect, isModal }: MediaLibraryProps) {
                                 <span className="flex-1 text-sm text-[#2c3338] truncate">{file.filename}</span>
                                 {file.size && <span className="text-xs text-slate-400">{(file.size / 1024).toFixed(0)} KB</span>}
                                 {!onSelect && (
-                                    <button onClick={(e) => { e.stopPropagation(); openEdit(file); }} className="p-1.5 text-slate-400 hover:text-[#2271b1]">
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); openEdit(file); }} className="p-1.5 text-slate-400 hover:text-[#2271b1]">
                                         <Pencil className="w-3.5 h-3.5" />
                                     </button>
                                 )}
-                                <button onClick={(e) => { e.stopPropagation(); copyUrl(file.url); }} className="p-1.5 text-slate-400 hover:text-[#2271b1]">
+                                <button type="button" onClick={(e) => { e.stopPropagation(); copyUrl(file.url); }} className="p-1.5 text-slate-400 hover:text-[#2271b1]">
                                     <Copy className="w-3.5 h-3.5" />
                                 </button>
                             </div>
@@ -260,7 +260,7 @@ export function MediaLibrary({ onSelect, isModal }: MediaLibraryProps) {
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between p-4 border-b border-[#ccd0d4]">
                             <h3 className="font-semibold text-[#1d2327]">Detalhes da imagem</h3>
-                            <button onClick={() => setEditingFile(null)} className="text-slate-400 hover:text-slate-600">
+                            <button type="button" onClick={() => setEditingFile(null)} className="text-slate-400 hover:text-slate-600">
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
@@ -286,10 +286,10 @@ export function MediaLibrary({ onSelect, isModal }: MediaLibraryProps) {
                             </div>
                         </div>
                         <div className="p-4 border-t border-[#ccd0d4] bg-[#f6f7f7] flex justify-end gap-2">
-                            <button onClick={() => setEditingFile(null)} className="px-4 py-2 border border-[#ccd0d4] text-[#50575e] text-sm rounded hover:bg-white">
+                            <button type="button" onClick={() => setEditingFile(null)} className="px-4 py-2 border border-[#ccd0d4] text-[#50575e] text-sm rounded hover:bg-white">
                                 Cancelar
                             </button>
-                            <button onClick={saveMetadata} disabled={savingMetadata} className="px-4 py-2 bg-[#2271b1] text-white text-sm font-bold rounded hover:bg-[#135e96] disabled:opacity-50">
+                            <button type="button" onClick={saveMetadata} disabled={savingMetadata} className="px-4 py-2 bg-[#2271b1] text-white text-sm font-bold rounded hover:bg-[#135e96] disabled:opacity-50">
                                 {savingMetadata ? "A guardar..." : "Guardar"}
                             </button>
                         </div>

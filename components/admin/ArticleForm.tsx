@@ -193,7 +193,7 @@ export function ArticleForm({ onClose, onSuccess, initialData }: ArticleFormProp
                 <AdminToolbarTitle
                     title={initialData ? "Editar Artigo" : "Novo Artigo"}
                     leading={
-                        <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500 shrink-0" title="Voltar">
+                        <button type="button" onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500 shrink-0" title="Voltar">
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                     }

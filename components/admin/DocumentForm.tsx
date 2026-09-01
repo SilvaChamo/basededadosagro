@@ -134,7 +134,7 @@ export function DocumentForm({ initialData, isNew = false }: DocumentFormProps) 
                 <AdminToolbarTitle
                     title={initialData ? "Editar Documento" : "Novo Documento"}
                     leading={
-                        <button onClick={() => router.back()} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500 shrink-0" title="Voltar">
+                        <button type="button" onClick={() => router.back()} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500 shrink-0" title="Voltar">
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                     }

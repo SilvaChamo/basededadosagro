@@ -98,19 +98,19 @@ export function ImageEditor({ imageUrl, onSave, onClose, originalFileName }: Ima
                 <h2 className="text-[18px] font-semibold text-white">Editor de Imagem</h2>
                 <div className="flex items-center gap-3">
                     {(croppedImage || processedImage) && (
-                        <button onClick={reset} className="flex items-center gap-2 px-4 py-2 text-[13px] text-gray-300 hover:text-white transition-colors">
+                        <button type="button" onClick={reset} className="flex items-center gap-2 px-4 py-2 text-[13px] text-gray-300 hover:text-white transition-colors">
                             <Undo className="w-4 h-4" />
                             Resetar
                         </button>
                     )}
-                    <button onClick={onClose} className="p-2 hover:bg-[#2c3338] rounded-full transition-colors">
+                    <button type="button" onClick={onClose} className="p-2 hover:bg-[#2c3338] rounded-full transition-colors">
                         <X className="w-5 h-5 text-gray-400" />
                     </button>
                 </div>
             </div>
 
             <div className="flex items-center gap-2 p-4 border-b border-[#3c434a] bg-[#2c3338] shrink-0">
-                <button
+                <button type="button"
                     onClick={() => setMode(mode === "crop" ? "none" : "crop")}
                     className={`flex items-center gap-2 px-4 py-2 rounded text-[13px] font-medium transition-all ${mode === "crop" ? "bg-[#2271b1] text-white" : "bg-[#1d2327] text-gray-300 hover:bg-[#3c434a]"}`}
                 >
@@ -118,7 +118,7 @@ export function ImageEditor({ imageUrl, onSave, onClose, originalFileName }: Ima
                     {mode === "crop" ? "Cancelar Crop" : "Recortar"}
                 </button>
 
-                <button
+                <button type="button"
                     onClick={removeBg}
                     disabled={processing}
                     className="flex items-center gap-2 px-4 py-2 rounded text-[13px] font-medium bg-[#1d2327] text-gray-300 hover:bg-[#3c434a] transition-all disabled:opacity-50"
@@ -129,7 +129,7 @@ export function ImageEditor({ imageUrl, onSave, onClose, originalFileName }: Ima
 
                 <div className="flex-1"></div>
 
-                <button
+                <button type="button"
                     onClick={saveAsPng}
                     className="flex items-center gap-2 px-6 py-2 bg-[#00a651] text-white rounded text-[13px] font-bold hover:bg-[#008f45] transition-all"
                 >
@@ -155,11 +155,11 @@ export function ImageEditor({ imageUrl, onSave, onClose, originalFileName }: Ima
                             zoomable={true}
                         />
                         <div className="flex justify-center gap-3 mt-4">
-                            <button onClick={applyCrop} className="flex items-center gap-2 px-6 py-2 bg-[#00a651] text-white rounded text-[13px] font-bold hover:bg-[#008f45]">
+                            <button type="button" onClick={applyCrop} className="flex items-center gap-2 px-6 py-2 bg-[#00a651] text-white rounded text-[13px] font-bold hover:bg-[#008f45]">
                                 <Check className="w-4 h-4" />
                                 Aplicar Crop
                             </button>
-                            <button onClick={() => setMode("none")} className="px-6 py-2 bg-[#3c434a] text-white rounded text-[13px] hover:bg-[#4c535a]">
+                            <button type="button" onClick={() => setMode("none")} className="px-6 py-2 bg-[#3c434a] text-white rounded text-[13px] hover:bg-[#4c535a]">
                                 Cancelar
                             </button>
                         </div>

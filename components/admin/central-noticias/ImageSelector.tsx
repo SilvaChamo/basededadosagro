@@ -64,19 +64,19 @@ export function ImageSelector({ onSelect, onClose }: ImageSelectorProps) {
         <div className="fixed inset-0 z-[200] bg-white flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-[#ccd0d4] bg-white shrink-0">
                 <h2 className="text-[18px] font-semibold text-[#1d2327]">Imagem de destaque</h2>
-                <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <button type="button" onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                     <X className="w-5 h-5 text-gray-500" />
                 </button>
             </div>
 
             <div className="flex border-b border-[#ccd0d4] bg-white shrink-0">
-                <button
+                <button type="button"
                     onClick={() => setTab("upload")}
                     className={`px-6 py-3 text-[13px] font-medium transition-all ${tab === "upload" ? "border-b-2 border-[#2271b1] text-[#2271b1]" : "text-[#50575e] hover:text-[#2271b1]"}`}
                 >
                     Carregar ficheiro
                 </button>
-                <button
+                <button type="button"
                     onClick={() => setTab("library")}
                     className={`px-6 py-3 text-[13px] font-medium transition-all ${tab === "library" ? "border-b-2 border-[#2271b1] text-[#2271b1]" : "text-[#50575e] hover:text-[#2271b1]"}`}
                 >
@@ -109,7 +109,7 @@ export function ImageSelector({ onSelect, onClose }: ImageSelectorProps) {
                                                 className="w-full h-full object-cover"
                                                 alt="Preview"
                                             />
-                                            <button
+                                            <button type="button"
                                                 onClick={() => setShowEditor(true)}
                                                 className="absolute bottom-2 right-2 p-2 bg-[#2271b1] text-white rounded-full shadow-lg hover:bg-[#135e96] transition-all"
                                                 title="Editar imagem"
@@ -130,7 +130,7 @@ export function ImageSelector({ onSelect, onClose }: ImageSelectorProps) {
                                             </div>
 
                                             <div className="flex flex-wrap gap-2 pt-2">
-                                                <button
+                                                <button type="button"
                                                     onClick={uploadAndSelect}
                                                     disabled={uploading}
                                                     className="px-6 py-2.5 bg-[#2271b1] text-white text-[13px] font-bold rounded hover:bg-[#135e96] transition-all disabled:opacity-50 flex items-center gap-2"
@@ -138,7 +138,7 @@ export function ImageSelector({ onSelect, onClose }: ImageSelectorProps) {
                                                     {uploading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                                                     {uploading ? "A carregar..." : editedBlob ? "Gravar e definir" : "Carregar e definir"}
                                                 </button>
-                                                <button
+                                                <button type="button"
                                                     onClick={() => { setUploadFile(null); setEditedBlob(null); }}
                                                     disabled={uploading}
                                                     className="px-4 py-2 border border-[#ccd0d4] text-[#50575e] text-[13px] font-bold rounded hover:bg-gray-50 transition-all"
@@ -166,7 +166,7 @@ export function ImageSelector({ onSelect, onClose }: ImageSelectorProps) {
                 <div className="text-xs text-[#50575e]">
                     {tab === "upload" ? "Os ficheiros carregados são comprimidos e guardados na biblioteca." : "Seleccione uma imagem da biblioteca."}
                 </div>
-                <button onClick={onClose} className="px-6 py-2 bg-[#2271b1] text-white text-[13px] font-bold rounded-[4px] hover:bg-[#135e96] transition-all">
+                <button type="button" onClick={onClose} className="px-6 py-2 bg-[#2271b1] text-white text-[13px] font-bold rounded-[4px] hover:bg-[#135e96] transition-all">
                     Fechar
                 </button>
             </div>
