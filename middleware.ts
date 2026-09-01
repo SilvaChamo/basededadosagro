@@ -1,6 +1,17 @@
-import type { NextRequest } from 'next/server';
+import type { NextRequest, NextResponse } from 'next/server';
 import createIntlMiddleware from 'next-intl/middleware';
 import { updateSession } from '@/utils/supabase/middleware';
+
+// Copia para `target` os cookies que o cliente Supabase renovou em `source`.
+// Sem isto, quando o next-intl devolve a sua própria resposta (rewrite,
+// redirect ou passagem), os tokens de sessão acabados de renovar pelo
+// updateSession eram deitados fora — obrigando o utilizador a reautenticar-se
+// mais cedo do que devia.
+function carryOverCookies(source: NextResponse, target: NextResponse) {
+  for (const cookie of source.cookies.getAll()) {
+    target.cookies.set(cookie.name, cookie.value, cookie);
+  }
+}
 
 const handleI18nRouting = createIntlMiddleware({
   locales: ['pt', 'en'],
@@ -20,6 +31,10 @@ export async function middleware(request: NextRequest) {
 
   // 3. Executar lógica de roteamento i18n
   const intlResponse = handleI18nRouting(request);
+
+  // Preserva os cookies de sessão renovados pelo Supabase na resposta que o
+  // next-intl preparou (é esta que vai ser devolvida, não a do updateSession).
+  carryOverCookies(response, intlResponse);
 
   // Se o next-intl também redirecionar (ex: falta o prefixo de idioma), nada a renderizar.
   if (intlResponse.headers.get('location')) {

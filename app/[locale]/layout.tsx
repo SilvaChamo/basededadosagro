@@ -10,8 +10,20 @@ import { FloatingChatButton } from "@/components/FloatingChatButton";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { Toaster } from "sonner";
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, setRequestLocale } from 'next-intl/server';
 import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
+
+// Lista de idiomas suportados. Ao declarar generateStaticParams + chamar
+// setRequestLocale() no layout, o next-intl deixa de ler cabeçalhos do
+// pedido para descobrir o idioma — o que forçava TODAS as páginas a
+// renderizar dinamicamente (sem cache), fazendo cada visita reconstruir a
+// página no servidor. Com isto, as páginas públicas voltam a poder ser
+// pré-renderizadas e servidas pela Cloudflare, como o visualdesign.
+const LOCALES = ['pt', 'en'] as const;
+
+export function generateStaticParams() {
+  return LOCALES.map((locale) => ({ locale }));
+}
 
 // Ficheiros locais em vez de next/font/google — o download do Google Fonts
 // em build/dev falha silenciosamente em alguns ambientes e a fonte cai
@@ -66,6 +78,11 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }>) {
   const { locale } = await params;
+
+  // Tem de vir ANTES de qualquer chamada ao next-intl (getMessages, etc.) —
+  // é o que permite a renderização estática desta árvore.
+  setRequestLocale(locale);
+
   const messages = await getMessages();
 
   return (

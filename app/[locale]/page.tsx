@@ -5,7 +5,7 @@ import { CommunityBanner } from "@/components/CommunityBanner";
 import { WhyChooseUs } from "@/components/WhyChooseUs";
 import { MobileAppSection } from "@/components/MobileAppSection";
 import { supabase } from "@/lib/supabaseClient";
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 // A homepage não mostra nada específico do utilizador (só dados públicos:
 // estatísticas, empresas em destaque, notícias). Usar o cliente Supabase
@@ -15,7 +15,14 @@ import { getTranslations } from 'next-intl/server';
 // visita pagava sempre a latência de rede até ao Supabase.
 export const revalidate = 60; // Revalidate every 60 seconds
 
-export default async function Home() {
+export default async function Home({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   const t = await getTranslations('CategoriesShowcase');
 
   // Parallel Data Fetching with error resilience

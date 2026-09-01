@@ -8,6 +8,10 @@ import { SupermarketCarousel } from "@/components/SupermarketCarousel";
 import { AnunciarProdutoButton } from "@/components/AnunciarProdutoButton";
 import Link from "next/link";
 
+// Cotações mudam ao longo do dia — revalida a cada 5 min em vez de congelar
+// no build. Continua servido de cache (Cloudflare/Next) entre revalidações.
+export const revalidate = 300;
+
 export default function MercadoPage() {
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900 font-sans relative">
