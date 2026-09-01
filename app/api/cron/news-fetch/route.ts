@@ -25,16 +25,14 @@ const FEEDS: { url: string; label: string; maxAgeDays?: number }[] = [
     { url: 'https://www.agricultura.gov.mz/feed/', label: 'Ministério da Agricultura' },
     { url: 'https://revistaterraonline.com/destaques/feed/', label: 'Revista Terra' },
     // Generalistas de Moçambique — "rede de pesca": um artigo só passa se o
-    // filtro de relevância (isRelevantNews) o marcar como agricultura ou
-    // clima/ambiente. Quantas mais fontes, mais material relevante apanhado.
+    // TÍTULO falar mesmo de agricultura ou clima/ambiente (isRelevantNews).
     { url: 'https://jornalnoticias.co.mz/feed/', label: 'Jornal Notícias' },
     { url: 'https://opais.co.mz/feed/', label: 'O País' },
     { url: 'https://cartamz.com/feed/', label: 'Carta de Moçambique' },
     { url: 'https://jornaldomingo.co.mz/feed/', label: 'Jornal Domingo' },
-    { url: 'https://mmo.co.mz/feed/', label: 'MMO' },
     { url: 'https://360mozambique.com/feed/', label: '360 Mozambique' },
-    { url: 'https://evidencias.co.mz/feed/', label: 'Evidências' },
-    // Club of Mozambique saiu: o feed passou a responder 403 (bloqueio de bots).
+    // Removidos: Club of Mozambique (feed 403); MMO e Evidências (portais de
+    // estilo de vida — enchiam a fila de saúde/beleza/animais de estimação).
 ];
 
 // Só guardamos notícias recentes. Janela alargada de 14 -> 30 dias (1 set)
@@ -60,7 +58,7 @@ const AGRI_TERMS = [
     // Pecuária e criação animal
     'pecu[aá]ri\\w*', 'avicultur\\w*', 'suinicultur\\w*', 'bovinicultur\\w*',
     'piscicultur\\w*', 'aqui?cultur\\w*', 'apicultur\\w*',
-    '\\bgado\\b', 'rebanho\\w*', 'bovinos?', 'caprinos?', 'su[ií]nos?', 'capoeira',
+    '\\bgado\\b', 'rebanho\\w*', 'bovin[oa]s?', '\\bzebus?\\b', 'caprinos?', 'su[ií]nos?', 'capoeira',
     // Gente do campo
     'campon[eê]s\\w*', 'agricultor\\w*', 'lavrador\\w*', 'pequenos? produtor\\w*',
     // Actividade agrícola
@@ -133,11 +131,17 @@ const CLIMATE_ENV_TERMS = [
 ];
 const CLIMATE_ENV_PATTERN = new RegExp(CLIMATE_ENV_TERMS.join('|'), 'i');
 
-// Fora do âmbito da plataforma: política, desporto, crime, entretenimento.
-// NOTA (31 ago): já não é usado — o filtro passou a "só entra agricultura ou
-// clima", por isso tudo o resto fica de fora sem precisar desta lista. Fica
-// aqui guardado caso se volte a querer uma barreira explícita a estes temas.
+// Fora do âmbito da plataforma. Barreira dura: se o TÍTULO bater aqui, o
+// artigo é rejeitado mesmo que mencione "água" ou "planta" de passagem.
 const BLOCK_TERMS = [
+    // Saúde / estilo de vida / consumo (1 set — a fila estava a encher-se
+    // disto vindo de portais generalistas).
+    '\\bpele\\b', 'beleza', 'maquilha\\w*', 'cosm[ée]tic\\w*', 'emagrec\\w*', '\\bdieta\\b',
+    'bem-?estar', 'auditiv\\w*', 'audi[çc][aã]o', 'pr[ée]-?ecl[aâ]mpsia', 'gravidez',
+    'menstrua\\w*', 'sintomas? (?:de|que)', 'hor[óo]scopo', '\\bsigno\\b',
+    'decora[çc][aã]o', 'decorar (?:a|o|sua) (?:casa|sala|quarto|espa[çc]o)',
+    'animais? de estima[çc][aã]o', 'c[ãa]es e gatos', '\\bpirataria\\b', 'pirateado\\w*',
+    '\\bMultichoice\\b', '\\bDStv\\b', 'streaming', 'telenovela\\w*', 'receitas? de culin[áa]ria',
     // Política
     '\\belei[çc][õo]es\\b', 'eleitoral\\w*', 'recenseamento eleitoral', '\\bpartido\\b', '\\bpartid[áa]ri\\w*',
     '\\bFrelimo\\b', '\\bRenamo\\b', '\\bMDM\\b', 'parlament\\w*', 'assembleia da rep[uú]blica',
@@ -161,13 +165,15 @@ const BLOCK_TERMS = [
 ];
 const BLOCK_PATTERN = new RegExp(BLOCK_TERMS.join('|'), 'i');
 
-// Só passa quem fala mesmo de agricultura ou de clima/ambiente. Tudo o
-// resto fica de fora, venha de fonte generalista ou especializada — o
-// utilizador quer a plataforma apenas com estes dois temas (31 ago).
-function isRelevantNews(text: string): boolean {
-    if (AGRI_PATTERN.test(text)) return true;          // agricultura — entra
-    if (CLIMATE_ENV_PATTERN.test(text)) return true;   // clima / tempo / ambiente / desastres — entra
-    return false;                                      // qualquer outra coisa — fora
+// Só passa notícia MESMO ligada a agricultura ou clima/ambiente. O sinal
+// tem de estar no TÍTULO — só no corpo não chega: artigos de estilo de vida
+// mencionavam "óleo", "planta", "natural", "água" e escapavam (1 set:
+// "pontes", "pele bonita", "animal de estimação", "problemas auditivos"...).
+function isRelevantNews(title: string): boolean {
+    if (BLOCK_PATTERN.test(title)) return false;        // saúde/lifestyle/consumo — fora
+    if (AGRI_PATTERN.test(title)) return true;          // agricultura — entra
+    if (CLIMATE_ENV_PATTERN.test(title)) return true;   // clima / tempo / ambiente / desastres — entra
+    return false;                                       // título sem sinal forte — fora
 }
 
 const CATEGORY_RULES: { pattern: RegExp; category: string }[] = [
@@ -343,7 +349,7 @@ export async function GET(req: Request) {
             for (const item of items) {
                 if (!item.link || knownUrls.has(item.link)) continue;
                 // Só agricultura ou clima/ambiente, em TODAS as fontes.
-                if (!isRelevantNews(`${item.title} ${item.description}`)) continue;
+                if (!isRelevantNews(item.title)) continue;
 
                 const ts = item.pubDate ? new Date(item.pubDate).getTime() : NaN;
                 if (!isNaN(ts) && ts < cutoff) continue;
