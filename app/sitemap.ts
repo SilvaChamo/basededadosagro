@@ -61,21 +61,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Páginas de detalhe geradas a partir da base de dados. Resiliente: se a
     // consulta falhar, o sitemap continua a sair só com as páginas estáticas.
+    // (Colunas reais: companies.updated_at existe; articles NÃO tem updated_at
+    // — usa-se created_at. Não há tabela `documents`: /documentos e /artigos
+    // servem ambos da tabela `articles`, listada aqui só uma vez como /artigos.)
     let dynamicEntries: MetadataRoute.Sitemap = []
     try {
-        const [companies, articles, documents] = await Promise.all([
+        const [companies, articles] = await Promise.all([
             supabase.from('companies').select('slug, updated_at').eq('is_archived', false),
             supabase
                 .from('articles')
-                .select('slug, updated_at')
+                .select('slug, created_at')
                 .is('deleted_at', null)
                 .or('publish_status.is.null,publish_status.not.in.(draft,review)')
-                .limit(2000),
-            supabase.from('documents').select('slug, updated_at').limit(2000),
+                .limit(5000),
         ])
 
         const fromRows = (
-            rows: { slug: string | null; updated_at: string | null }[] | null,
+            rows: { slug: string | null; updated_at?: string | null; created_at?: string | null }[] | null,
             prefix: string,
             priority: number,
         ): MetadataRoute.Sitemap =>
@@ -83,7 +85,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                 .filter((r) => r.slug)
                 .map((r) => ({
                     url: `${baseUrl}${prefix}/${r.slug}`,
-                    lastModified: r.updated_at ? new Date(r.updated_at) : now,
+                    lastModified: new Date(r.updated_at || r.created_at || now),
                     changeFrequency: 'weekly' as const,
                     priority,
                 }))
@@ -91,7 +93,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         dynamicEntries = [
             ...fromRows(companies.data as any, '/empresas', 0.6),
             ...fromRows(articles.data as any, '/artigos', 0.6),
-            ...fromRows(documents.data as any, '/documentos', 0.5),
         ]
     } catch (err) {
         console.error('sitemap: falha a obter páginas dinâmicas (não crítico):', err)

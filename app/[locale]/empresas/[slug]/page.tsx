@@ -11,23 +11,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const { slug } = await params;
     const supabase = await createClient();
 
+    // Colunas reais da tabela `companies`: name / description (não
+    // company_name / bio — nomes errados faziam esta query falhar e TODAS
+    // as páginas de empresa caíam para o metadata "Empresa não encontrada",
+    // sem título nem imagem no cartão do Facebook).
     const { data: company } = await supabase
         .from('companies')
-        .select('company_name, bio, logo_url, banner_url, activity')
+        .select('name, description, logo_url, banner_url, activity')
         .eq('slug', slug)
-        .single();
+        .maybeSingle();
 
     if (!company) {
         return {
-            title: 'Empresa não encontrada | Base de Dados Agro',
+            title: 'Empresa não encontrada',
             description: 'Perfil de empresa agrícola em Moçambique.'
         };
     }
 
-    const title = `${company.company_name} - Directório Agrícola | Base de Dados Agro`;
-    const description = company.bio
-        ? company.bio.substring(0, 160) + (company.bio.length > 160 ? '...' : '')
-        : `Saiba mais sobre ${company.company_name}, actuando na área de ${company.activity || 'Agro-negócio'} em Moçambique.`;
+    const title = `${company.name} — ${company.activity || 'Empresa do sector agrário'}`;
+    const description = company.description
+        ? company.description.substring(0, 160) + (company.description.length > 160 ? '…' : '')
+        : `Saiba mais sobre ${company.name}, na área de ${company.activity || 'agro-negócio'} em Moçambique.`;
 
     const images: string[] = [];
     if (company.banner_url) images.push(company.banner_url);

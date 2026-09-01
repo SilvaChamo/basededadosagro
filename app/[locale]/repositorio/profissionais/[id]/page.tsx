@@ -30,32 +30,36 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         const supabase = await createClient();
         const { data } = await supabase
             .from('professionals')
-            .select('name, profession, category, bio')
+            .select('name, profession, category, bio, photo_url')
             .eq('id', id)
-            .single();
+            .maybeSingle();
         professional = data;
     }
 
     if (!professional) {
         return {
-            title: 'Profissional não encontrado | Base de Dados Agro',
+            title: 'Profissional não encontrado',
             description: 'Rede de talentos agrários em Moçambique.'
         };
     }
 
-    const title = `${professional.name} - ${professional.profession || professional.category} | Repositório Base de Dados Agro`;
+    // Sem "| Base de Dados Agro" no fim — o template do layout raiz já
+    // acrescenta " · Base de Dados Agro".
+    const title = `${professional.name} — ${professional.profession || professional.category || 'Profissional agrário'}`;
     const description = professional.bio
-        ? professional.bio.substring(0, 160) + '...'
-        : `Conheça o perfil profissional de ${professional.name}, especialista em ${professional.category || 'Agronegócio'} em Moçambique.`;
+        ? professional.bio.substring(0, 160) + (professional.bio.length > 160 ? '…' : '')
+        : `Perfil profissional de ${professional.name}, na área de ${professional.category || 'agronegócio'} em Moçambique.`;
+    const photo = (professional as { photo_url?: string | null }).photo_url;
 
     return {
-        title: title,
-        description: description,
+        title,
+        description,
         openGraph: {
-            title: title,
-            description: description,
+            title,
+            description,
             type: 'profile',
-        }
+            ...(photo ? { images: [photo] } : {}),
+        },
     };
 }
 
