@@ -11,6 +11,7 @@ import {
     ChevronRight,
     Check,
     X,
+    ImageIcon,
 } from "lucide-react";
 import { DownloadCloud } from "lucide-react";
 import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
@@ -49,6 +50,10 @@ function MediaGalleryContent() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [isBulkMode, setIsBulkMode] = useState(false);
+    // Mesmo tratamento de imagens partidas que a galeria do editor de
+    // notícias (components/admin/central-noticias/MediaLibrary.tsx) — é a
+    // mesma galeria, tem de se comportar da mesma forma nos dois sítios.
+    const [brokenIds, setBrokenIds] = useState<Set<string>>(new Set());
     const [fileTypeFilter, setFileTypeFilter] = useState(tipoParam || "todos");
     const [dateFilter, setDateFilter] = useState("todas");
 
@@ -421,18 +426,29 @@ function MediaGalleryContent() {
 
             {/* Conteúdo */}
             {loading ? (
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12 gap-2">
                     {Array.from({ length: 14 }).map((_, i) => <div key={i} className="aspect-square bg-gray-200 animate-pulse" />)}
                 </div>
             ) : viewMode === "grid" ? (
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12 gap-2">
                     {paginatedFiles.map((file) => (
                         <div
                             key={file.name}
                             onClick={() => (isBulkMode ? toggleSelect(file.name) : openDetails(file))}
                             className={`aspect-square relative bg-white border cursor-pointer overflow-hidden group ${selectedIds.has(file.name) ? "ring-[3px] ring-[#2271b1] ring-inset" : "border-[#ccd0d4]"}`}
                         >
-                            <img src={file.publicUrl} className="w-full h-full object-cover" alt="" />
+                            {brokenIds.has(file.name) ? (
+                                <div className="w-full h-full flex items-center justify-center bg-slate-100">
+                                    <ImageIcon className="w-6 h-6 text-slate-300" />
+                                </div>
+                            ) : (
+                                <img
+                                    src={file.publicUrl}
+                                    className="w-full h-full object-cover"
+                                    alt=""
+                                    onError={() => setBrokenIds((prev) => new Set(prev).add(file.name))}
+                                />
+                            )}
 
                             {isBulkMode && (
                                 <div className={`absolute top-1 right-1 w-5 h-5 rounded-sm border flex items-center justify-center ${selectedIds.has(file.name) ? "bg-[#2271b1] border-[#2271b1]" : "bg-white border-[#ccd0d4]"}`}>
