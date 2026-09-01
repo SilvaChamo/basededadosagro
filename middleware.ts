@@ -17,7 +17,13 @@ const handleI18nRouting = createIntlMiddleware({
   locales: ['pt', 'en'],
   defaultLocale: 'pt',
   localePrefix: 'as-needed',
-  localeCookie: true,
+  // Sem cookie NEXT_LOCALE. Ele era escrito em TODAS as respostas
+  // (Set-Cookie), e a Cloudflare recusa-se a guardar em cache qualquer
+  // resposta com Set-Cookie (cf-cache-status: BYPASS) — anulava o
+  // s-maxage das páginas estáticas. O idioma continua a vir do prefixo do
+  // URL (/en/...) ou do defaultLocale 'pt'; o selector de idioma navega
+  // para o URL prefixado, por isso não se perde a escolha.
+  localeCookie: false,
 });
 
 export async function middleware(request: NextRequest) {
