@@ -21,12 +21,20 @@ const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 // passa se o filtro de relevância o marcar como agricultura ou clima/ambiente
 // (ver isRelevantNews). Notícia geral nunca entra, venha de onde vier.
 const FEEDS: { url: string; label: string; maxAgeDays?: number }[] = [
-    // Generalistas — filtradas a agricultura/clima; nada de notícia geral.
-    { url: 'https://jornalnoticias.co.mz/feed/', label: 'Jornal Notícias' },
-    { url: 'https://clubofmozambique.com/feed/', label: 'Club of Mozambique' },
-    // Especializadas em agricultura em Moçambique (pedido do utilizador).
+    // Especializadas em agricultura / agro em Moçambique.
     { url: 'https://www.agricultura.gov.mz/feed/', label: 'Ministério da Agricultura' },
     { url: 'https://revistaterraonline.com/destaques/feed/', label: 'Revista Terra' },
+    // Generalistas de Moçambique — "rede de pesca": um artigo só passa se o
+    // filtro de relevância (isRelevantNews) o marcar como agricultura ou
+    // clima/ambiente. Quantas mais fontes, mais material relevante apanhado.
+    { url: 'https://jornalnoticias.co.mz/feed/', label: 'Jornal Notícias' },
+    { url: 'https://opais.co.mz/feed/', label: 'O País' },
+    { url: 'https://cartamz.com/feed/', label: 'Carta de Moçambique' },
+    { url: 'https://jornaldomingo.co.mz/feed/', label: 'Jornal Domingo' },
+    { url: 'https://mmo.co.mz/feed/', label: 'MMO' },
+    { url: 'https://360mozambique.com/feed/', label: '360 Mozambique' },
+    { url: 'https://evidencias.co.mz/feed/', label: 'Evidências' },
+    // Club of Mozambique saiu: o feed passou a responder 403 (bloqueio de bots).
 ];
 
 // Só guardamos notícias recentes: nada com mais de 14 dias, em TODAS as
