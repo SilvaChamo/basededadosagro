@@ -25,6 +25,14 @@ export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
 }
 
+// Revalidação por omissão de TODA a árvore [locale]. Sem isto, as páginas
+// sem `revalidate` próprio saíam com s-maxage=1 ano — a Cloudflare guardava
+// a versão do momento e nunca mais a actualizava (um deploy não chegava aos
+// visitantes). Com 1h + stale-while-revalidate, cada deploy propaga-se
+// sozinho na hora seguinte, sem penalizar a velocidade. Páginas com
+// `revalidate` próprio (ex.: a home = 60s, /mercado = 300s) mandam nelas.
+export const revalidate = 3600;
+
 // Ficheiros locais em vez de next/font/google — o download do Google Fonts
 // em build/dev falha silenciosamente em alguns ambientes e a fonte cai
 // para o fallback sans-serif sem aviso nenhum.
