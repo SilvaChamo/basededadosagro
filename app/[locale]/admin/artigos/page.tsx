@@ -67,7 +67,7 @@ function AdminArtigosCientificosContent() {
                 query = query.not('deleted_at', 'is', null);
             }
 
-            query = query.order('created_at', { ascending: false });
+            query = query.order('date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false });
 
             const { data, error } = await query;
 
@@ -77,7 +77,7 @@ function AdminArtigosCientificosContent() {
                         .from('articles')
                         .select('*')
                         .in('type', tabs.map((t: any) => t.id))
-                        .order('created_at', { ascending: false });
+                        .order('date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false });
 
                     if (statusFilter === 'deleted') {
                         fallbackQuery = fallbackQuery.not('deleted_at', 'is', null);

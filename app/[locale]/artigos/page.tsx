@@ -178,7 +178,7 @@ export default function ArticlesArchivePage() {
                     .is('deleted_at', null)
                     .or('publish_status.is.null,publish_status.not.in.(draft,review)')
                     .in('type', ['Dissertações', 'Artigos', 'Livros', 'Outros'])
-                    .order('date', { ascending: false });
+                    .order('date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false });
 
                 // If we have real DB data, we use it. If not, we use fallback to not show an empty page.
                 const combinedLocal = (data && data.length > 0) ? data : FALLBACK_ARTICLES;

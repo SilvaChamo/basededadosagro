@@ -95,9 +95,11 @@ function AdminNoticiasContent() {
         const [rev, dft] = await Promise.all([
             supabase.from('articles').select('*').is('deleted_at', null)
                 .eq('publish_status', 'review')
+                .order('date', { ascending: false, nullsFirst: false })
                 .order('created_at', { ascending: false }),
             supabase.from('articles').select('*').is('deleted_at', null)
                 .or('publish_status.eq.draft,status.eq.draft')
+                .order('date', { ascending: false, nullsFirst: false })
                 .order('created_at', { ascending: false }),
         ]);
         const noDocs = (rows: any[]) => rows.filter((a: any) => !DOCUMENT_TYPES.includes(a.type));
@@ -215,7 +217,7 @@ function AdminNoticiasContent() {
     const fetchArticles = async (showLoading = true) => {
         if (showLoading) setLoading(true);
         try {
-            let query = supabase.from('articles').select('*').order('created_at', { ascending: false });
+            let query = supabase.from('articles').select('*').order('date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false });
 
             // "Eliminado" continua a basear-se em deleted_at (como antes); "arquivado"
             // é um eixo independente via `status`, e "activo" mostra tudo o que não
@@ -235,7 +237,7 @@ function AdminNoticiasContent() {
             if (error) {
                 // Fallback if 'status' column doesn't exist yet on this database
                 if (error.code === '42703') {
-                    let fallbackQuery = supabase.from('articles').select('*').order('created_at', { ascending: false });
+                    let fallbackQuery = supabase.from('articles').select('*').order('date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false });
                     if (statusFilter === 'deleted') fallbackQuery = fallbackQuery.not('deleted_at', 'is', null);
                     else if (statusFilter === 'active') fallbackQuery = fallbackQuery.is('deleted_at', null);
                     else {

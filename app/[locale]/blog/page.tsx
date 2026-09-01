@@ -58,7 +58,7 @@ function BlogContent() {
                     .is('deleted_at', null)
                     .or('publish_status.is.null,publish_status.not.in.(draft,review)')
                     .in('type', newsTypes)
-                    .order('date', { ascending: false });
+                    .order('date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false });
 
                 if (articlesError) {
                     console.error("Articles error:", articlesError.message || articlesError.code || JSON.stringify(articlesError));

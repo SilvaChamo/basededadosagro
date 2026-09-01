@@ -64,7 +64,7 @@ function AdminDocumentosContent() {
                 .from('articles')
                 .select('*')
                 .in('type', allTypes)
-                .order('created_at', { ascending: false });
+                .order('date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false });
 
             if (statusFilter === 'active') query = query.eq('status', 'active');
             else if (statusFilter === 'archived') query = query.eq('status', 'archived');
@@ -80,7 +80,7 @@ function AdminDocumentosContent() {
                         .from('articles')
                         .select('*')
                         .in('type', allTypes)
-                        .order('created_at', { ascending: false });
+                        .order('date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false });
 
                     if (statusFilter === 'deleted') fallbackQuery = fallbackQuery.not('deleted_at', 'is', null);
                     else if (statusFilter === 'active') fallbackQuery = fallbackQuery.is('deleted_at', null);

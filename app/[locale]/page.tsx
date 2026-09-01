@@ -38,6 +38,9 @@ export default async function Home({
         .is('deleted_at', null)
         .or('publish_status.is.null,publish_status.not.in.(draft,review)')
         .in('type', ['Notícia', 'Internacional', 'Artigo', 'Artigo Técnico', 'Comunicado', 'Evento', 'Oportunidade', 'Curiosidade', 'Guia'])
+        // Pela data da notícia (as mais actuais à frente), não pela ordem em
+        // que foram publicadas na plataforma. created_at só desempata.
+        .order('date', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
         .limit(5)
     ]);
