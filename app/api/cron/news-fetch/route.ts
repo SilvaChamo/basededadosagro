@@ -176,6 +176,11 @@ const CATEGORY_RULES: { pattern: RegExp; category: string }[] = [
     { pattern: /\b(financiamento|crédito|fundo|investimento|subsídio|empréstimo|investment|funding|loan)\b/i, category: 'Oportunidade' },
     { pattern: /\b(estudo|pesquisa científica|relatório|report|study)\b/i, category: 'Relatório' },
     { pattern: /\b(áfrica do sul|zimbabué|zâmbia|malawi|tanzânia|internacional|mundial|global|onu|fao|international)\b/i, category: 'Internacional' },
+    // "Curiosidade" — só para notícia curiosa/insólita. Como esta função só
+    // corre em artigos que já passaram isRelevantNews (agricultura ou
+    // clima/ambiente), qualquer match aqui é sempre uma curiosidade agrícola.
+    // Fica em último para não roubar Evento/Legislação/Relatório.
+    { pattern: /\b(curioso|curiosa|curiosidade|ins[óo]lito|inusitad[oa]|invulgar|bizarr[oa]|surpreendente|recorde|(?:maior|menor) do mundo|pela primeira vez|in[ée]dit[oa]|espantoso|nunca visto)\b/i, category: 'Curiosidade' },
 ];
 
 function guessCategory(text: string): string {
