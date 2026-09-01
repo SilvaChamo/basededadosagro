@@ -1,12 +1,22 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
-import { getMpesaAccessToken, getMpesaCredentials, MPESA_BASE_URL } from '@/lib/mpesa';
+import {
+    getMpesaConfig,
+    isMpesaConfigured,
+    generateMpesaToken,
+    mpesaUrl,
+    mpesaHeaders,
+} from '@/lib/mpesa';
 
-// Activa o plano com o cliente admin (service_role) — desde que a coluna
+// Activa o plano com o cliente admin (service_role) — desde que
 // profiles.role/plan passou a estar protegida por trigger contra escrita
 // directa do dono da conta, isto já não pode ser feito a partir do browser.
-async function activatePlan(adminClient: ReturnType<typeof createAdminClient>, userId: string, planName: string) {
+async function activatePlan(
+    adminClient: ReturnType<typeof createAdminClient>,
+    userId: string,
+    planName: string,
+) {
     await adminClient.from('profiles').update({ plan: planName }).eq('id', userId);
     await adminClient.from('companies').update({ plan: planName }).eq('user_id', userId);
 }
@@ -38,50 +48,44 @@ export async function GET(request: Request) {
     // simulado) — não vale a pena voltar a perguntar ao M-Pesa.
     if (tx.status !== 'pending') {
         if (tx.status === 'completed') {
-            // Idempotente — repetir a activação não faz mal, só garante que
-            // uma falha a meio de um pedido anterior não deixe o plano por
-            // activar.
+            // Idempotente — repetir a activação só garante que uma falha a
+            // meio de um pedido anterior não deixe o plano por activar.
             await activatePlan(createAdminClient(), user.id, tx.plan_name);
         }
         return NextResponse.json({ status: tx.status, planName: tx.plan_name });
     }
 
-    const { consumerKey, consumerSecret, shortcode } = getMpesaCredentials();
-    if (!consumerKey || !consumerSecret) {
+    if (!isMpesaConfigured()) {
         // Modo simulado: o registo já devia ter ficado "completed" no
-        // /api/payment/mpesa — se ainda está pending aqui é porque a
-        // inserção falhou antes disso; reporta pending sem tentar o M-Pesa.
+        // /api/payment/mpesa. Se ainda está pending, a inserção falhou antes
+        // disso — reporta pending sem tentar o M-Pesa.
         return NextResponse.json({ status: 'pending', planName: tx.plan_name });
     }
 
-    // Ainda pendente na nossa base — pergunta directamente ao M-Pesa qual é
-    // o estado real, em vez de esperar por um callback (que exige um URL
-    // público acessível a partir da internet, o que não serve para testar
-    // a partir de localhost).
+    // Ainda pendente — pergunta directamente ao IPG qual é o estado real
+    // (queryTransactionStatus), em vez de esperar por um callback.
+    const { apiKey, publicKey, serviceProviderCode } = getMpesaConfig();
     const adminClient = createAdminClient();
+
     try {
-        const accessToken = await getMpesaAccessToken(consumerKey, consumerSecret);
-        const statusResponse = await fetch(
-            `${MPESA_BASE_URL}/queryTransactionStatus/?input_QueryReference=${encodeURIComponent(reference)}&input_ThirdPartyReference=${encodeURIComponent(reference)}&input_ServiceProviderCode=${encodeURIComponent(shortcode || '')}`,
-            {
-                method: 'GET',
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                    Origin: 'developer.mpesa.vm.co.mz',
-                },
-            }
-        );
+        const token = generateMpesaToken(apiKey, publicKey);
+        const url = mpesaUrl('queryStatus', {
+            input_ThirdPartyReference: reference,
+            input_QueryReference: reference,
+            input_ServiceProviderCode: serviceProviderCode,
+        });
+
+        const statusResponse = await fetch(url, { method: 'GET', headers: mpesaHeaders(token) });
         const statusData = await statusResponse.json().catch(() => null);
 
-        // Nome exacto do campo de estado não está 100% confirmado sem testar
-        // contra o sandbox real — por isso aceitam-se algumas variantes
-        // plausíveis, e a resposta em bruto fica sempre guardada para se
-        // poder ajustar isto depois de ver uma resposta real.
+        // O nome exacto do campo de estado varia entre versões do IPG — daí
+        // aceitarem-se várias hipóteses, e a resposta em bruto fica sempre
+        // guardada para se poder afinar isto depois de ver uma resposta real.
         const rawStatus = String(
             statusData?.output_ResponseTransactionStatus ??
             statusData?.output_TransactionStatus ??
             statusData?.transactionStatus ??
-            ''
+            '',
         ).toLowerCase();
 
         if (rawStatus.includes('complet') || rawStatus.includes('success')) {
@@ -99,8 +103,7 @@ export async function GET(request: Request) {
             return NextResponse.json({ status: 'failed', planName: tx.plan_name });
         }
 
-        // Continua pendente — guarda a resposta em bruto para depuração sem
-        // mudar o estado.
+        // Continua pendente — guarda a resposta em bruto sem mudar o estado.
         await adminClient.from('payment_transactions')
             .update({ provider_response: statusData })
             .eq('reference', reference);
