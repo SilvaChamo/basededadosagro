@@ -55,10 +55,54 @@ const montserrat = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://basededadosagro.com"),
-  title: "Base de Dados Agro",
-  description: "O seu repositório agrário",
-  keywords: ["Base de Dados Agro", "BaseDeDadosAgro", "Base de Dados", "Base", "Dados", "Agro"],
+  title: {
+    // Ordem pedida: 1) "Base de Dados" à cabeça, 2) o nome próprio do site
+    // "basededadosagro", 3) a frase-chave (agrícola / Moçambique).
+    default: "Base de Dados Agro — basededadosagro | base de dados agrícola de Moçambique",
+    // Subpáginas: "<nome da página> · Base de Dados Agro"
+    template: "%s · Base de Dados Agro",
+  },
+  description:
+    "Base de dados agrária de Moçambique: preços e mercado agrícola, empresas e serviços do sector, artigos científicos, notícias de agricultura e clima, estatísticas e repositório de documentos.",
+  // Ordem pedida: primeiro "base de dados", depois o nome próprio
+  // "basededadosagro", depois palavras-chave que ajudam a encontrar o domínio.
+  keywords: [
+    "base de dados",
+    "basededadosagro",
+    "base de dados agro",
+    "base de dados agrícola",
+    "base de dados agricultura Moçambique",
+    "dados agrários Moçambique",
+    "repositório agrário",
+    "mercado agrícola Moçambique",
+    "preços agrícolas Moçambique",
+    "notícias agricultura e clima Moçambique",
+    "estatísticas agrárias",
+    "empresas agrícolas Moçambique",
+  ],
+  applicationName: "Base de Dados Agro",
+  alternates: { canonical: "/" },
   manifest: "/manifest.json",
+  openGraph: {
+    type: "website",
+    siteName: "Base de Dados Agro",
+    locale: "pt_MZ",
+    url: "https://basededadosagro.com",
+    title: "Base de Dados Agro — base de dados agrícola de Moçambique",
+    description:
+      "Preços e mercado agrícola, empresas e serviços, artigos científicos, notícias de agricultura e clima, estatísticas e documentos — tudo num só sítio.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Base de Dados Agro — base de dados agrícola de Moçambique",
+    description:
+      "Preços e mercado agrícola, empresas e serviços, artigos científicos, notícias de agricultura e clima, estatísticas e documentos.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
 };
 
 export function generateViewport() {
