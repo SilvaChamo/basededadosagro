@@ -47,6 +47,9 @@ export function MediaLibrary({ onSelect, isModal }: MediaLibraryProps) {
     const [editingFile, setEditingFile] = useState<MediaItem | null>(null);
     const [editForm, setEditForm] = useState({ alt_text: "", caption: "" });
     const [savingMetadata, setSavingMetadata] = useState(false);
+    // Imagens cujo <img> falhou a carregar — mostram um placeholder neutro
+    // em vez do ícone partido do browser com o nome do ficheiro por cima.
+    const [brokenIds, setBrokenIds] = useState<Set<string>>(new Set());
 
     const loadImages = async () => {
         setLoading(true);
@@ -198,14 +201,25 @@ export function MediaLibrary({ onSelect, isModal }: MediaLibraryProps) {
                         </button>
                     </div>
                 ) : viewMode === "grid" ? (
-                    <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12 gap-2">
                         {filteredFiles.map((file) => (
                             <div
                                 key={file.id}
-                                className={`group relative aspect-square bg-white border rounded-md overflow-hidden cursor-pointer ${selectedIds.has(file.id) ? "border-[#2271b1] ring-2 ring-[#2271b1]" : "border-[#ccd0d4]"}`}
+                                className={`group relative aspect-square bg-white border overflow-hidden cursor-pointer ${selectedIds.has(file.id) ? "border-[#2271b1] ring-2 ring-[#2271b1]" : "border-[#ccd0d4]"}`}
                                 onClick={() => (onSelect ? onSelect(file.url) : toggleSelect(file.id))}
                             >
-                                <img src={file.url} className="w-full h-full object-cover" alt={file.alt_text || file.filename} />
+                                {brokenIds.has(file.id) ? (
+                                    <div className="w-full h-full flex items-center justify-center bg-slate-100">
+                                        <ImageIcon className="w-6 h-6 text-slate-300" />
+                                    </div>
+                                ) : (
+                                    <img
+                                        src={file.url}
+                                        className="w-full h-full object-cover"
+                                        alt=""
+                                        onError={() => setBrokenIds((prev) => new Set(prev).add(file.id))}
+                                    />
+                                )}
                                 {!onSelect && (
                                     <button type="button"
                                         onClick={(e) => { e.stopPropagation(); toggleSelect(file.id); }}
@@ -238,7 +252,7 @@ export function MediaLibrary({ onSelect, isModal }: MediaLibraryProps) {
                                 className={`flex items-center gap-3 p-2.5 border-b border-[#f0f0f1] last:border-0 hover:bg-[#f6f7f7] cursor-pointer ${selectedIds.has(file.id) ? "bg-blue-50" : ""}`}
                                 onClick={() => (onSelect ? onSelect(file.url) : toggleSelect(file.id))}
                             >
-                                <img src={file.url} className="w-10 h-10 object-cover rounded border border-[#ccd0d4]" alt={file.alt_text || file.filename} />
+                                <img src={file.url} className="w-10 h-10 object-cover rounded border border-[#ccd0d4]" alt="" />
                                 <span className="flex-1 text-sm text-[#2c3338] truncate">{file.filename}</span>
                                 {file.size && <span className="text-xs text-slate-400">{(file.size / 1024).toFixed(0)} KB</span>}
                                 {!onSelect && (
