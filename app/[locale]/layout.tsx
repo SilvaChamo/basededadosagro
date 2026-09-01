@@ -91,6 +91,16 @@ export const metadata: Metadata = {
   applicationName: "Base de Dados Agro",
   alternates: { canonical: "/" },
   manifest: "/manifest.json",
+  // ?v= força os browsers a irem buscar o ícone novo (a cache de favicons
+  // ignora Ctrl+Shift+R). Bump este número sempre que o ícone mudar.
+  icons: {
+    icon: [
+      { url: "/favicon.ico?v=3", sizes: "48x48", type: "image/x-icon" },
+      { url: "/icon.png?v=3", type: "image/png", sizes: "512x512" },
+    ],
+    shortcut: "/favicon.ico?v=3",
+    apple: "/icon.png?v=3",
+  },
   openGraph: {
     type: "website",
     siteName: "Base de Dados Agro",
