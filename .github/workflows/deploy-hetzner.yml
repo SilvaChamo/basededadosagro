@@ -1,8 +1,13 @@
 name: Deploy para Hetzner
 
+# Só arranque manual (aba Actions ou `gh workflow run deploy-hetzner.yml`).
+# O gatilho `on: push` foi removido de propósito: fazia de CADA push para
+# `main` um deploy imediato para produção, o que (a) torna qualquer push uma
+# acção irreversível e (b) faz o classificador de segurança bloquear o
+# `git push` em sessões automáticas. Com o deploy desacoplado do push,
+# guardar código no GitHub deixa de ser "publicar", e publicar passa a ser
+# um passo deliberado.
 on:
-  push:
-    branches: [main]
   workflow_dispatch: {}
 
 concurrency:
