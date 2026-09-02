@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { prefetchDashboardStats } from "@/lib/adminDashboardCache";
@@ -11,6 +11,14 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
+import Script from "next/script";
+
+// Caminho C: o login Google é feito no browser (Google Identity Services)
+// com o projecto Google próprio da basededadosagro — o ecrã do Google mostra
+// a nossa marca, nunca o domínio do Supabase. O ID token vai depois para o
+// Supabase via signInWithIdToken (sessão normal, RLS igual à de sempre).
+// O Client ID não é segredo — aparece sempre no browser.
+const GOOGLE_CLIENT_ID = "461209971814-tmtcfn4sniit1bpcmdssk5do70nod02i.apps.googleusercontent.com";
 
 interface AuthFormProps {
     searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
@@ -67,6 +75,11 @@ export function AuthForm(props: AuthFormProps) {
 
     // Create Supabase client for browser
     const supabase = createClient();
+
+    // Google Identity Services (Caminho C): o botão real do Google é
+    // renderizado invisível, sobreposto ao botão estilizado abaixo.
+    const googleBtnRef = useRef<HTMLDivElement>(null);
+    const [gsiReady, setGsiReady] = useState(false);
 
     const [formData, setFormData] = useState({
         email: "",
@@ -288,6 +301,59 @@ export function AuthForm(props: AuthFormProps) {
         }
     };
 
+    const handleGoogleCredential = useCallback(async (resp: { credential?: string }) => {
+        if (!resp?.credential) return;
+        setLoading(true);
+        setStatus(null);
+        try {
+            const client = createClient();
+            const { data, error } = await client.auth.signInWithIdToken({
+                provider: "google",
+                token: resp.credential,
+            });
+            if (error) throw error;
+            if (data.user) {
+                const { data: profile } = await client
+                    .from("profiles")
+                    .select("role, plan")
+                    .eq("id", data.user.id)
+                    .single();
+                if (isAdminRole(profile?.role)) {
+                    await prefetchDashboardStats();
+                    router.push("/admin");
+                } else if (isNewsTeamRole(profile?.role)) {
+                    router.push("/admin/central-noticias");
+                } else {
+                    const next = new URLSearchParams(window.location.search).get("next");
+                    router.push(next || "/usuario/dashboard");
+                }
+            }
+        } catch (err: any) {
+            setStatus({ type: "error", message: getAuthErrorMessage(err) });
+            setLoading(false);
+        }
+    }, [router]);
+
+    useEffect(() => {
+        if (!gsiReady) return;
+        const g = (window as any).google;
+        if (!g?.accounts?.id || !googleBtnRef.current) return;
+        g.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleCredential,
+            ux_mode: "popup",
+            auto_select: false,
+            itp_support: true,
+        });
+        googleBtnRef.current.replaceChildren();
+        g.accounts.id.renderButton(googleBtnRef.current, {
+            type: "icon",
+            shape: "circle",
+            theme: "outline",
+            size: "large",
+        });
+    }, [gsiReady, handleGoogleCredential]);
+
     const handleSocialLogin = async (provider: 'google' | 'facebook' | 'github') => {
         // Enforce name and phone for registration via social
         if (!isLogin) {
@@ -315,6 +381,12 @@ export function AuthForm(props: AuthFormProps) {
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center relative overflow-hidden">
+            <Script
+                src="https://accounts.google.com/gsi/client"
+                strategy="afterInteractive"
+                onLoad={() => setGsiReady(true)}
+                onReady={() => setGsiReady(true)}
+            />
             {/* Top Orange Line */}
             <div className="fixed top-0 left-0 w-full h-[6px] bg-[#f97316] z-[50] shadow-[0_2px_10px_rgba(249,115,22,0.3)]" />
 
@@ -623,19 +695,26 @@ export function AuthForm(props: AuthFormProps) {
                             {/* Only show Social Login on Email Tab or if configured otherwise. Typically Phone auth is standalone or merged. Keeping it here for consistency. */}
                             {!isResetPassword && authMethod === 'email' && (
                                 <div className="flex gap-2 w-full">
-                                    <button
-                                        onClick={(e) => { e.preventDefault(); handleSocialLogin('google'); }}
-                                        disabled={loading}
-                                        className="flex items-center justify-center gap-2 h-10 w-12 rounded-agro-btn border border-slate-200 bg-white text-slate-700 font-bold text-[10px] hover:border-[#f97316] hover:bg-[#f97316]/5 transition-all shadow-sm uppercase tracking-tight"
-                                        title="Entrar com Google"
-                                    >
-                                        <svg className="w-5 h-5" viewBox="0 0 24 24">
-                                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
-                                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                                        </svg>
-                                    </button>
+                                    <div className="relative h-10 w-12 shrink-0">
+                                        <div
+                                            aria-hidden="true"
+                                            title="Entrar com Google"
+                                            className="flex items-center justify-center h-10 w-12 rounded-agro-btn border border-slate-200 bg-white shadow-sm hover:border-[#f97316] hover:bg-[#f97316]/5 transition-all"
+                                        >
+                                            <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
+                                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                                            </svg>
+                                        </div>
+                                        {/* Botão real do Google (GSI), transparente, por cima — o clique
+                                            abre o ecrã do Google já com a marca da basededadosagro. */}
+                                        <div
+                                            ref={googleBtnRef}
+                                            className="absolute inset-0 flex items-center justify-center opacity-0 [color-scheme:light]"
+                                        />
+                                    </div>
 
                                     <button
                                         onClick={(e) => { e.preventDefault(); handleSocialLogin('facebook'); }}
