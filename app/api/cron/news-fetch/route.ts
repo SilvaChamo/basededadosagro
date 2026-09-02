@@ -317,6 +317,23 @@ export async function GET(req: Request) {
     }
 
     try {
+        // Pendentes com mais de 1 semana na fila são apagados — o robô só
+        // mantém candidatos recentes para revisão.
+        let pruned = 0;
+        {
+            const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+            const { data: prunedRows, error: pruneErr } = await supabaseAdmin
+                .from('articles_pending')
+                .delete()
+                .lt('created_at', weekAgo)
+                .select('id');
+            if (pruneErr) {
+                console.error('news-fetch: erro ao limpar pendentes antigos:', pruneErr);
+            } else {
+                pruned = prunedRows?.length || 0;
+            }
+        }
+
         const [{ data: existingArticles }, { data: existingPending }] = await Promise.all([
             supabaseAdmin.from('articles').select('source_url'),
             supabaseAdmin.from('articles_pending').select('source_url'),
@@ -391,7 +408,7 @@ export async function GET(req: Request) {
             await sendAlertEmail(inserted);
         }
 
-        return NextResponse.json({ found: candidates.length, inserted, perFeed });
+        return NextResponse.json({ found: candidates.length, inserted, pruned, perFeed });
     } catch (err: any) {
         console.error('news-fetch: erro geral:', err);
         return NextResponse.json({ error: err.message || 'erro desconhecido' }, { status: 500 });

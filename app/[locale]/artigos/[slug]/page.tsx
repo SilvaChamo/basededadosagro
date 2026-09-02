@@ -85,14 +85,20 @@ export default function ArticleReadingPage() {
             setLoading(true);
             try {
                 // Fetch main article
-                const { data: articleData, error: articleError } = await supabase
+                // .limit(1) em vez de .single(): se existirem duas linhas com o
+                // mesmo slug (ex.: uma versão apagada + uma viva), o .single()
+                // rebentava com PGRST116 e a página dizia "artigo não
+                // encontrado" apesar de o artigo aparecer nas listagens.
+                const { data: articleRows, error: articleError } = await supabase
                     .from('articles')
                     .select('*')
                     .eq('slug', slug)
-                    .single();
+                    .is('deleted_at', null)
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                const articleData = articleRows?.[0] ?? null;
 
-                if ((articleError && articleError.code !== 'PGRST116') || (!articleData && !articleError)) {
-                    // Real error, not just 'not-found'
+                if (articleError) {
                     console.error("Supabase Error:", articleError);
                 }
 
