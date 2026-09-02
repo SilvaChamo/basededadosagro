@@ -2,7 +2,7 @@
 
 import React from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { Lock, Eye, ShieldCheck, Database, Bell } from "lucide-react";
+import { Lock, Eye, ShieldCheck, Database, Bell, Trash2 } from "lucide-react";
 
 export default function PrivacyPolicyPage() {
     const points = [
@@ -25,6 +25,11 @@ export default function PrivacyPolicyPage() {
             icon: Bell,
             title: "Comunicações",
             content: "O utilizador pode optar por receber notificações via SMS ou E-mail sobre actualizações de mercado, podendo estas ser desactivadas a qualquer momento no seu dashboard."
+        },
+        {
+            icon: Trash2,
+            title: "Eliminação de Dados e da Conta",
+            content: "Pode pedir a eliminação da sua conta e de todos os dados associados — incluindo os obtidos através do início de sessão com o Google ou o Facebook — a qualquer momento, a partir de \"Minha Conta\" no seu dashboard ou enviando um pedido para privacidade@basededadosagro.com. O pedido é processado no prazo máximo de 30 dias, findo o qual os dados pessoais são apagados de forma permanente dos nossos sistemas, salvo obrigação legal de retenção."
         }
     ];
 

@@ -226,46 +226,30 @@ export function AuthForm(props: AuthFormProps) {
                     throw new Error("Resposta da soma incorreta. Tente novamente.");
                 }
 
-                const { data, error } = await supabase.auth.signUp({
-                    email: formData.email,
-                    password: formData.password,
-                    options: {
-                        data: {
-                            full_name: formData.fullName,
-                            phone: cleanPhone,
-                        }
-                    }
-                });
-
-                if (error) throw error;
-
-                if (data.session && data.user) {
-                    await supabase.from('profiles').update({
-                        plan: 'Free',
-                        phone: cleanPhone,
-                        full_name: formData.fullName,
-                        sms_notifications: false // Default for Free
-                    }).eq('id', data.user.id);
-                    // Check for redirect param
-                    const params = new URLSearchParams(window.location.search);
-                    const redirectTo = params.get('next');
-                    setLoading(false);
-                    router.push(redirectTo || "/usuario/dashboard");
-                } else {
-                    const { error: signInError } = await supabase.auth.signInWithPassword({
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
                         email: formData.email,
                         password: formData.password,
-                    });
+                        fullName: formData.fullName,
+                        phone: cleanPhone,
+                        plan: 'Free',
+                    }),
+                });
+                const payload = await res.json();
+                if (!res.ok) throw new Error(payload.error || 'Não foi possível criar a conta.');
 
-                    if (!signInError) {
-                        setLoading(false);
-                        const params = new URLSearchParams(window.location.search);
-                        const redirectTo = params.get('next');
-                        router.push(redirectTo || "/usuario/dashboard");
-                    } else {
-                        setStatus({ type: 'success', message: 'Conta criada! Verifique sua caixa de entrada para confirmar o e-mail.' });
-                    }
-                }
+                const { error: signInError } = await supabase.auth.signInWithPassword({
+                    email: formData.email,
+                    password: formData.password,
+                });
+                if (signInError) throw signInError;
+
+                const params = new URLSearchParams(window.location.search);
+                const redirectTo = params.get('next');
+                setLoading(false);
+                router.push(redirectTo || "/usuario/dashboard");
             }
         } catch (err: any) {
             setStatus({ type: 'error', message: getAuthErrorMessage(err) });
@@ -675,11 +659,11 @@ export function AuthForm(props: AuthFormProps) {
                             </>
                         )}
 
-                        <div className="grid grid-cols-2 gap-3 mt-3">
+                        <div className="flex gap-3 mt-3">
                             <Button
                                 type="submit"
                                 disabled={loading}
-                                className="bg-emerald-600 hover:bg-[#f97316] text-white font-black h-10 rounded-agro-btn shadow-lg transition-all text-[11px] uppercase tracking-wider group"
+                                className="flex-1 bg-emerald-600 hover:bg-[#f97316] text-white font-black h-10 rounded-agro-btn shadow-lg transition-all text-[11px] uppercase tracking-wider group"
                             >
                                 {(
                                     <span className="flex items-center justify-center gap-1.5">
@@ -694,12 +678,12 @@ export function AuthForm(props: AuthFormProps) {
 
                             {/* Only show Social Login on Email Tab or if configured otherwise. Typically Phone auth is standalone or merged. Keeping it here for consistency. */}
                             {!isResetPassword && authMethod === 'email' && (
-                                <div className="flex gap-2 w-full">
-                                    <div className="relative h-10 w-12 shrink-0">
+                                <>
+                                    <div className="relative h-10 w-10 shrink-0">
                                         <div
                                             aria-hidden="true"
                                             title="Entrar com Google"
-                                            className="flex items-center justify-center h-10 w-12 rounded-agro-btn border border-slate-200 bg-white shadow-sm hover:border-[#f97316] hover:bg-[#f97316]/5 transition-all"
+                                            className="flex items-center justify-center h-10 w-10 rounded-agro-btn border border-slate-200 bg-white shadow-sm hover:border-[#f97316] hover:bg-[#f97316]/5 transition-all"
                                         >
                                             <svg className="w-5 h-5" viewBox="0 0 24 24">
                                                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -716,10 +700,17 @@ export function AuthForm(props: AuthFormProps) {
                                         />
                                     </div>
 
-                                    {/* Botão Facebook escondido: o provider não está ligado no
-                                        GoTrue partilhado e no web não há equivalente ao
-                                        signInWithIdToken do Google. Rever pós-FACIM. */}
-                                </div>
+                                    <button
+                                        onClick={(e) => { e.preventDefault(); handleSocialLogin('facebook'); }}
+                                        disabled={loading}
+                                        className="flex items-center justify-center gap-2 h-10 w-10 shrink-0 rounded-agro-btn border border-slate-200 bg-white text-slate-700 font-bold text-[10px] hover:border-[#1877F2] hover:bg-[#1877F2]/5 transition-all shadow-sm uppercase tracking-tight"
+                                        title="Entrar com Facebook"
+                                    >
+                                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#1877F2">
+                                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.791-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                                        </svg>
+                                    </button>
+                                </>
                             )}
                         </div>
 
