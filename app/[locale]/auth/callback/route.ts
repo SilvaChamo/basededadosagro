@@ -4,10 +4,31 @@ import { createAdminClient } from '@/utils/supabase/admin'
 import { isAdminRole, isNewsTeamRole } from '@/lib/roles'
 
 export async function GET(request: Request) {
-    const { searchParams, origin } = new URL(request.url)
-    const code = searchParams.get('code')
-    // if "next" is in search params, use it as the redirection URL
-    const next = searchParams.get('next') ?? '/usuario/dashboard'
+    const url = new URL(request.url)
+    const code = url.searchParams.get('code')
+    // se "next" vier nos parâmetros, usa-o como destino
+    const next = url.searchParams.get('next') ?? '/usuario/dashboard'
+
+    // Host PÚBLICO. Atrás de Cloudflare -> Apache -> PM2 o origin de
+    // request.url é interno (localhost:3010) e o x-forwarded-host pode chegar
+    // com vários valores separados por vírgula. Ficamos com o 1.º; `base` é
+    // SEMPRE um URL absoluto válido (fallback fixo). Sem isto, um admin a
+    // entrar por Google/Facebook era mandado para localhost:3010/admin ->
+    // ERR_CONNECTION_REFUSED. Em dev usa-se o origin real.
+    const pick = (v: string | null) => (v ?? '').split(',')[0].trim()
+    const isDev = process.env.NODE_ENV === 'development'
+    let base = 'https://basededadosagro.com'
+    try {
+        if (isDev) {
+            base = url.origin
+        } else {
+            const fwdHost = pick(request.headers.get('x-forwarded-host'))
+            const fwdProto = pick(request.headers.get('x-forwarded-proto')) || 'https'
+            base = fwdHost ? new URL(`${fwdProto}://${fwdHost}`).origin : url.origin
+        }
+    } catch {
+        /* mantém o fallback fixo */
+    }
 
     if (code) {
         const supabase = await createClient()
@@ -46,30 +67,18 @@ export async function GET(request: Request) {
             }
 
             if (isAdminRole(profile?.role)) {
-                return NextResponse.redirect(`${origin}/admin`)
+                return NextResponse.redirect(`${base}/admin`)
             }
 
             if (isNewsTeamRole(profile?.role)) {
-                return NextResponse.redirect(`${origin}/admin/central-noticias`)
+                return NextResponse.redirect(`${base}/admin/central-noticias`)
             }
 
-            // All users end up on the destination or dashboard
-            const targetNext = next;
-
-
-            const forwardedHost = request.headers.get('x-forwarded-host') // i.e. local.com:3000
-            const isLocalEnv = process.env.NODE_ENV === 'development'
-            if (isLocalEnv) {
-                // we can be sure that origin is http://localhost:3000
-                return NextResponse.redirect(`${origin}${targetNext}`)
-            } else if (forwardedHost) {
-                return NextResponse.redirect(`https://${forwardedHost}${targetNext}`)
-            } else {
-                return NextResponse.redirect(`${origin}${targetNext}`)
-            }
+            // Restantes utilizadores: destino pedido ou dashboard.
+            return NextResponse.redirect(`${base}${next}`)
         }
     }
 
-    // return the user to an error page with instructions
-    return NextResponse.redirect(`${origin}/auth/login?status=error&message=Authentication failed`)
+    // Erro: volta ao login com mensagem, sempre no host público.
+    return NextResponse.redirect(`${base}/auth/login?status=error&message=Authentication failed`)
 }
