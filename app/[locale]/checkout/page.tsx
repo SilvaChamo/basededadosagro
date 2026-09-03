@@ -124,33 +124,39 @@ function CheckoutContent() {
         }
 
         try {
-            // 1. Create account
-            const { data: authData, error: signUpError } = await supabase.auth.signUp({
-                email: email.trim(),
-                password: password,
-                options: {
-                    data: {
-                        full_name: fullName.trim(),
-                        phone: phone.trim(),
-                        plan: planName
-                    }
-                }
+            // 1. Criar conta já confirmada via rota admin
+            const res = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email.trim(),
+                    password,
+                    fullName: fullName.trim(),
+                    phone: phone.trim(),
+                    plan: planName,
+                }),
             });
+            const payload = await res.json();
+            if (!res.ok) {
+                setError(payload.error || "Não foi possível criar a conta.");
+                setLoading(false);
+                return;
+            }
 
-            if (signUpError) {
-                if (signUpError.message.includes("already registered")) {
-                    setError("Este email já está registado. Faça login primeiro.");
-                } else {
-                    setError(signUpError.message);
-                }
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: email.trim(),
+                password: password
+            });
+            if (signInError) {
+                setError(signInError.message);
                 setLoading(false);
                 return;
             }
 
             // 2. Create company record with selected plan
-            if (authData.user) {
+            if (payload.userId) {
                 await supabase.from('companies').insert({
-                    user_id: authData.user.id,
+                    user_id: payload.userId,
                     name: fullName.trim(),
                     plan: planName,
                     is_featured: highlightCompany,

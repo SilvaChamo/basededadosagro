@@ -100,7 +100,7 @@ const nextConfig: NextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.supabase.co *.google.com accounts.google.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; img-src 'self' blob: data: *.supabase.co supabase.visualdesignmoz.com res.cloudinary.com images.unsplash.com https://*.googleusercontent.com https://accounts.google.com; font-src 'self' fonts.gstatic.com; connect-src 'self' *.supabase.co *.basededadosagro.com supabase.visualdesignmoz.com https://accounts.google.com https://www.googleapis.com; frame-src *.google.com accounts.google.com; object-src 'none';"
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.supabase.co *.google.com accounts.google.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; img-src 'self' blob: data: *.supabase.co supabase.basededadosagro.com supabase.visualdesignmoz.com res.cloudinary.com images.unsplash.com https://*.googleusercontent.com https://accounts.google.com; font-src 'self' fonts.gstatic.com; connect-src 'self' *.supabase.co *.basededadosagro.com supabase.visualdesignmoz.com https://accounts.google.com https://www.googleapis.com; frame-src *.google.com accounts.google.com; object-src 'none';"
           }
         ]
       }
