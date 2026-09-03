@@ -82,6 +82,39 @@ export default function RegisterCompanyPage() {
         const checkUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             setUser(user);
+            if (!user) return;
+
+            // A conta já tem empresa registada? Então pré-preenche o
+            // formulário com os dados actuais (o utilizador vem editar /
+            // destacar, não criar de novo).
+            const { data: company } = await supabase
+                .from('companies')
+                .select('*')
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+            if (company) {
+                setFormData(prev => ({
+                    ...prev,
+                    companyName: company.name || prev.companyName,
+                    activity: company.activity || prev.activity,
+                    email: company.email || prev.email,
+                    contact: company.contact || prev.contact,
+                    logoUrl: company.logo_url || prev.logoUrl,
+                    province: company.province || prev.province,
+                    district: company.district || prev.district,
+                    address: company.address || prev.address,
+                    sector: company.category || prev.sector,
+                    description: company.description || prev.description,
+                    plan: company.plan || prev.plan,
+                    website: company.website || prev.website,
+                    representative: company.representative_name || prev.representative,
+                    nuit: company.nuit || prev.nuit,
+                    billingPeriod: company.billing_period || prev.billingPeriod,
+                    products: Array.isArray(company.products) && company.products.length ? company.products : prev.products,
+                    highlightCompany: typeof company.is_featured === 'boolean' ? company.is_featured : prev.highlightCompany,
+                }));
+            }
         };
         checkUser();
 

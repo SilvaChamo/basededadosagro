@@ -10,7 +10,9 @@ interface HomeHeaderSectionProps {
 }
 
 export function HomeHeaderSection({ stats }: HomeHeaderSectionProps) {
-    const [isSearchOpen, setIsSearchOpen] = useState(true);
+    // Começa fechado: o motor de busca só expande quando o utilizador clica
+    // no botão de pesquisa do Hero.
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
 
     return (
         <>

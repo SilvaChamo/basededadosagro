@@ -110,18 +110,30 @@ export async function updateSession(request: NextRequest) {
     const inPasswordRecovery = request.nextUrl.searchParams.get('mode') === 'recovery';
 
     if (pathname === '/auth/login' && user && !inPasswordRecovery) {
-        // Sessão já activa neste navegador (não é um login "de raiz") — tem de
-        // respeitar o role tal como o formulário de login respeita, senão um
-        // admin/editor/contribuidor com sessão guardada acaba sempre a cair
-        // no painel de cliente em vez do painel certo.
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .single();
+        // Um `next` explícito (ex.: "Destacar a sua empresa" ->
+        // /auth/login?next=/usuario/registo-empresa) tem prioridade sobre o
+        // destino por role — mesmo para quem já tem sessão activa.
+        const rawNext = request.nextUrl.searchParams.get('next');
+        const safeNext = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : null;
 
         const url = request.nextUrl.clone();
-        url.pathname = getPostLoginPath(profile?.role);
+        if (safeNext) {
+            const [p, q] = safeNext.split('?');
+            url.pathname = p;
+            url.search = q ? `?${q}` : '';
+        } else {
+            // Sessão já activa neste navegador (não é um login "de raiz") — tem
+            // de respeitar o role tal como o formulário de login respeita,
+            // senão um admin/editor/contribuidor com sessão guardada acaba
+            // sempre a cair no painel de cliente em vez do painel certo.
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single();
+            url.pathname = getPostLoginPath(profile?.role);
+            url.search = '';
+        }
         return NextResponse.redirect(url);
     }
 

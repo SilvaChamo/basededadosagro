@@ -42,7 +42,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 // Central de Notícias. Sem isto, uma conta promovida a estes
                 // papéis ficava presa no painel de cliente sempre que chegasse
                 // aqui directamente (sessão antiga, marcador, etc.).
-                if (isNewsTeamRole(profile?.role)) {
+                // EXCEPÇÃO: o formulário de registo/destaque de empresa é
+                // legítimo para QUALQUER conta — sem esta excepção o botão
+                // "Destacar a sua empresa" entrava em loop com a Central de
+                // Notícias para estes papéis.
+                const isCompanyForm = pathname?.includes("/usuario/registo-empresa");
+                if (isNewsTeamRole(profile?.role) && !isCompanyForm) {
                     router.push("/admin/central-noticias");
                     return;
                 }

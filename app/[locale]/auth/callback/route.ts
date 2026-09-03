@@ -6,8 +6,11 @@ import { isAdminRole, isNewsTeamRole } from '@/lib/roles'
 export async function GET(request: Request) {
     const url = new URL(request.url)
     const code = url.searchParams.get('code')
-    // se "next" vier nos parâmetros, usa-o como destino
-    const next = url.searchParams.get('next') ?? '/usuario/dashboard'
+    // "next" explícito (ex.: /auth/login?next=/destaque). Só caminhos
+    // internos; tem prioridade sobre o destino por role.
+    const rawNext = url.searchParams.get('next')
+    const safeNext = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : null
+    const next = safeNext ?? '/usuario/dashboard'
 
     // Host PÚBLICO. Atrás de Cloudflare -> Apache -> PM2 o origin de
     // request.url é interno (localhost:3010) e o x-forwarded-host pode chegar
@@ -66,6 +69,11 @@ export async function GET(request: Request) {
                 }
             }
 
+            // `next` explícito ganha a qualquer role (voltar ao sítio de onde veio).
+            if (safeNext) {
+                return NextResponse.redirect(`${base}${safeNext}`)
+            }
+
             if (isAdminRole(profile?.role)) {
                 return NextResponse.redirect(`${base}/admin`)
             }
@@ -74,7 +82,7 @@ export async function GET(request: Request) {
                 return NextResponse.redirect(`${base}/admin/central-noticias`)
             }
 
-            // Restantes utilizadores: destino pedido ou dashboard.
+            // Restantes utilizadores: dashboard.
             return NextResponse.redirect(`${base}${next}`)
         }
     }

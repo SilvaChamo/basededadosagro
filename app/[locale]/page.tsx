@@ -4,6 +4,7 @@ import { CategoriesShowcase } from "@/components/CategoriesShowcase";
 import { CommunityBanner } from "@/components/CommunityBanner";
 import { WhyChooseUs } from "@/components/WhyChooseUs";
 import { MobileAppSection } from "@/components/MobileAppSection";
+import { HomePlansSection } from "@/components/HomePlansSection";
 import { supabase } from "@/lib/supabaseClient";
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
@@ -93,6 +94,7 @@ export default async function Home({
       <WhyChooseUs />
       <InfoSection initialArticles={articles} />
       <MobileAppSection />
+      <HomePlansSection />
     </main>
   );
 }

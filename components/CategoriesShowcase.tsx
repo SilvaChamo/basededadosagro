@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ArrowRight, Building2, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 import { useTranslations } from 'next-intl';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
@@ -13,7 +15,21 @@ interface CategoriesShowcaseProps {
 
 export function CategoriesShowcase({ companies }: CategoriesShowcaseProps) {
     const t = useTranslations('CategoriesShowcase');
+    const router = useRouter();
     const items = companies || [];
+
+    // "Destacar a sua empresa" -> vai SEMPRE ao formulário de registo de
+    // empresa (com ou sem conta). Se não tiver sessão, passa pelo login com
+    // ?next para voltar a este formulário depois de entrar.
+    const handleFeatureCompany = async () => {
+        const dest = "/usuario/registo-empresa";
+        try {
+            const { data: { user } } = await createClient().auth.getUser();
+            router.push(user ? dest : `/auth/login?next=${dest}`);
+        } catch {
+            router.push(`/auth/login?next=${dest}`);
+        }
+    };
 
     const [emblaRef, emblaApi] = useEmblaCarousel(
         { loop: true, align: 'start', skipSnaps: false },
@@ -56,12 +72,12 @@ export function CategoriesShowcase({ companies }: CategoriesShowcaseProps) {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <Link
-                            href="/destaque"
-                            className="inline-flex items-center h-8 px-4 border-2 border-emerald-600 text-emerald-600 text-[10px] font-black uppercase tracking-widest hover:border-[#f97316] hover:text-[#f97316] transition-all duration-300 rounded-md mr-2"
+                        <button
+                            onClick={handleFeatureCompany}
+                            className="inline-flex items-center h-8 px-4 border-2 border-emerald-600 text-emerald-600 text-[10px] font-black uppercase tracking-widest hover:border-[#f97316] hover:text-[#f97316] transition-all duration-300 rounded-md mr-2 cursor-pointer"
                         >
                             {t('feature_button')}
-                        </Link>
+                        </button>
 
                         <div className="hidden md:flex items-center gap-3">
                             <button

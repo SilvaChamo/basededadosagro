@@ -206,7 +206,19 @@ export function AuthForm(props: AuthFormProps) {
                         .eq('id', data.user.id)
                         .single();
 
-                    if (isAdminRole(profile?.role)) {
+                    // Um `next` explícito (ex.: vindo do botão "Destacar a sua
+                    // empresa" -> /auth/login?next=/destaque) tem SEMPRE
+                    // prioridade, seja qual for o role — senão um
+                    // admin/editor/contribuidor acabava no painel em vez de
+                    // voltar ao sítio de onde veio.
+                    const params = new URLSearchParams(window.location.search);
+                    const rawNext = params.get('next');
+                    const safeNext = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : null;
+
+                    if (safeNext) {
+                        setLoading(false);
+                        router.push(safeNext);
+                    } else if (isAdminRole(profile?.role)) {
                         // Password já confirmada — prepara os dados do painel em segundo
                         // plano (até 4s) antes de navegar, para abrir sem mostrar loading.
                         await prefetchDashboardStats();
@@ -216,13 +228,8 @@ export function AuthForm(props: AuthFormProps) {
                         setLoading(false);
                         router.push("/admin/central-noticias");
                     } else {
-                        // Check for redirect param
-                        const params = new URLSearchParams(window.location.search);
-                        const redirectTo = params.get('next');
                         setLoading(false);
-
-                        // All users now go to dashboard or the requested 'next' page
-                        router.push(redirectTo || "/usuario/dashboard");
+                        router.push("/usuario/dashboard");
                     }
                 }
             } else {
