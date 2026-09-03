@@ -152,10 +152,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                         <Link href="/" className="hover:opacity-80 transition-opacity duration-300">
                             <Image
-                                src="/Logo.svg"
+                                src="/Logo.png"
                                 alt="Base Agro Data Logo"
-                                width={160}
-                                height={60}
+                                width={875}
+                                height={491}
                                 className="h-10 w-auto object-contain"
                                 priority
                             />

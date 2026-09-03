@@ -98,10 +98,10 @@ export default function PricingPage() {
                     </Link>
                     <Link href="/">
                         <Image
-                            src="/Logo.svg"
+                            src="/Logo.png"
                             alt="Base Agro Data"
-                            width={140}
-                            height={50}
+                            width={875}
+                            height={491}
                             className="h-8 w-auto"
                             priority
                         />

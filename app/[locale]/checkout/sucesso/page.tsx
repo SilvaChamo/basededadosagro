@@ -94,10 +94,10 @@ export default function SucessoPage() {
             <header className="bg-white/80 backdrop-blur-sm border-b border-slate-100 py-4 sticky top-0 z-50">
                 <div className="max-w-5xl mx-auto px-4 flex items-center justify-center">
                     <Image
-                        src="/Logo.svg"
+                        src="/Logo.png"
                         alt="Base Agro Data"
-                        width={180}
-                        height={60}
+                        width={875}
+                        height={491}
                         className="h-10 w-auto"
                     />
                 </div>

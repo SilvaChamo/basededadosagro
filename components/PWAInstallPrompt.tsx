@@ -96,7 +96,7 @@ export function PWAInstallPrompt() {
                 <div className="flex items-center gap-4">
                     <div className="w-14 h-14 relative flex-shrink-0 bg-emerald-50 rounded-xl p-2 border border-emerald-100">
                         <Image
-                            src="/Logo.svg"
+                            src="/Logo.png"
                             alt="Base de Dados Agro Logo"
                             width={56}
                             height={56}

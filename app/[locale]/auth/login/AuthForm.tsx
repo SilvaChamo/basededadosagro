@@ -420,10 +420,10 @@ export function AuthForm(props: AuthFormProps) {
                     <div className="text-center mb-7">
                         <Link href="/" className="inline-block transition-transform duration-300 hover:scale-105 opacity-100 !opacity-100">
                             <Image
-                                src="/Logo.svg"
+                                src="/Logo.png"
                                 alt="Base Agro Data"
-                                width={160}
-                                height={64}
+                                width={875}
+                                height={491}
                                 className="h-16 w-auto mx-auto object-contain opacity-100 !opacity-100"
                                 priority
                             />

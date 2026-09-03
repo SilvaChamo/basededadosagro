@@ -588,10 +588,10 @@ export default function CheckoutPage() {
                         Voltar aos Planos
                     </Link>
                     <Image
-                        src="/Logo.svg"
+                        src="/Logo.png"
                         alt="Base Agro Data"
-                        width={180}
-                        height={60}
+                        width={875}
+                        height={491}
                         className="h-9 w-auto"
                     />
                     <div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
