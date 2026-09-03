@@ -4,89 +4,125 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import {
-    Building2, MapPin, Briefcase, CheckCircle2,
-    ArrowRight, ArrowLeft, Upload, Loader2, Save, Crown
+    Building2, MapPin, Briefcase, CheckCircle2, Upload,
+    Loader2, Save, Crown, Plus, Trash2, X, Pencil, Lock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { cn, compressImage } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
+import { RichTextEditor } from "@/components/RichTextEditor";
+import { COMPANY_CATEGORIES } from "@/lib/constants";
+import Image from "next/image";
 
-// Definindo os passos do Wizard
-const STEPS = [
-    { id: 1, title: "Identidade", icon: Building2, description: "Essenciais do negócio" },
-    { id: 2, title: "Plano", icon: Crown, description: "Escolha sua presença" },
-    { id: 3, title: "Localização", icon: MapPin, description: "Sede e operação" },
-    { id: 4, title: "Atividade", icon: Briefcase, description: "Perfil detalhado" },
-    { id: 5, title: "Produtos", icon: Save, description: "Seu catálogo" },
-    { id: 6, title: "Pagamento", icon: CheckCircle2, description: "Facturação" }
+// Plan config
+const PLANS = [
+    {
+        id: 'Gratuito',
+        label: 'Gratuito',
+        price: 0,
+        badge: null,
+        color: 'slate',
+        features: ['Perfil básico', 'Visibilidade limitada', 'Suporte via e-mail'],
+    },
+    {
+        id: 'Premium',
+        label: 'Premium',
+        price: 2500,
+        badge: 'Pequenas Empresas',
+        color: 'orange',
+        features: ['Acesso a cotações', 'Vagas ilimitadas', 'Perfil verificado', 'Produtos ilimitados'],
+    },
+    {
+        id: 'Business Vendedor',
+        label: 'Business Vendedor',
+        price: 5000,
+        badge: null,
+        color: 'blue',
+        features: ['Tudo do Premium', 'Acesso API de dados', 'Relatórios PDF/Excel', 'Consultoria Mensal'],
+    },
+    {
+        id: 'Parceiro',
+        label: 'Plano Parceiro',
+        price: null,
+        badge: 'Sob Consulta',
+        color: 'emerald',
+        features: ['Tudo do Business', 'Destaque máximo', 'Publicação de vagas', 'Suporte dedicado'],
+    },
 ];
+
+const PLAN_COLOR: Record<string, string> = {
+    Gratuito: 'border-slate-300 bg-slate-50',
+    Premium: 'border-orange-400 bg-orange-50/40',
+    'Business Vendedor': 'border-blue-500 bg-blue-50/40',
+    Parceiro: 'border-emerald-500 bg-emerald-50/40',
+};
+
+const PLAN_ACTIVE: Record<string, string> = {
+    Gratuito: 'ring-2 ring-slate-400',
+    Premium: 'ring-2 ring-orange-400',
+    'Business Vendedor': 'ring-2 ring-blue-500',
+    Parceiro: 'ring-2 ring-emerald-500',
+};
 
 export default function RegisterCompanyPage() {
     const router = useRouter();
     const supabase = createClient();
 
-    // Estados Globais
-    const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [user, setUser] = useState<any>(null);
     const [tempLogoFile, setTempLogoFile] = useState<File | null>(null);
     const [isRestored, setIsRestored] = useState(false);
+    const [bannerUrl, setBannerUrl] = useState("");
+    const [tempBannerFile, setTempBannerFile] = useState<File | null>(null);
 
-    // Estado do Formulário (Unificado)
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'mpesa' | 'visa' | null>(null);
+    const [paymentPhoneNumber, setPaymentPhoneNumber] = useState("");
+    const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
+
     const [formData, setFormData] = useState({
-        // Passo 1: Identidade
         companyName: "",
         activity: "",
         email: "",
         contact: "",
         newsletter: true,
         logoUrl: "",
-
-        // Partner Fields
         website: "",
         representative: "",
         nuit: "",
-
-        // Passo 2: Plano
-        plan: "Gratuito", // Gratuito | Premium | Business Vendedor | Parceiro
+        plan: "Gratuito",
         billingPeriod: "monthly",
-        isCatalogUnlocked: false,
         highlightCompany: false,
-
-        // Passo 3: Localização
         province: "",
         district: "",
         address: "",
-
-        // Passo 4: Atividade
         sector: "",
         description: "",
         tags: "",
-
-        // Passo 5: Produtos
         products: [] as { name: string; description: string }[],
-
-        // Passo 6: Pagamento
         paymentMethod: "",
         paymentPhone: "",
         paymentConfirmed: false
     });
 
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const logoInputRef = useRef<HTMLInputElement>(null);
+    const bannerInputRef = useRef<HTMLInputElement>(null);
 
-    // Verificar Auth e Restaurar Dados
     useEffect(() => {
         const checkUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             setUser(user);
             if (!user) return;
 
-            // A conta já tem empresa registada? Então pré-preenche o
-            // formulário com os dados actuais (o utilizador vem editar /
-            // destacar, não criar de novo).
             const { data: company } = await supabase
                 .from('companies')
                 .select('*')
@@ -114,134 +150,106 @@ export default function RegisterCompanyPage() {
                     products: Array.isArray(company.products) && company.products.length ? company.products : prev.products,
                     highlightCompany: typeof company.is_featured === 'boolean' ? company.is_featured : prev.highlightCompany,
                 }));
+                if (company.banner_url) setBannerUrl(company.banner_url);
             }
         };
         checkUser();
 
-        // Restore from localStorage
         const savedData = localStorage.getItem('pending_company_form');
         if (savedData) {
             try {
                 const parsed = JSON.parse(savedData);
                 setFormData(prev => ({ ...prev, ...parsed }));
-            } catch (e) {
-                console.error("Error restoring data", e);
-            }
+            } catch (e) { /* ignore */ }
         }
         setIsRestored(true);
-    }, [supabase]);
+    }, []);
 
-    // Auto-save to localStorage
     useEffect(() => {
         if (isRestored) {
-            const { logoUrl, ...rest } = formData; // Don't save URL to localStorage if it's transient
+            const { logoUrl, ...rest } = formData;
             localStorage.setItem('pending_company_form', JSON.stringify(rest));
         }
     }, [formData, isRestored]);
 
-    // Auto-submit after login
-    useEffect(() => {
-        const pendingSubmission = localStorage.getItem('pending_company_submission');
-        if (user && pendingSubmission === 'true') {
-            localStorage.removeItem('pending_company_submission');
-            handleSubmit();
-        }
-    }, [user]);
-
-    // Auto-resize textarea function
-    const autoResize = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const target = e.target;
-        target.style.height = 'auto';
-        target.style.height = `${target.scrollHeight}px`;
-    };
-
-    // Handlers
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files || e.target.files.length === 0) return;
+        if (!e.target.files || !e.target.files.length) return;
         const file = e.target.files[0];
-
         if (!user) {
-            // Se não estiver logado, apenas guarda localmente o ficheiro e mostra uma preview temporária
             setTempLogoFile(file);
             const reader = new FileReader();
-            reader.onload = (event) => {
-                setFormData(prev => ({ ...prev, logoUrl: event.target?.result as string }));
-            };
+            reader.onload = ev => setFormData(prev => ({ ...prev, logoUrl: ev.target?.result as string }));
             reader.readAsDataURL(file);
             return;
         }
-
         setUploading(true);
         try {
-            const compressedBlob = await compressImage(file);
-            const filePath = `company-logos/${user?.id}-${Math.random()}.webp`;
-
-            const { error: uploadError } = await supabase.storage
-                .from('public-assets')
-                .upload(filePath, compressedBlob);
-
-            if (uploadError) throw uploadError;
-
-            const { data: { publicUrl } } = supabase.storage
-                .from('public-assets')
-                .getPublicUrl(filePath);
-
+            const blob = await compressImage(file);
+            const path = `company-logos/${user.id}-${Math.random()}.webp`;
+            const { error } = await supabase.storage.from('public-assets').upload(path, blob);
+            if (error) throw error;
+            const { data: { publicUrl } } = supabase.storage.from('public-assets').getPublicUrl(path);
             setFormData(prev => ({ ...prev, logoUrl: publicUrl }));
-        } catch (error) {
-            console.error("Upload error:", error);
-            alert("Erro ao fazer upload do logo. Tente novamente.");
-        } finally {
-            setUploading(false);
+        } catch { alert("Erro ao fazer upload do logo."); }
+        finally { setUploading(false); }
+    };
+
+    const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || !e.target.files.length) return;
+        const file = e.target.files[0];
+        if (!user) {
+            setTempBannerFile(file);
+            const reader = new FileReader();
+            reader.onload = ev => setBannerUrl(ev.target?.result as string);
+            reader.readAsDataURL(file);
+            return;
         }
-    };
-
-    const handleNext = () => {
-        if (currentStep < 6) setCurrentStep(prev => prev + 1);
-    };
-
-    const handleBack = () => {
-        if (currentStep > 1) setCurrentStep(prev => prev - 1);
+        setUploading(true);
+        try {
+            const blob = await compressImage(file);
+            const path = `company-banners/${user.id}-${Math.random()}.webp`;
+            const { error } = await supabase.storage.from('public-assets').upload(path, blob);
+            if (error) throw error;
+            const { data: { publicUrl } } = supabase.storage.from('public-assets').getPublicUrl(path);
+            setBannerUrl(publicUrl);
+        } catch { alert("Erro ao fazer upload do banner."); }
+        finally { setUploading(false); }
     };
 
     const handleSubmit = async () => {
         if (!user) {
-            // Salvar estado e redirecionar para login/registo
             localStorage.setItem('pending_company_form', JSON.stringify(formData));
             localStorage.setItem('pending_company_submission', 'true');
-            // Nota: tempLogoFile não pode ser guardado no localStorage facilmente como objeto File.
-            // O utilizador terá de re-selecionar ou podemos converter para Base64 se for pequeno,
-            // mas por agora vamos focar no fluxo principal.
             router.push(`/registar?next=/usuario/registo-empresa`);
             return;
         }
-
         setLoading(true);
         try {
             let finalLogoUrl = formData.logoUrl;
+            let finalBannerUrl = bannerUrl;
 
-            // Se houver um logo pendente de upload (selecionado como guest)
             if (tempLogoFile && !formData.logoUrl.startsWith('http')) {
                 setUploading(true);
-                const compressedBlob = await compressImage(tempLogoFile);
-                const filePath = `company-logos/${user.id}-${Math.random()}.webp`;
-
-                const { error: uploadError } = await supabase.storage
-                    .from('public-assets')
-                    .upload(filePath, compressedBlob);
-
-                if (uploadError) throw uploadError;
-
-                const { data: { publicUrl } } = supabase.storage
-                    .from('public-assets')
-                    .getPublicUrl(filePath);
-
-                finalLogoUrl = publicUrl;
+                const blob = await compressImage(tempLogoFile);
+                const path = `company-logos/${user.id}-${Math.random()}.webp`;
+                const { error } = await supabase.storage.from('public-assets').upload(path, blob);
+                if (error) throw error;
+                finalLogoUrl = supabase.storage.from('public-assets').getPublicUrl(path).data.publicUrl;
                 setTempLogoFile(null);
+            }
+
+            if (tempBannerFile && !bannerUrl.startsWith('http')) {
+                const blob = await compressImage(tempBannerFile);
+                const path = `company-banners/${user.id}-${Math.random()}.webp`;
+                const { error } = await supabase.storage.from('public-assets').upload(path, blob);
+                if (error) throw error;
+                finalBannerUrl = supabase.storage.from('public-assets').getPublicUrl(path).data.publicUrl;
+                setTempBannerFile(null);
             }
 
             const { error } = await supabase.from('companies').upsert({
@@ -251,6 +259,7 @@ export default function RegisterCompanyPage() {
                 email: formData.email,
                 contact: formData.contact,
                 logo_url: finalLogoUrl,
+                banner_url: finalBannerUrl,
                 province: formData.province,
                 district: formData.district,
                 address: formData.address,
@@ -270,656 +279,477 @@ export default function RegisterCompanyPage() {
             }, { onConflict: 'user_id' });
 
             if (error) throw error;
-
             localStorage.removeItem('pending_company_form');
             localStorage.removeItem('pending_company_submission');
-
-            alert("Empresa registada com sucesso!");
+            alert("Empresa guardada com sucesso!");
             router.push('/usuario/dashboard/minha-conta');
-
-        } catch (error: any) {
-            console.error("Submit error:", error);
-            alert(`Erro ao salvar dados: ${error.message}`);
+        } catch (err: any) {
+            alert(`Erro ao salvar dados: ${err.message}`);
         } finally {
             setLoading(false);
             setUploading(false);
         }
     };
 
+    // Compute plan cost
+    const planLower = formData.plan.toLowerCase();
+    const planCost = planLower === 'gratuito' || planLower === 'free' ? 0
+        : planLower === 'premium' ? 2500
+        : planLower === 'business vendedor' ? 5000 : 0;
+    const highlightCost = formData.highlightCompany ? 1500 : 0;
+    const totalCost = planCost + highlightCost;
+    const needsPayment = totalCost > 0 && !formData.paymentConfirmed;
+
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
-
-            {/* Sidebar Visual (Esquerda) */}
-            <div className="w-full md:w-1/3 bg-[#0f172a] text-white p-8 md:p-12 flex flex-col justify-between relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1625246333195-09d9b63bd70b?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center opacity-10"></div>
-                <div className="relative z-10">
-                    <div className="flex items-center gap-3 mb-10">
-                        <Building2 className="w-8 h-8 text-emerald-500" />
-                        <span className="font-black text-xl tracking-tight">BASE AGRO</span>
-                    </div>
-                    <h1 className="text-3xl md:text-4xl font-extrabold mb-4 leading-tight">
-                        Cadastre sua Empresa
-                    </h1>
-                    <p className="text-slate-400 text-lg leading-relaxed">
-                        Junte-se à maior rede do agronegócio em Moçambique. Amplie sua visibilidade e encontre novos parceiros.
-                    </p>
-                </div>
-
-                {/* Steps Indicator (Vertical on Desktop) */}
-                <div className="relative z-10 space-y-6 mt-12 hidden md:block">
-                    {STEPS.map((step) => {
-                        const Icon = step.icon;
-                        const isActive = currentStep === step.id;
-                        const isCompleted = currentStep > step.id;
-
-                        return (
-                            <div key={step.id} className={`flex items-center gap-4 transition-all duration-300 ${isActive ? 'translate-x-2' : 'opacity-60'}`}>
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${isActive || isCompleted ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-600 text-slate-400'}`}>
-                                    {isCompleted ? <CheckCircle2 className="w-6 h-6" /> : <span className="font-bold">{step.id}</span>}
-                                </div>
-                                <div>
-                                    <p className={`font-bold ${isActive ? 'text-white' : 'text-slate-400'}`}>{step.title}</p>
-                                    <p className="text-xs text-slate-500">{step.description}</p>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+        <div className="min-h-screen bg-slate-100 font-sans pb-20">
+            {/* Page title */}
+            <div className="mb-6">
+                <h1 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                    <Building2 className="w-5 h-5 text-emerald-600" />
+                    Cadastro de Empresa
+                </h1>
+                <p className="text-sm text-slate-500 mt-1">Preencha todos os campos para registar a sua empresa na plataforma.</p>
             </div>
 
-            {/* Conteúdo do Formulário (Direita) */}
-            <div className="flex-1 p-6 md:p-12 lg:p-20 overflow-y-auto">
-                <div className="max-w-2xl mx-auto">
+            <div className="flex flex-col lg:flex-row gap-[20px]">
+                {/* ── MAIN FORM (LEFT) ── */}
+                <main className="flex-1 space-y-[10px]">
 
-                    {/* Header Mobile Steps */}
-                    <div className="md:hidden flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
-                        <span className="text-sm font-bold text-slate-500">Passo {currentStep} de 6</span>
-                        <div className="flex gap-1">
-                            {[1, 2, 3, 4, 5, 6].map(i => (
-                                <div key={i} className={`h-1.5 w-6 rounded-full ${i <= currentStep ? 'bg-emerald-600' : 'bg-slate-200'}`} />
-                            ))}
+                    {/* BANNER */}
+                    <div
+                        onClick={() => bannerInputRef.current?.click()}
+                        className="w-full h-40 bg-white border-2 border-dashed border-slate-200 flex flex-col items-center justify-center group hover:bg-slate-50 transition-all cursor-pointer overflow-hidden relative shadow-sm"
+                        style={{ borderRadius: '15px' }}
+                    >
+                        {bannerUrl ? (
+                            <>
+                                <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+                                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                    <button onClick={e => { e.stopPropagation(); bannerInputRef.current?.click(); }}
+                                        className="p-2 bg-white/90 backdrop-blur-sm text-slate-700 hover:text-white hover:bg-emerald-600 rounded-full shadow-lg border border-slate-100 transition-colors">
+                                        <Pencil className="w-4 h-4" />
+                                    </button>
+                                    <button onClick={e => { e.stopPropagation(); setBannerUrl(""); }}
+                                        className="p-2 bg-white/90 backdrop-blur-sm text-slate-700 hover:text-white hover:bg-red-500 rounded-full shadow-lg border border-slate-100 transition-colors">
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <Upload className="w-10 h-10 text-slate-400 mb-2" />
+                                <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">Banner da Empresa</span>
+                                <p className="text-[10px] text-slate-400 mt-1 uppercase font-black">Recomendado: 1200x400px</p>
+                            </>
+                        )}
+                        <input type="file" ref={bannerInputRef} onChange={handleBannerUpload} className="hidden" accept="image/*" />
+                    </div>
+
+                    {/* LOGO + TOP FIELDS */}
+                    <div className="flex flex-col md:flex-row gap-[10px] items-stretch">
+                        <div
+                            onClick={() => logoInputRef.current?.click()}
+                            className="w-56 h-36 shrink-0 bg-white border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-all overflow-hidden relative"
+                            style={{ borderRadius: '15px' }}
+                        >
+                            {uploading ? <Loader2 className="w-8 h-8 text-slate-400 animate-spin" /> :
+                                formData.logoUrl ? (
+                                    <img src={formData.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                                ) : (
+                                    <>
+                                        <Upload className="w-8 h-8 text-slate-400 mb-1" />
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase">Logo (1:1)</span>
+                                    </>
+                                )}
+                            <input ref={logoInputRef} type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                        </div>
+
+                        <div className="flex-1 flex flex-col gap-[10px]">
+                            <Input name="companyName" value={formData.companyName} onChange={handleInputChange}
+                                placeholder="Nome da Empresa *"
+                                className="h-12 border-slate-200 px-4 text-sm font-semibold text-slate-600 bg-white placeholder:text-slate-400"
+                                style={{ borderRadius: '8px' }} />
+                            <Input name="activity" value={formData.activity} onChange={handleInputChange}
+                                placeholder="Actividade Principal *"
+                                className="h-12 border-slate-200 px-4 text-sm font-semibold text-slate-600 bg-white placeholder:text-slate-400"
+                                style={{ borderRadius: '8px' }} />
+                            <div className="grid grid-cols-2 gap-[10px]">
+                                <Select value={formData.sector} onValueChange={v => setFormData(p => ({ ...p, sector: v }))}>
+                                    <SelectTrigger className="h-12 border-slate-200 bg-white px-4 font-semibold text-slate-600" style={{ borderRadius: '8px' }}>
+                                        <SelectValue placeholder="Sector de Actuação" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {COMPANY_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                                <Select value={formData.province} onValueChange={v => setFormData(p => ({ ...p, province: v }))}>
+                                    <SelectTrigger className="h-12 border-slate-200 bg-white px-4 font-semibold text-slate-600" style={{ borderRadius: '8px' }}>
+                                        <SelectValue placeholder="Província *" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {["Cabo Delgado","Niassa","Nampula","Zambézia","Tete","Manica","Sofala","Inhambane","Gaza","Maputo Província","Maputo Cidade"].map(p => (
+                                            <SelectItem key={p} value={p}>{p}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Step Content */}
-                    <div className="min-h-[400px]">
+                    {/* CONTACT ROW */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-[10px]">
+                        <Input name="contact" value={formData.contact} onChange={handleInputChange}
+                            placeholder="Telefone / Contacto"
+                            className="h-12 border-slate-200 px-4 text-sm font-semibold text-slate-600 bg-white placeholder:text-slate-400"
+                            style={{ borderRadius: '8px' }} />
+                        <Input name="email" type="email" value={formData.email} onChange={handleInputChange}
+                            placeholder="E-mail Corporativo"
+                            className="h-12 border-slate-200 px-4 text-sm font-semibold text-slate-600 bg-white placeholder:text-slate-400"
+                            style={{ borderRadius: '8px' }} />
+                    </div>
 
-                        {/* PASSO 1: IDENTIDADE */}
-                        {currentStep === 1 && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <h2 className="text-2xl font-bold text-slate-800 mb-6">Identidade da Empresa</h2>
+                    {/* ADDRESS ROW */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-[10px]">
+                        <Input name="district" value={formData.district} onChange={handleInputChange}
+                            placeholder="Distrito"
+                            className="h-12 border-slate-200 px-4 text-sm font-semibold text-slate-600 bg-white placeholder:text-slate-400"
+                            style={{ borderRadius: '8px' }} />
+                        <Input name="address" value={formData.address} onChange={handleInputChange}
+                            placeholder="Endereço Completo"
+                            className="h-12 border-slate-200 px-4 text-sm font-semibold text-slate-600 bg-white placeholder:text-slate-400"
+                            style={{ borderRadius: '8px' }} />
+                    </div>
 
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-6 mb-2">
-                                        <div
-                                            onClick={() => fileInputRef.current?.click()}
-                                            className="w-24 h-24 rounded-lg bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 transition-colors overflow-hidden relative"
-                                        >
-                                            {formData.logoUrl ? (
-                                                // eslint-disable-next-line @next/next/no-img-element
-                                                <img src={formData.logoUrl} alt="Logo" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <Upload className="w-8 h-8 text-slate-400" />
-                                            )}
-                                            
-                                        </div>
-                                        <div className="flex-1">
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                onClick={() => fileInputRef.current?.click()}
-                                                disabled={uploading}
-                                                className="text-xs font-bold"
-                                            >
-                                                Escolher Logo da Empresa
-                                            </Button>
-                                            <p className="text-[10px] text-slate-400 mt-2 font-medium">Recomendado: 500x500px, JPG ou PNG.</p>
-                                            <input ref={fileInputRef} type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
-                                        </div>
-                                    </div>
+                    {/* DESCRIPTION */}
+                    <div className="bg-white border border-slate-200 rounded-[15px] overflow-hidden">
+                        <RichTextEditor
+                            value={formData.description}
+                            onChange={v => setFormData(p => ({ ...p, description: v }))}
+                            placeholder="Descrição Geral da Empresa"
+                            className="min-h-[150px]"
+                        />
+                    </div>
 
-                                    <Input
-                                        name="companyName"
-                                        value={formData.companyName}
-                                        onChange={handleInputChange}
-                                        placeholder="NOME DA EMPRESA: Ex: Agro Pecuária do Norte, Lda."
-                                        className="h-12 border-slate-200 p-[10px] text-sm font-sans font-semibold text-slate-600 bg-slate-50"
-                                    />
-                                </div>
+                    <Input name="tags" value={formData.tags} onChange={handleInputChange}
+                        placeholder="Tags / Palavras-chave (ex: Milho, Soja, Adubos...)"
+                        className="h-12 border-slate-200 px-4 text-sm font-semibold text-slate-600 bg-white placeholder:text-slate-400"
+                        style={{ borderRadius: '8px' }} />
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <Input
-                                        name="activity"
-                                        value={formData.activity}
-                                        onChange={handleInputChange}
-                                        placeholder="ACTIVIDADE PRINCIPAL: Ex: Produção de Milho"
-                                        className="h-12 border-slate-200 p-[10px] text-sm font-sans font-semibold text-slate-600 bg-slate-50"
-                                    />
-                                    <Input
-                                        name="contact"
-                                        value={formData.contact}
-                                        onChange={handleInputChange}
-                                        placeholder="TELEFONE / CONTACTO: +258 ..."
-                                        className="h-12 border-slate-200 p-[10px] text-sm font-sans font-semibold text-slate-600 bg-slate-50"
-                                    />
-                                </div>
-
-                                <Input
-                                    name="email"
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    placeholder="E-MAIL CORPORATIVO: empresa@exemplo.com"
-                                    className="h-12 border-slate-200 p-[10px] text-sm font-sans font-semibold text-slate-600 bg-slate-50"
-                                />
-
-                                <div className="flex items-center gap-3 pt-2">
-                                    <input
-                                        type="checkbox"
-                                        id="newsletter"
-                                        checked={formData.newsletter}
-                                        onChange={(e) => setFormData(p => ({ ...p, newsletter: e.target.checked }))}
-                                        className="w-5 h-5 accent-emerald-600 rounded"
-                                    />
-                                    <label htmlFor="newsletter" className="text-xs font-bold text-slate-600 cursor-pointer">
-                                        Subscrever à nossa Newsletter para actualizações do sector
-                                    </label>
-                                </div>
+                    {/* PARCEIRO EXTRA FIELDS */}
+                    {formData.plan === 'Parceiro' && (
+                        <div className="bg-emerald-50 border border-emerald-200 p-5 space-y-[10px] animate-in fade-in slide-in-from-top-4" style={{ borderRadius: '15px' }}>
+                            <p className="text-xs font-black text-emerald-800 uppercase tracking-widest">Dados do Parceiro</p>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
+                                <Input name="website" value={formData.website} onChange={handleInputChange}
+                                    placeholder="Website Oficial"
+                                    className="h-12 border-emerald-200 bg-white px-4 text-sm font-semibold text-slate-600"
+                                    style={{ borderRadius: '8px' }} />
+                                <Input name="representative" value={formData.representative} onChange={handleInputChange}
+                                    placeholder="Nome do Representante"
+                                    className="h-12 border-emerald-200 bg-white px-4 text-sm font-semibold text-slate-600"
+                                    style={{ borderRadius: '8px' }} />
+                                <Input name="nuit" value={formData.nuit} onChange={handleInputChange}
+                                    placeholder="NUIT da Empresa"
+                                    className="h-12 border-emerald-200 bg-white px-4 text-sm font-semibold text-slate-600"
+                                    style={{ borderRadius: '8px' }} />
                             </div>
-                        )}
+                        </div>
+                    )}
 
-                        {/* PASSO 2: PLANO DE ASSINATURA */}
-                        {currentStep === 2 && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <h2 className="text-2xl font-bold text-slate-800 mb-2">Escolha seu Plano</h2>
-                                <p className="text-slate-500 text-sm mb-6">Selecione o nível de visibilidade que sua empresa deseja ter.</p>
-
-                                <div className="grid grid-cols-1 gap-[20px]">
-                                    {/* Gratuito */}
-                                    <div
-                                        onClick={() => setFormData(p => ({ ...p, plan: 'Gratuito' }))}
-                                        className={`p-6 rounded-[15px] border-2 transition-all cursor-pointer relative overflow-hidden ${formData.plan === 'Gratuito' ? 'border-emerald-500 bg-emerald-50/30 shadow-md' : 'border-slate-100 hover:border-slate-200 bg-white'}`}
-                                    >
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <h3 className="font-black text-slate-800 text-lg">Gratuito</h3>
-                                                <p className="text-xs text-slate-500 mb-4">Essencial para começar</p>
-                                                <ul className="space-y-2">
-                                                    <li className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                                                        <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Visualização de vagas básicas
-                                                    </li>
-                                                    <li className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                                                        <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Perfil de usuário simples
-                                                    </li>
-                                                    <li className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                                                        <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Suporte via e-mail
-                                                    </li>
-                                                    <li className="flex items-center gap-2 text-xs font-medium text-slate-300 line-through">
-                                                        <CheckCircle2 className="w-4 h-4 text-slate-200" /> Cadastro de produtos
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                            <div className="text-right">
-                                                <span className="text-2xl font-black text-slate-800">Grátis</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Profissional */}
-                                    <div
-                                        onClick={() => setFormData(p => ({ ...p, plan: 'Premium' }))}
-                                        className={`p-6 rounded-[15px] border-2 transition-all cursor-pointer relative overflow-hidden ${formData.plan === 'Premium' ? 'border-orange-500 bg-orange-50/30 shadow-md' : 'border-slate-100 hover:border-slate-200 bg-white'}`}
-                                    >
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <h3 className="font-black text-slate-800 text-lg flex items-center gap-2">
-                                                    Premium <span className="text-[10px] bg-orange-500 text-white px-2 py-0.5 rounded-full uppercase">Pequenas Empresas</span>
-                                                </h3>
-                                                <p className="text-xs text-slate-500 mb-4">Crescimento e visibilidade</p>
-                                                <ul className="space-y-1.5 grid grid-cols-1 md:grid-cols-2 gap-x-4">
-                                                    <li className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                                                        <CheckCircle2 className="w-4 h-4 text-orange-500" /> Acesso a cotações
-                                                    </li>
-                                                    <li className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                                                        <CheckCircle2 className="w-4 h-4 text-orange-500" /> Vagas ilimitadas
-                                                    </li>
-                                                    <li className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                                                        <CheckCircle2 className="w-4 h-4 text-orange-500" /> Perfil verificado
-                                                    </li>
-                                                    <li className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                                                        <CheckCircle2 className="w-4 h-4 text-orange-500" /> Produtos ilimitados
-                                                    </li>
-                                                    <li className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                                                        <CheckCircle2 className="w-4 h-4 text-orange-500" /> 1 Anúncio/Mês
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                            <div className="text-right">
-                                                <span className="text-2xl font-black text-slate-800">2 500 MT</span>
-                                                <p className="text-[10px] text-slate-500">por mês</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Empresarial */}
-                                    <div
-                                        onClick={() => setFormData(p => ({ ...p, plan: 'Business Vendedor' }))}
-                                        className={`p-6 rounded-[15px] border-2 transition-all cursor-pointer relative overflow-hidden ${formData.plan === 'Business Vendedor' ? 'border-blue-600 bg-blue-50/30 shadow-md' : 'border-slate-100 hover:border-slate-200 bg-white'}`}
-                                    >
-                                        <div className="flex justify-between items-start relative z-10">
-                                            <div>
-                                                <h3 className="font-black text-slate-800 text-lg flex items-center gap-2">
-                                                    Business Vendedor <Crown className="w-4 h-4 text-blue-600" />
-                                                </h3>
-                                                <p className="text-xs text-slate-500 mb-4">Dados estratégicos e API</p>
-                                                <ul className="space-y-1.5 grid grid-cols-1 md:grid-cols-2 gap-x-4">
-                                                    <li className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                                                        <CheckCircle2 className="w-4 h-4 text-blue-600" /> Tudo do Premium
-                                                    </li>
-                                                    <li className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                                                        <CheckCircle2 className="w-4 h-4 text-blue-600" /> Acesso API de dados
-                                                    </li>
-                                                    <li className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                                                        <CheckCircle2 className="w-4 h-4 text-blue-600" /> Relatórios PDF/Excel
-                                                    </li>
-                                                    <li className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                                                        <CheckCircle2 className="w-4 h-4 text-blue-600" /> Consultoria Mensal
-                                                    </li>
-                                                    <li className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                                                        <CheckCircle2 className="w-4 h-4 text-blue-600" /> Destaque máximo
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                            <div className="text-right">
-                                                <span className="text-2xl font-black text-slate-800">5 000 MT</span>
-                                                <p className="text-[10px] text-slate-500">por mês</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Parceiro */}
-                                    <div
-                                        onClick={() => setFormData(p => ({ ...p, plan: 'Parceiro' }))}
-                                        className={`p-6 rounded-[15px] border-2 transition-all cursor-pointer relative overflow-hidden ${formData.plan === 'Parceiro' ? 'border-emerald-600 bg-emerald-950 text-white shadow-md' : 'border-slate-100 hover:border-slate-200 bg-white'}`}
-                                    >
-                                        <div className="flex justify-between items-center">
-                                            <div className="flex items-center gap-4">
-                                                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${formData.plan === 'parceiro' ? 'bg-emerald-500' : 'bg-emerald-100'}`}>
-                                                    <Briefcase className={`w-6 h-6 ${formData.plan === 'parceiro' ? 'text-white' : 'text-emerald-600'}`} />
-                                                </div>
-                                                <div>
-                                                    <h3 className={`font-black text-lg ${formData.plan === 'parceiro' ? 'text-white' : 'text-slate-800'}`}>Plano Parceiro</h3>
-                                                    <p className={`text-xs ${formData.plan === 'parceiro' ? 'text-emerald-200' : 'text-slate-500'}`}>Liberdade total e benefícios exclusivos</p>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <span className={`text-sm font-bold px-3 py-1 rounded-full ${formData.plan === 'parceiro' ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-600'}`}>Sob Consulta</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Partner Additional Fields */}
-                                {formData.plan === 'Parceiro' && (
-                                    <div className="bg-emerald-50 border border-emerald-200 rounded-[15px] p-6 mt-6 animate-in fade-in slide-in-from-top-4">
-                                        <h3 className="font-bold text-emerald-800 mb-4">Dados do Parceiro</h3>
-                                        <div className="grid grid-cols-1 gap-4">
-                                            <Input
-                                                name="website"
-                                                value={formData.website}
-                                                onChange={handleInputChange}
-                                                placeholder="Website Oficial / Link"
-                                                className="bg-white border-emerald-200 focus:ring-emerald-500"
-                                            />
-                                            <Input
-                                                name="representative"
-                                                value={formData.representative}
-                                                onChange={handleInputChange}
-                                                placeholder="Nome do Representante"
-                                                className="bg-white border-emerald-200 focus:ring-emerald-500"
-                                            />
-                                            <Input
-                                                name="nuit"
-                                                value={formData.nuit}
-                                                onChange={handleInputChange}
-                                                placeholder="NUIT da Empresa"
-                                                className="bg-white border-emerald-200 focus:ring-emerald-500"
-                                            />
-                                        </div>
-                                    </div>
+                    {/* PRODUCTS */}
+                    <div className="bg-white border border-slate-200 p-6 space-y-4" style={{ borderRadius: '15px' }}>
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                Catálogo de Produtos
+                                {formData.plan === 'Gratuito' && (
+                                    <span className="text-[10px] bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded-md font-black uppercase flex items-center gap-1">
+                                        <Lock className="w-3 h-3" /> Premium
+                                    </span>
                                 )}
+                            </h3>
+                            {formData.plan !== 'Gratuito' && (
+                                <Button
+                                    onClick={() => setFormData(p => ({ ...p, products: [...p.products, { name: "", description: "" }] }))}
+                                    size="sm"
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                                    style={{ borderRadius: '8px' }}
+                                >
+                                    <Plus className="w-4 h-4 mr-1" /> Adicionar
+                                </Button>
+                            )}
+                        </div>
+
+                        {formData.plan === 'Gratuito' ? (
+                            <div className="text-center py-8 border-2 border-dashed border-slate-200" style={{ borderRadius: '10px' }}>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                    Disponível a partir do plano Premium
+                                </p>
                             </div>
-                        )}
-
-                        {/* PASSO 3: LOCALIZAÇÃO */}
-                        {currentStep === 3 && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <h2 className="text-2xl font-bold text-slate-800 mb-6">Onde sua empresa está?</h2>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-[20px]">
-                                    <Input
-                                        name="province"
-                                        value={formData.province}
-                                        onChange={handleInputChange}
-                                        placeholder="PROVÍNCIA: Ex: Maputo, Nampula..."
-                                        className="h-12 border-slate-200 p-[10px] text-sm font-sans font-semibold text-slate-600 bg-slate-50"
-                                    />
-                                    <Input
-                                        name="district"
-                                        value={formData.district}
-                                        onChange={handleInputChange}
-                                        placeholder="DISTRITO: Digite o distrito"
-                                        className="h-12 border-slate-200 p-[10px] text-sm font-sans font-semibold text-slate-600 bg-slate-50"
-                                    />
-                                    <div className="col-span-1 md:col-span-2">
-                                        <Input
-                                            name="address"
-                                            value={formData.address}
-                                            onChange={handleInputChange}
-                                            placeholder="ENDEREÇO COMPLETO: Rua, Bairro, Número..."
-                                            className="h-12 border-slate-200 p-[10px] text-sm font-sans font-semibold text-slate-600 bg-slate-50"
-                                        />
-                                    </div>
-                                </div>
+                        ) : formData.products.length === 0 ? (
+                            <div className="text-center py-8 border-2 border-dashed border-slate-200" style={{ borderRadius: '10px' }}>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Nenhum produto adicionado</p>
                             </div>
-                        )}
-
-                        {/* PASSO 4: ATIVIDADE */}
-                        {currentStep === 4 && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <h2 className="text-2xl font-bold text-slate-800 mb-6">Detalhes do Negócio</h2>
-
-                                <div className="space-y-4">
-                                    <Input
-                                        name="sector"
-                                        value={formData.sector}
-                                        onChange={handleInputChange}
-                                        placeholder="SETOR DE ATIVIDADE: Ex: Produção Agrícola, Pecuária..."
-                                        className="h-12 border-slate-200 p-[10px] text-sm font-sans font-semibold text-slate-600 bg-slate-50"
-                                    />
-
-                                    <Textarea
-                                        name="description"
-                                        value={formData.description}
-                                        onInput={(e: any) => autoResize(e)}
-                                        onChange={handleInputChange}
-                                        placeholder="DESCRIÇÃO DA EMPRESA: Breve resumo sobre o que sua empresa faz..."
-                                        className="min-h-[120px] border-slate-200 p-[10px] text-sm font-sans font-semibold text-slate-600 bg-slate-50 leading-relaxed overflow-hidden"
-                                    />
-
-                                    <Input
-                                        name="tags"
-                                        value={formData.tags}
-                                        onChange={handleInputChange}
-                                        placeholder="TAGS (PALAVRAS-CHAVE): Ex: Milho, Soja, Adubos..."
-                                        className="h-12 border-slate-200 p-[10px] text-sm font-sans font-semibold text-slate-600 bg-slate-50"
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        {/* PASSO 5: PRODUTOS & DESTAQUE */}
-                        {currentStep === 5 && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                                {formData.plan === 'Gratuito' ? (
-                                    <div className="space-y-6">
-                                        <div className="bg-white border border-slate-200 p-8 rounded-[15px] shadow-sm text-center">
-                                            <div className="max-w-md mx-auto">
-                                                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                                    <Save className="w-8 h-8 text-slate-400" />
-                                                </div>
-                                                <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">Catálogo Indisponível</h2>
-                                                <p className="text-slate-500 text-sm mt-2">
-                                                    A adição de produtos não está disponível no plano <span className="font-bold text-emerald-600">Gratuito</span>.
-                                                    Faça o Upgrade para o plano <span className="font-bold text-orange-500">Premium</span> para gerir o seu catálogo.
-                                                </p>
-                                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {formData.products.map((prod, idx) => (
+                                    <div key={idx} className="flex gap-[10px] items-start bg-slate-50 p-3 border border-slate-100" style={{ borderRadius: '10px' }}>
+                                        <div className="flex-1 space-y-2">
+                                            <Input
+                                                placeholder={`Produto #${idx + 1}`}
+                                                value={prod.name}
+                                                onChange={e => {
+                                                    const products = [...formData.products];
+                                                    products[idx].name = e.target.value;
+                                                    setFormData(p => ({ ...p, products }));
+                                                }}
+                                                className="h-10 border-slate-200 bg-white text-sm font-semibold text-slate-600"
+                                                style={{ borderRadius: '8px' }}
+                                            />
+                                            <Textarea
+                                                placeholder="Descrição breve"
+                                                value={prod.description}
+                                                onChange={e => {
+                                                    const products = [...formData.products];
+                                                    products[idx].description = e.target.value;
+                                                    setFormData(p => ({ ...p, products }));
+                                                }}
+                                                className="border-slate-200 bg-white text-sm text-slate-600 min-h-[60px]"
+                                                style={{ borderRadius: '8px' }}
+                                            />
                                         </div>
-
-                                        {/* OPÇÃO DE DESTAQUE */}
-                                        <div
-                                            onClick={() => setFormData(p => ({ ...p, highlightCompany: !p.highlightCompany }))}
-                                            className={`p-6 rounded-[15px] border-2 transition-all cursor-pointer relative overflow-hidden ${formData.highlightCompany ? 'border-orange-500 bg-orange-50/30' : 'border-slate-200 bg-white hover:border-slate-300'}`}
+                                        <button
+                                            onClick={() => setFormData(p => ({ ...p, products: p.products.filter((_, i) => i !== idx) }))}
+                                            className="p-2 text-slate-400 hover:text-red-500 transition-colors mt-1"
                                         >
-                                            <div className="flex justify-between items-center relative z-10">
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${formData.highlightCompany ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
-                                                        <Crown className="w-6 h-6" />
-                                                    </div>
-                                                    <div className="text-left">
-                                                        <h3 className="font-black text-slate-800 uppercase tracking-tight">Destacar Minha Empresa</h3>
-                                                        <p className="text-xs text-slate-500">Apareça no topo das pesquisas e na página inicial.</p>
-                                                    </div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <span className="text-xl font-black text-slate-800">1 500 Mt</span>
-                                                    <div className={`w-6 h-6 rounded-full border-2 mt-1 mx-auto flex items-center justify-center ${formData.highlightCompany ? 'border-orange-500 bg-orange-500' : 'border-slate-300'}`}>
-                                                        {formData.highlightCompany && <CheckCircle2 className="w-4 h-4 text-white" />}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
                                     </div>
-                                ) : (
-                                    <>
-                                        <div className="flex justify-between items-center">
-                                            <h2 className="text-2xl font-bold text-slate-800">Seu Catálogo</h2>
-                                            <Button
-                                                onClick={() => setFormData(p => ({ ...p, products: [...p.products, { name: "", description: "" }] }))}
-                                                className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                                            >
-                                                + Adicionar Produto
-                                            </Button>
-                                        </div>
-
-                                        <div className="space-y-[20px]">
-                                            {formData.products.length === 0 ? (
-                                                <div className="text-center py-12 bg-slate-50 rounded-[15px] border-2 border-dashed border-slate-200">
-                                                    <Save className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                                                    <p className="text-slate-500">Ainda não adicionou produtos ao seu catálogo.</p>
-                                                </div>
-                                            ) : (
-                                                formData.products.map((prod, idx) => (
-                                                    <div key={idx} className="bg-white p-6 rounded-[15px] border border-slate-200 shadow-sm space-y-4">
-                                                        <div className="flex justify-between">
-                                                            <span className="text-xs font-black uppercase text-slate-400">Produto #{idx + 1}</span>
-                                                            <button onClick={() => setFormData(p => ({ ...p, products: p.products.filter((_, i) => i !== idx) }))} className="text-red-500 hover:text-red-700 text-xs font-bold">Remover</button>
-                                                        </div>
-                                                        <Input
-                                                            placeholder="NOME DO PRODUTO: Ex: Milho Branco"
-                                                            value={prod.name}
-                                                            onChange={e => {
-                                                                const newProds = [...formData.products];
-                                                                newProds[idx].name = e.target.value;
-                                                                setFormData(p => ({ ...p, products: newProds }));
-                                                            }}
-                                                            className="h-12 border-slate-200 p-[10px] text-sm font-sans font-semibold text-slate-600 bg-slate-50"
-                                                        />
-                                                        <Textarea
-                                                            placeholder="DESCRIÇÃO (Opcional)"
-                                                            value={prod.description}
-                                                            onChange={e => {
-                                                                const newProds = [...formData.products];
-                                                                newProds[idx].description = e.target.value;
-                                                                setFormData(p => ({ ...p, products: newProds }));
-                                                            }}
-                                                            className="min-h-[100px] border-slate-200 bg-slate-50 font-semibold text-slate-600"
-                                                        />
-                                                    </div>
-                                                ))
-                                            )}
-                                        </div>
-                                    </>
-                                )}
+                                ))}
                             </div>
                         )}
+                    </div>
 
-                        {/* PASSO 6: PAGAMENTO */}
-                        {currentStep === 6 && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <h2 className="text-2xl font-bold text-slate-800 mb-6">Finalizar e Pagar</h2>
-                                <div className="bg-orange-50 p-6 rounded-[15px] border border-orange-100 flex items-center justify-between">
+                    {/* NEWSLETTER */}
+                    <div className="flex items-center gap-3 bg-white border border-slate-200 px-5 py-4" style={{ borderRadius: '10px' }}>
+                        <input type="checkbox" id="newsletter" checked={formData.newsletter}
+                            onChange={e => setFormData(p => ({ ...p, newsletter: e.target.checked }))}
+                            className="w-5 h-5 accent-emerald-600 rounded" />
+                        <label htmlFor="newsletter" className="text-xs font-bold text-slate-600 cursor-pointer">
+                            Subscrever à nossa Newsletter para actualizações do sector
+                        </label>
+                    </div>
+
+                    {/* SUBMIT */}
+                    <div className="pt-2 flex justify-start">
+                        <Button
+                            onClick={handleSubmit}
+                            disabled={loading || needsPayment}
+                            className="px-10 h-12 bg-orange-500 hover:bg-orange-600 text-white font-black uppercase tracking-widest shadow-lg shadow-orange-500/20 flex items-center gap-2 disabled:opacity-50"
+                            style={{ borderRadius: '8px' }}
+                        >
+                            {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> A guardar...</> : <><Save className="w-4 h-4" /> Guardar Empresa</>}
+                        </Button>
+                        {needsPayment && (
+                            <p className="text-xs text-orange-600 font-bold ml-4 self-center">
+                                Complete o pagamento na barra lateral →
+                            </p>
+                        )}
+                    </div>
+                </main>
+
+                {/* ── SIDEBAR RIGHT (dark) ── */}
+                <aside
+                    className="w-full lg:w-[380px] shrink-0 space-y-[10px] sticky overflow-y-auto"
+                    style={{ top: '20px', height: 'calc(100vh - 100px)' }}
+                >
+                    {/* PLAN SELECTOR */}
+                    <div className="bg-white border border-slate-200 shadow-sm p-5 space-y-3" style={{ borderRadius: '15px' }}>
+                        <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2 mb-1">
+                            <Crown className="w-4 h-4 text-orange-500" /> Plano
+                        </h3>
+                        {PLANS.map(plan => (
+                            <div
+                                key={plan.id}
+                                onClick={() => setFormData(p => ({ ...p, plan: plan.id }))}
+                                className={cn(
+                                    "p-4 border-2 cursor-pointer transition-all",
+                                    formData.plan === plan.id
+                                        ? PLAN_ACTIVE[plan.id] + " " + PLAN_COLOR[plan.id]
+                                        : "border-slate-100 hover:border-slate-200 bg-white"
+                                )}
+                                style={{ borderRadius: '10px' }}
+                            >
+                                <div className="flex justify-between items-start">
                                     <div>
-                                        <p className="text-[10px] font-black uppercase text-orange-600 tracking-widest">Plano Seleccionado</p>
-                                        <h3 className="text-xl font-black text-slate-800 uppercase">{formData.plan}</h3>
+                                        <span className="text-sm font-black text-slate-800">{plan.label}</span>
+                                        {plan.badge && (
+                                            <span className="ml-2 text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-black uppercase">{plan.badge}</span>
+                                        )}
+                                        <div className="mt-1 space-y-0.5">
+                                            {plan.features.slice(0, 2).map(f => (
+                                                <p key={f} className="text-[10px] text-slate-500 flex items-center gap-1">
+                                                    <CheckCircle2 className="w-3 h-3 text-emerald-500" /> {f}
+                                                </p>
+                                            ))}
+                                        </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-[10px] font-black uppercase text-orange-600 tracking-widest">Total a Pagar</p>
-                                        <h3 className="text-2xl font-black text-slate-800">
-                                            {(() => {
-                                                const planLower = formData.plan.toLowerCase();
-                                                const planCost = (planLower === 'gratuito' || planLower === 'free') ? 0 :
-                                                    planLower === 'premium' ? 2500 :
-                                                        planLower === 'básico' ? 1500 : 5000;
-                                                const highlightCost = formData.highlightCompany ? 1500 : 0;
-                                                return `${(planCost + highlightCost).toLocaleString()} MT`;
-                                            })()}
-                                        </h3>
+                                    <div className="text-right shrink-0">
+                                        {plan.price === null ? (
+                                            <span className="text-xs font-black text-slate-600">Sob Consulta</span>
+                                        ) : plan.price === 0 ? (
+                                            <span className="text-lg font-black text-slate-800">Grátis</span>
+                                        ) : (
+                                            <>
+                                                <span className="text-lg font-black text-slate-800">{plan.price.toLocaleString()} Mt</span>
+                                                <p className="text-[9px] text-slate-400">/mês</p>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
-
-                                {(() => {
-                                    const planLower = formData.plan.toLowerCase();
-                                    const planCost = (planLower === 'gratuito' || planLower === 'free') ? 0 :
-                                        planLower === 'premium' ? 2500 :
-                                            planLower === 'básico' ? 1000 : 5000;
-                                    const highlightCost = formData.highlightCompany ? 1500 : 0;
-                                    const totalCost = planCost + highlightCost;
-
-                                    if (totalCost === 0) {
-                                        return (
-                                            <div className="bg-emerald-50/50 p-8 rounded-[15px] border border-emerald-100 text-center animate-in zoom-in-95 duration-300">
-                                                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                                    <CheckCircle2 className="w-8 h-8 text-emerald-600" />
-                                                </div>
-                                                <h3 className="text-xl font-black text-slate-800 uppercase">Tudo Pronto!</h3>
-                                                <p className="text-slate-500 text-sm mt-2 max-w-sm mx-auto">
-                                                    O seu registo no plano Gratuito não tem custos. Clique em **Finalizar Registo** para concluir.
-                                                </p>
-                                            </div>
-                                        );
-                                    }
-
-                                    return (
-                                        <div className="space-y-6">
-                                            <p className="text-sm font-bold text-slate-700">Escolha o Método de Pagamento</p>
-                                            <div className="grid grid-cols-3 gap-[20px]">
-                                                {[
-                                                    { id: 'mpesa', label: 'MPESA', color: 'emerald' },
-                                                    { id: 'emola', label: 'EMOLA', color: 'blue' },
-                                                    { id: 'banco', label: 'BANCO', color: 'slate' }
-                                                ].map(m => (
-                                                    <button
-                                                        key={m.id}
-                                                        onClick={() => setFormData(p => ({ ...p, paymentMethod: m.id }))}
-                                                        className={`py-4 rounded-[15px] border flex flex-col items-center gap-2 transition-all ${formData.paymentMethod === m.id ? 'border-emerald-600 bg-emerald-50 text-emerald-700 shadow-sm' : 'border-slate-100 bg-white text-slate-400 hover:border-slate-200'}`}
-                                                    >
-                                                        <span className="font-black uppercase text-[10px] tracking-widest">{m.label}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-
-                                            {formData.paymentMethod && (
-                                                <div className="pt-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
-                                                    {formData.paymentMethod !== 'banco' && (
-                                                        <div className="space-y-1">
-                                                            <Input
-                                                                placeholder={formData.paymentMethod === 'mpesa' ? "84 / 85 xxx xxxx" : "86 / 87 xxx xxxx"}
-                                                                value={formData.paymentPhone}
-                                                                onChange={e => setFormData(p => ({ ...p, paymentPhone: e.target.value }))}
-                                                                className="h-12 border-slate-200 font-mono text-center text-lg"
-                                                                maxLength={9}
-                                                            />
-                                                        </div>
-                                                    )}
-
-                                                    {formData.paymentMethod === 'banco' && (
-                                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2 text-xs font-medium text-slate-600">
-                                                            <p className="font-bold uppercase text-slate-400 text-[9px]">Dados para transferência:</p>
-                                                            <div className="flex justify-between"><span>Banco:</span> <span className="font-bold">Millennium BIM</span></div>
-                                                            <div className="flex justify-between"><span>Conta:</span> <span className="font-bold">123456789</span></div>
-                                                            <div className="flex justify-between"><span>NIB:</span> <span className="font-bold">0001 0000 1234 5678 9012 3</span></div>
-                                                        </div>
-                                                    )}
-
-                                                    <Button
-                                                        onClick={async () => {
-                                                            if (formData.paymentMethod !== 'banco') {
-                                                                if (!formData.paymentPhone || formData.paymentPhone.length < 9) {
-                                                                    alert("Por favor, insira um número válido.");
-                                                                    return;
-                                                                }
-                                                                setLoading(true);
-                                                                // Simulação de pagamento
-                                                                setTimeout(() => {
-                                                                    setLoading(false);
-                                                                    setFormData(p => ({ ...p, paymentConfirmed: true }));
-                                                                    alert("Pagamento confirmado com sucesso!");
-                                                                }, 2000);
-                                                            } else {
-                                                                alert("Por favor, anexe o comprovativo após finalizar o registo.");
-                                                                setFormData(p => ({ ...p, paymentConfirmed: true }));
-                                                            }
-                                                        }}
-                                                        disabled={loading || formData.paymentConfirmed}
-                                                        className={`w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase tracking-widest rounded-xl transition-all ${formData.paymentConfirmed ? 'bg-slate-400' : ''}`}
-                                                    >
-                                                        
-                                                        {formData.paymentConfirmed ? "PAGAMENTO CONFIRMADO" : `CONFIRMAR PAGAMENTO ${formData.paymentMethod.toUpperCase()}`}
-                                                    </Button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })()}
                             </div>
-                        )}
+                        ))}
                     </div>
 
-                    {/* Footer Actions */}
-                    <div className="pt-8 border-t border-slate-100 flex justify-between mt-8">
-                        {currentStep > 1 ? (
-                            <Button
-                                variant="outline"
-                                onClick={handleBack}
-                                className="h-12 px-6 text-slate-600 font-bold border-slate-200 bg-white shadow-sm hover:bg-slate-50"
-                                style={{ borderRadius: '12px' }}
-                            >
-                                <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
-                            </Button>
-                        ) : (
-                            <div />
-                        )}
+                    {/* HIGHLIGHT + PAYMENT */}
+                    <div
+                        className="bg-emerald-900 p-5 border border-emerald-800 shadow-sm relative overflow-hidden cursor-pointer"
+                        style={{ borderRadius: '15px' }}
+                        onClick={() => setFormData(p => ({ ...p, highlightCompany: !p.highlightCompany }))}
+                    >
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl -mr-8 -mt-8" />
+                        <div className="relative z-10 flex items-center justify-between">
+                            <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
+                                <span className={`w-2 h-2 rounded-full ${formData.highlightCompany ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
+                                Destacar Empresa
+                            </h3>
+                            <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ${formData.highlightCompany ? 'bg-emerald-500' : 'bg-emerald-950 border border-emerald-700'}`}>
+                                <div className={`w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform duration-300 ${formData.highlightCompany ? 'translate-x-6' : 'translate-x-0'}`} />
+                            </div>
+                        </div>
+                        <p className="text-xs text-emerald-400 mt-2 font-medium leading-relaxed">
+                            Apareça em destaque na página inicial e nos motores de busca!
+                        </p>
 
-                        {currentStep < 6 ? (
-                            <Button
-                                onClick={handleNext}
-                                className="h-12 px-8 bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
-                                style={{ borderRadius: '12px' }}
-                            >
-                                Próximo Passo <ArrowRight className="w-4 h-4 ml-2" />
-                            </Button>
-                        ) : (
-                            <Button
-                                onClick={handleSubmit}
-                                disabled={loading || (() => {
-                                    const planLower = formData.plan.toLowerCase();
-                                    const planCost = (planLower === 'gratuito' || planLower === 'free') ? 0 :
-                                        planLower === 'premium' ? 2500 :
-                                            planLower === 'básico' ? 1000 : 5000;
-                                    const totalCost = planCost + (formData.highlightCompany ? 1500 : 0);
-                                    return totalCost > 0 && !formData.paymentConfirmed;
-                                })()}
-                                className="h-12 px-10 bg-orange-500 hover:bg-orange-600 text-white font-black uppercase tracking-widest shadow-lg shadow-orange-500/20"
-                                style={{ borderRadius: '12px' }}
-                            >
-                                {<Save className="w-4 h-4 mr-2" />}
-                                Finalizar Cadastro
-                            </Button>
-                        )}
+                        <div className={`grid transition-all duration-500 ease-in-out ${formData.highlightCompany ? 'grid-rows-[1fr] opacity-100 mt-5 pt-5 border-t border-emerald-800' : 'grid-rows-[0fr] opacity-0'}`}>
+                            <div className="overflow-hidden min-h-0">
+                                <div className="flex flex-col gap-3">
+                                    <div className="flex justify-between items-end">
+                                        <span className="text-emerald-400 text-xs font-bold uppercase tracking-widest">Custo do Destaque</span>
+                                        <span className="text-2xl font-black text-white">1 500 Mt</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <div onClick={e => { e.stopPropagation(); setSelectedPaymentMethod('mpesa'); }}
+                                            className={`bg-white p-0 rounded-md border flex items-center justify-center h-8 w-[50px] cursor-pointer overflow-hidden relative transition-all ${selectedPaymentMethod === 'mpesa' ? 'border-[#E60000] ring-2 ring-[#E60000]/30' : 'border-slate-200 hover:border-[#E60000]'}`}>
+                                            <Image src="/assets/Mpesa.png" alt="M-Pesa" fill className="object-cover" />
+                                        </div>
+                                        <div onClick={e => { e.stopPropagation(); setSelectedPaymentMethod('visa'); }}
+                                            className={`bg-white px-2 rounded-md border flex items-center justify-center h-8 cursor-pointer overflow-hidden transition-all ${selectedPaymentMethod === 'visa' ? 'border-[#1A1F71] ring-2 ring-[#1A1F71]/30' : 'border-slate-200 hover:border-[#1A1F71]'}`}>
+                                            <Image src="/assets/Visa.webp" alt="Visa" width={50} height={25} className="h-full w-auto object-contain" />
+                                        </div>
+                                    </div>
+
+                                    {selectedPaymentMethod === 'mpesa' && (
+                                        <div className="bg-emerald-950/30 p-3 rounded-lg border border-emerald-500/10 space-y-2 animate-in fade-in slide-in-from-top-2">
+                                            <label className="text-[10px] font-bold text-emerald-200 uppercase tracking-wider">Número Vodacom</label>
+                                            <Input placeholder="258 84/85 xxx xxxx"
+                                                value={paymentPhoneNumber}
+                                                onChange={e => setPaymentPhoneNumber(e.target.value)}
+                                                onClick={e => e.stopPropagation()}
+                                                className="h-9 bg-emerald-900/50 border-emerald-800 text-white placeholder:text-emerald-600 text-xs font-mono" />
+                                            <Button size="sm" disabled={isPaymentProcessing}
+                                                onClick={async e => {
+                                                    e.stopPropagation();
+                                                    if (paymentPhoneNumber.length < 9) { alert("Insira um número válido."); return; }
+                                                    setIsPaymentProcessing(true);
+                                                    try {
+                                                        const res = await fetch('/api/payment/mpesa', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({
+                                                                phoneNumber: paymentPhoneNumber.startsWith('258') ? paymentPhoneNumber : `258${paymentPhoneNumber}`,
+                                                                amount: String(highlightCost || planCost || 1500),
+                                                                reference: `EMP_${Math.random().toString(36).substring(2, 6).toUpperCase()}`
+                                                            })
+                                                        });
+                                                        const data = await res.json();
+                                                        if (data.success) {
+                                                            setFormData(p => ({ ...p, paymentConfirmed: true, paymentPhone: paymentPhoneNumber, paymentMethod: 'mpesa' }));
+                                                            alert("Pedido enviado! Verifique o seu telemóvel e insira o PIN.");
+                                                        } else alert(data.message || "Erro ao processar pagamento.");
+                                                    } catch { alert("Erro de conexão."); }
+                                                    finally { setIsPaymentProcessing(false); }
+                                                }}
+                                                className="w-full h-8 text-xs font-black uppercase text-white bg-[#E60000] hover:bg-[#cc0000]">
+                                                {isPaymentProcessing ? 'Processando...' : `Pagar ${(highlightCost || planCost || 1500).toLocaleString()} Mt`}
+                                            </Button>
+                                        </div>
+                                    )}
+
+                                    {selectedPaymentMethod === 'visa' && (
+                                        <div className="bg-emerald-950/30 p-3 rounded-lg border border-emerald-500/10 animate-in fade-in slide-in-from-top-2 space-y-2">
+                                            <p className="text-[10px] text-emerald-200 text-center font-bold uppercase tracking-wider">Transferência Bancária (Moza Banco)</p>
+                                            <div className="text-xs text-emerald-100 bg-emerald-900/40 p-2 rounded border border-emerald-500/20 space-y-1 font-mono">
+                                                <div className="flex justify-between"><span className="text-emerald-400">Banco:</span><span>Moza Banco</span></div>
+                                                <div className="flex justify-between"><span className="text-emerald-400">NIB:</span><span className="select-all">003400000544672210195</span></div>
+                                                <div className="flex justify-between pt-1 border-t border-emerald-500/10 mt-1"><span className="text-emerald-400">Titular:</span><span>Visual Design</span></div>
+                                            </div>
+                                            <Button size="sm"
+                                                onClick={e => {
+                                                    e.stopPropagation();
+                                                    const msg = `Olá, envio comprovativo de ${totalCost.toLocaleString()}MT referente ao pagamento do plano *${formData.plan}* da empresa *${formData.companyName || "[Nome da Empresa]"}*.`;
+                                                    window.open(`https://wa.me/258877575288?text=${encodeURIComponent(msg)}`, "_blank");
+                                                }}
+                                                className="w-full h-8 text-xs font-black uppercase text-white bg-[#25D366] hover:bg-[#1ebd59] flex items-center justify-center gap-2">
+                                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-2.846-.828-.927-.382-1.545-1.3-1.666-1.473-.12-.171-.397-.534-.403-.603-.099-.54.275-.826.47-.798.156.022.253.111.366.191.246.168.21.05.353.454.12.35.082.602-.016.793-.11.21-.262.31-.476.438-.344.184-1.127.674-1.17.653-.027-.013-.372-.444-.453-.556-.098-.135-.078-.292-.012-.423.1-.197.636-.59.715-.656.095-.081.259-.153.414-.158.125-.005.336-.007.493-.007.157 0 .341.055.518.254.178.199.646.619.646 1.509 0 .89.467 1.493.645 1.701zm-3.392-9.416c-4.966 0-9.006 4.04-9.006 9.007 0 1.948.517 3.738 1.424 5.289l-1.365 4.983 5.093-1.337c1.474.805 3.167 1.282 4.954 1.284 4.965 0 9.006-4.041 9.006-9.007.001-4.967-4.04-9.006-9.016-9.219z" /></svg>
+                                                Enviar Comprovativo
+                                            </Button>
+                                        </div>
+                                    )}
+
+                                    {formData.paymentConfirmed && (
+                                        <div className="flex items-center gap-2 p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-lg">
+                                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                            <span className="text-xs font-bold text-emerald-300">Pagamento confirmado</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
+
+                    {/* COST SUMMARY */}
+                    {totalCost > 0 && (
+                        <div className="bg-slate-800 border border-slate-700 p-5 space-y-3" style={{ borderRadius: '15px' }}>
+                            <h3 className="text-xs font-black text-slate-300 uppercase tracking-widest">Resumo</h3>
+                            {planCost > 0 && (
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-slate-400">Plano {formData.plan}</span>
+                                    <span className="text-white font-bold">{planCost.toLocaleString()} Mt/mês</span>
+                                </div>
+                            )}
+                            {highlightCost > 0 && (
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-slate-400">Destaque</span>
+                                    <span className="text-white font-bold">1 500 Mt</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between border-t border-slate-600 pt-3">
+                                <span className="text-slate-300 font-black text-sm uppercase">Total</span>
+                                <span className="text-emerald-400 font-black text-xl">{totalCost.toLocaleString()} Mt</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* SEO NOTE */}
+                    <div className="bg-emerald-950 border border-emerald-900 p-4" style={{ borderRadius: '12px' }}>
+                        <p className="text-[10px] text-emerald-300 leading-relaxed text-center">
+                            <span className="font-bold text-emerald-200">Nota SEO:</span> A sua empresa ficará visível nos motores de busca em{" "}
+                            <span className="text-white font-bold">24 a 48 horas</span> após verificação.
+                        </p>
+                    </div>
+                </aside>
             </div>
-        </div >
+        </div>
     );
 }
