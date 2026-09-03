@@ -99,39 +99,36 @@ function RegistroContent() {
         }
 
         try {
-            // Create account
-            const { data: authData, error: signUpError } = await supabase.auth.signUp({
-                email: email.trim(),
-                password: password,
-                options: {
-                    data: {
-                        full_name: fullName.trim(),
-                        phone: phone.trim(),
-                        plan: planName,
-                        sms_notifications: smsPlans.includes(planName) ? true : false
-                    }
-                }
+            // Criar conta já confirmada via rota admin — não depende do email de confirmação
+            const res = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email.trim(),
+                    password,
+                    fullName: fullName.trim(),
+                    phone: phone.trim(),
+                    plan: planName,
+                    smsNotifications: smsPlans.includes(planName),
+                }),
             });
-
-            if (signUpError) {
-                if (signUpError.message.includes("already registered")) {
-                    setError("Este email já está registado. Faça login primeiro.");
-                } else {
-                    setError(signUpError.message);
-                }
+            const payload = await res.json();
+            if (!res.ok) {
+                setError(payload.error || "Não foi possível criar a conta.");
                 setLoading(false);
                 return;
             }
 
-            // Check if email confirmation is required
-            if (authData.user && !authData.session) {
-                // Email confirmation required - show success message
-                setEmailConfirmationPending(true);
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: email.trim(),
+                password: password
+            });
+            if (signInError) {
+                setError(signInError.message);
                 setLoading(false);
                 return;
             }
 
-            // Check if plan is free (Free, Gratuito or 0 MT)
             const isFree = planName.toLowerCase() === 'free' ||
                 planName.toLowerCase() === 'gratuito' ||
                 planName.toLowerCase() === 'visitante' ||
@@ -141,33 +138,10 @@ function RegistroContent() {
                 price === '0' ||
                 parseInt(price.replace(/[^0-9]/g, '')) === 0;
 
-            // If we have a session, user is logged in
-            if (authData.session) {
-                if (isFree) {
-                    // Free plan - go to home page
-                    router.push('/');
-                } else {
-                    // Paid plan - go to payment
-                    router.push(`/checkout/pagamento?plan=${encodeURIComponent(planName)}&price=${encodeURIComponent(price)}&period=${encodeURIComponent(period)}&email=${encodeURIComponent(email)}`);
-                }
+            if (isFree) {
+                router.push('/');
             } else {
-                // Try to sign in immediately (in case email confirmation is disabled)
-                const { error: signInError } = await supabase.auth.signInWithPassword({
-                    email: email.trim(),
-                    password: password
-                });
-
-                if (signInError) {
-                    setError("Conta criada! Por favor, verifique o seu email para confirmar o registo.");
-                    setLoading(false);
-                    return;
-                }
-
-                if (isFree) {
-                    router.push('/');
-                } else {
-                    router.push(`/checkout/pagamento?plan=${encodeURIComponent(planName)}&price=${encodeURIComponent(price)}&period=${encodeURIComponent(period)}&email=${encodeURIComponent(email)}`);
-                }
+                router.push(`/checkout/pagamento?plan=${encodeURIComponent(planName)}&price=${encodeURIComponent(price)}&period=${encodeURIComponent(period)}&email=${encodeURIComponent(email)}`);
             }
 
         } catch (err) {
@@ -401,10 +375,10 @@ export default function RegistroPage() {
                         Voltar aos Planos
                     </Link>
                     <Image
-                        src="/Logo.svg"
+                        src="/Logo.png"
                         alt="Base Agro Data"
-                        width={180}
-                        height={60}
+                        width={875}
+                        height={491}
                         className="h-9 w-auto"
                     />
                     <div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">

@@ -35,6 +35,9 @@ function getAuthErrorMessage(err: any): string {
 export function AuthForm(props: AuthFormProps) {
     const searchParams = props.searchParams ? React.use(props.searchParams) : {};
     const paramsMode = searchParams && 'mode' in searchParams ? searchParams.mode : undefined;
+    const paramsStatus = searchParams && 'status' in searchParams ? searchParams.status : undefined;
+    const paramsMessage = searchParams && 'message' in searchParams && typeof searchParams.message === 'string'
+        ? searchParams.message : undefined;
     const initialMode = props.initialMode || (paramsMode === "register" ? "register" : "login");
     const isRecoveryMode = paramsMode === "recovery";
     const router = useRouter();
@@ -68,6 +71,15 @@ export function AuthForm(props: AuthFormProps) {
         generateCaptcha();
         setFormLoadTime(Date.now());
     }, []);
+
+    // Mensagens vindas por query param (ex.: rota /auth/reset-password ou
+    // /auth/callback redireccionam para cá com ?status=error&message=...).
+    React.useEffect(() => {
+        if (!paramsMessage) return;
+        if (paramsStatus === 'error' || paramsStatus === 'success') {
+            setStatus({ type: paramsStatus, message: paramsMessage });
+        }
+    }, [paramsStatus, paramsMessage]);
 
     // Phone Auth States
     const [showOtpInput, setShowOtpInput] = useState(false);
@@ -173,7 +185,7 @@ export function AuthForm(props: AuthFormProps) {
                     throw new Error("Resposta da soma incorreta. Tente novamente.");
                 }
                 const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
-                    redirectTo: `${window.location.origin}/auth/login?mode=recovery`,
+                    redirectTo: `${window.location.origin}/auth/reset-password`,
                 });
                 if (error) throw error;
                 setStatus({ type: 'success', message: 'Link de redefinição enviado para o seu e-mail!' });
@@ -404,10 +416,10 @@ export function AuthForm(props: AuthFormProps) {
                     <div className="text-center mb-7">
                         <Link href="/" className="inline-block transition-transform duration-300 hover:scale-105 opacity-100 !opacity-100">
                             <Image
-                                src="/Logo.svg"
+                                src="/Logo.png"
                                 alt="Base Agro Data"
-                                width={160}
-                                height={64}
+                                width={875}
+                                height={491}
                                 className="h-16 w-auto mx-auto object-contain opacity-100 !opacity-100"
                                 priority
                             />
