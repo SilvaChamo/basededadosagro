@@ -30,11 +30,23 @@ export async function GET(request: Request) {
         return fail("O link de recuperação é inválido ou expirou. Peça um novo.");
     }
 
-    const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) {
+    // exchangeCodeForSession PODE lançar (não só devolver {error}) quando falta
+    // o cookie code_verifier — link aberto noutro browser/dispositivo, ou o
+    // utilizador limpou os dados do site entre pedir e clicar. Sem try/catch
+    // isso vira um 500 de corpo vazio (ERR_INVALID_RESPONSE) em vez de uma
+    // mensagem legível.
+    let ok = false;
+    try {
+        const supabase = await createClient();
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        ok = !error;
+    } catch {
+        ok = false;
+    }
+
+    if (!ok) {
         return fail(
-            "Não foi possível validar o link de recuperação. Pode ter expirado ou sido aberto noutro dispositivo/navegador. Peça um novo link.",
+            "Não foi possível validar o link de recuperação. Pode ter expirado ou sido aberto noutro dispositivo/navegador. Peça um novo link a partir do mesmo browser.",
         );
     }
 

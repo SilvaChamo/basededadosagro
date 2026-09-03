@@ -47,4 +47,4 @@ jobs:
       - name: Instalar, construir e reiniciar no servidor
         run: |
           ssh -p 2234 root@37.27.17.25 \
-            "cd /opt/basededadosagro-site && npm install && npm run build && pm2 restart basededadosagro-site && pm2 save"
+            "cd /opt/basededadosagro-site && npm install && rm -rf .next && npm run build && pm2 restart basededadosagro-site && pm2 save"
