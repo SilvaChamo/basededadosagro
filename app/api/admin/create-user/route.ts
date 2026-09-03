@@ -33,47 +33,65 @@ export async function POST(request: Request) {
 
         // 2. Initialize Admin Client
         const supabaseAdmin = createAdminClient();
+        const wantedEmail = String(email).trim().toLowerCase();
 
-        // 3. Create the User in Auth
+        // 3. Criar o utilizador no Auth — OU reutilizar o que já existe.
+        //    auth.users é PARTILHADO com os outros sites deste Supabase: o
+        //    email pode já lá estar (registo público, outro site, tentativa
+        //    anterior) sem ter linha em basededados.profiles — e então "a
+        //    conta não aparece no painel". Nesse caso adoptamos o utilizador
+        //    existente e criamos-lhe aqui a linha de profile.
         const { data: authData, error: createError } = await supabaseAdmin.auth.admin.createUser({
             email,
             password: password || Math.random().toString(36).slice(-10),
             email_confirm: true
         });
 
-        if (createError) throw createError;
+        let targetUserId: string | null = authData?.user?.id ?? null;
+        let adopted = false;
 
-        if (!authData.user) throw new Error("Erro ao criar utilizador");
+        if (!targetUserId) {
+            const alreadyExists =
+                createError && /already|registered|exists|duplicate/i.test(createError.message);
+            if (!alreadyExists) throw createError || new Error("Erro ao criar utilizador");
 
-        // 4. Update Profile Data (Role, Plan)
-        // Profiles are usually created by a trigger on the database, 
-        // but let's ensure it has the correct role and plan.
+            // Procurar o utilizador já existente em auth.users pelo email.
+            for (let page = 1; page <= 25 && !targetUserId; page++) {
+                const { data: list, error: listErr } =
+                    await supabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
+                if (listErr) throw listErr;
+                const match = list.users.find(
+                    (u) => (u.email || "").toLowerCase() === wantedEmail,
+                );
+                if (match) targetUserId = match.id;
+                if (list.users.length < 200) break;
+            }
+            if (!targetUserId) throw createError;
+            adopted = true;
+        }
+
+        // 4. Garantir a linha de profile (role/plan) — upsert por id.
         const { error: profileError } = await supabaseAdmin
             .from('profiles')
-            .update({
-                role: role || 'user',
-                plan: plan || 'Free',
-                email: email, // ensure email is set if trigger didn't do it
-                ...(fullName ? { full_name: fullName } : {}),
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', authData.user.id);
-
-        // If it doesn't exist (trigger failed or didn't run), insert it
-        if (profileError) {
-            await supabaseAdmin
-                .from('profiles')
-                .insert({
-                    id: authData.user.id,
-                    email: email,
+            .upsert(
+                {
+                    id: targetUserId,
+                    email: wantedEmail,
                     role: role || 'user',
                     plan: plan || 'Free',
                     ...(fullName ? { full_name: fullName } : {}),
-                    created_at: new Date().toISOString()
-                });
-        }
+                    updated_at: new Date().toISOString(),
+                },
+                { onConflict: 'id' },
+            );
+        if (profileError) throw profileError;
 
-        return NextResponse.json({ success: true, message: "Utilizador criado com sucesso" });
+        return NextResponse.json({
+            success: true,
+            message: adopted
+                ? "Este email já tinha conta no sistema; foi adicionado a esta base de dados."
+                : "Utilizador criado com sucesso",
+        });
 
     } catch (error: any) {
         console.error("Admin create user error:", error);

@@ -288,7 +288,13 @@ export function AuthForm(props: AuthFormProps) {
             const { error } = await supabase.auth.updateUser({ password: newPassword });
             if (error) throw error;
 
-            setStatus({ type: 'success', message: 'Senha redefinida com sucesso! A redireccionar...' });
+            // Fim da recuperação: limpa a marca `pw_recovery` e termina a
+            // sessão de recuperação, para o utilizador entrar de raiz com a
+            // senha nova (e não ficar "meio autenticado" no painel).
+            document.cookie = 'pw_recovery=; Max-Age=0; path=/';
+            await supabase.auth.signOut();
+
+            setStatus({ type: 'success', message: 'Senha redefinida com sucesso! Inicie sessão com a nova senha.' });
             setTimeout(() => router.push('/auth/login'), 1500);
         } catch (err: any) {
             setStatus({ type: 'error', message: getAuthErrorMessage(err) });

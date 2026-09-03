@@ -103,7 +103,21 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.rewrite(url);
     }
 
-    if (pathname === '/auth/login' && user) {
+    // Recuperação de senha: o link do e-mail cria uma sessão de recuperação
+    // (via /auth/reset-password) e marca o browser com o cookie `pw_recovery`.
+    // Essa sessão só serve para definir a nova senha — NÃO dá acesso ao painel.
+    const inPasswordRecovery =
+        request.nextUrl.searchParams.get('mode') === 'recovery' ||
+        request.cookies.has('pw_recovery');
+
+    if (isProtectedRoute && user && request.cookies.has('pw_recovery')) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/auth/login';
+        url.search = 'mode=recovery';
+        return NextResponse.redirect(url);
+    }
+
+    if (pathname === '/auth/login' && user && !inPasswordRecovery) {
         // Sessão já activa neste navegador (não é um login "de raiz") — tem de
         // respeitar o role tal como o formulário de login respeita, senão um
         // admin/editor/contribuidor com sessão guardada acaba sempre a cair

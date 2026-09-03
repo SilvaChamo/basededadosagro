@@ -51,8 +51,19 @@ export async function GET(request: Request) {
             );
         }
 
-        // Sessão criada (cookies). O formulário de nova senha faz updateUser().
-        return NextResponse.redirect(`${base}/auth/login?mode=recovery`);
+        // Sessão de RECUPERAÇÃO criada (cookies). Marca o browser como "em
+        // recuperação de senha": o middleware usa esta marca para (a) deixar o
+        // formulário /auth/login?mode=recovery abrir apesar de já existir
+        // sessão e (b) NÃO deixar entrar no painel antes de a senha nova ser
+        // definida. O AuthForm limpa este cookie e faz signOut ao concluir.
+        const res = NextResponse.redirect(`${base}/auth/login?mode=recovery`);
+        res.cookies.set("pw_recovery", "1", {
+            path: "/",
+            maxAge: 900,
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+        });
+        return res;
     } catch {
         return fail(
             "Ocorreu um erro ao validar o link de recuperação. Peça um novo a partir do mesmo browser.",
