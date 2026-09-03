@@ -9,12 +9,19 @@ import { createClient } from "@/utils/supabase/server";
 // browser/dispositivo, o erro é mostrado SEMPRE na basededadosagro — nunca no
 // `SITE_URL` do GoTrue partilhado (`visualdesignmoz.com`), como acontecia antes.
 export async function GET(request: Request) {
-    const { searchParams, origin } = new URL(request.url);
-    const code = searchParams.get("code");
+    const url = new URL(request.url);
+    const code = url.searchParams.get("code");
+
+    // Atrás do proxy (Apache -> PM2 :3010) o origin de request.url é o interno
+    // (localhost). O host público vem nos headers X-Forwarded-* — mesmo padrão
+    // da rota /auth/callback.
+    const fwdHost = request.headers.get("x-forwarded-host");
+    const fwdProto = request.headers.get("x-forwarded-proto") ?? "https";
+    const base = fwdHost ? `${fwdProto}://${fwdHost}` : url.origin;
 
     const fail = (message: string) =>
         NextResponse.redirect(
-            `${origin}/auth/login?status=error&message=${encodeURIComponent(message)}`,
+            `${base}/auth/login?status=error&message=${encodeURIComponent(message)}`,
         );
 
     // Erros do GoTrue (ex.: otp_expired) chegam no fragmento (#error=...), que
@@ -32,5 +39,5 @@ export async function GET(request: Request) {
     }
 
     // Sessão criada (cookies). O formulário de nova senha faz updateUser().
-    return NextResponse.redirect(`${origin}/auth/login?mode=recovery`);
+    return NextResponse.redirect(`${base}/auth/login?mode=recovery`);
 }
