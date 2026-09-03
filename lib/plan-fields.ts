@@ -344,3 +344,11 @@ export function canManageProfileSharing(userPlan: string | null | undefined): bo
     const normalizedPlan = normalizePlanName(userPlan);
     return PLAN_FEATURES[normalizedPlan]?.profile_sharing_management ?? false;
 }
+
+/**
+ * Check if plan can publish job vacancies (Premium, Business Vendedor, Parceiro)
+ */
+export function canPublishJobs(userPlan: string | null | undefined): boolean {
+    const normalizedPlan = normalizePlanName(userPlan);
+    return normalizedPlan === 'Premium' || normalizedPlan === 'Business Vendedor' || normalizedPlan === 'Parceiro';
+}

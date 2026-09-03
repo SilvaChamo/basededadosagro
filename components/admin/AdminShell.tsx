@@ -312,7 +312,7 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                         {/* GROUP: GESTÃO */}
                         <div className="flex flex-col gap-0.5">
                             {!isCollapsed && (
-                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/empresas', '/admin/lojas', '/admin/produtos', '/admin/propriedades', '/admin/profissionais', '/admin/central-noticias', '/admin/formacao', '/admin/apresentacoes']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
+                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/empresas', '/admin/lojas', '/admin/produtos', '/admin/propriedades', '/admin/profissionais', '/admin/central-noticias', '/admin/formacao', '/admin/apresentacoes', '/admin/emprego']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
                                     <button
                                         onClick={() => handleGroupClick('gestao', '/admin/empresas')}
                                         className="flex items-center gap-2.5 flex-1 min-w-0 pl-6 pr-2 py-1.5 text-[15px] font-semibold text-left transition-all duration-300 ease-out hover:translate-x-1.5 hover:text-orange-500"
@@ -341,6 +341,7 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                                     <LinkItem href="/admin/central-noticias" icon={Rss} label="Central de Notícias" isSub />
                                     <LinkItem href="/admin/formacao" icon={GraduationCap} label="Formação" isSub />
                                     <LinkItem href="/admin/apresentacoes" icon={Presentation} label="Apresentações" isSub />
+                                    <LinkItem href="/admin/emprego" icon={Briefcase} label="Vagas de Emprego" isSub />
                                 </div>
                             )}
                         </div>

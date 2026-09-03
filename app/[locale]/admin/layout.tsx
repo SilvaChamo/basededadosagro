@@ -68,14 +68,12 @@ export default async function AdminLayout({
     }
 
     if (isNewsTeamRole(role)) {
-        const pathname = (await headers()).get('x-pathname') || '';
-        // Além da Central de Notícias, editor/contribuidor têm acesso à mesma
-        // Galeria 100% do painel de administrador (ver AdminShell "restricted").
-        if (!pathname.includes('/admin/central-noticias') && !pathname.includes('/admin/galeria')) {
-            // Modo "as-needed": pt (padrão) não leva prefixo, só en. Redirigir
-            // sempre com prefixo (incluindo pt) fazia o middleware saltar outra
-            // vez para a forma sem prefixo — dobrava os saltos neste papel, que
-            // já é o mais afectado por isto.
+        const headerList = await headers();
+        const pathname = headerList.get('x-pathname') || headerList.get('x-middleware-request-x-pathname') || '';
+        
+        // Se a rota for vazia ou já incluir a Central de Notícias/Galeria, não redireciona para evitar loops
+        const isAllowedRoute = pathname.includes('/admin/central-noticias') || pathname.includes('/admin/galeria');
+        if (pathname !== '' && !isAllowedRoute) {
             const localeMatch = pathname.match(/^\/(pt|en)(?=\/|$)/);
             const locale = localeMatch ? localeMatch[1] : "pt";
             redirect(locale === "pt" ? "/admin/central-noticias" : `/${locale}/admin/central-noticias`);

@@ -15,6 +15,89 @@ import { ChevronDown } from "lucide-react";
 
 const FONT_SIZES = [10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48];
 
+// Tags estruturais que sobrevivem à colagem. Tudo o resto é desembrulhado
+// (fica só o conteúdo) ou removido.
+const PASTE_ALLOWED_TAGS = new Set([
+    "P", "BR", "B", "STRONG", "I", "EM", "U", "S", "STRIKE", "SUB", "SUP",
+    "UL", "OL", "LI", "H1", "H2", "H3", "H4", "H5", "H6", "BLOCKQUOTE", "A",
+]);
+
+const escapeHtml = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+// Limpa HTML colado de qualquer origem (Word, Google Docs, páginas web):
+// deita fora style/class/cor/fundo/tipo de letra/tamanho e mantém apenas a
+// estrutura, para o texto colado herdar a configuração do editor
+// (tamanho, entrelinha, espaçamento, cor) em vez de trazer a da origem.
+const sanitizePastedHtml = (html: string): string => {
+    if (typeof window === "undefined") return "";
+    const doc = new DOMParser().parseFromString(html, "text/html");
+
+    // Blocos que nunca interessam (folhas de estilo, scripts, metadados do Word).
+    doc.querySelectorAll("style, script, meta, link, title").forEach((el) => el.remove());
+
+    const clean = (node: Node) => {
+        Array.from(node.childNodes).forEach((child) => {
+            if (child.nodeType === 8) { child.remove(); return; }   // comentários <!--[if ...]-->
+            if (child.nodeType !== 1) return;                        // nós de texto: mantêm-se
+            const el = child as HTMLElement;
+            clean(el);                                               // processa filhos primeiro
+
+            // SPAN: preserva só ênfase semântica (negrito/itálico/sublinhado),
+            // larga cor, fundo, tipo e tamanho de letra.
+            if (el.tagName === "SPAN") {
+                const s = el.style;
+                const weight = parseInt(s.fontWeight, 10);
+                const bold = s.fontWeight === "bold" || weight >= 600;
+                const italic = s.fontStyle === "italic";
+                const underline = /underline/.test(`${s.textDecoration} ${s.textDecorationLine}`);
+                let frag: Node = doc.createDocumentFragment();
+                Array.from(el.childNodes).forEach((n) => frag.appendChild(n));
+                if (bold) { const w = doc.createElement("b"); w.appendChild(frag); frag = w; }
+                if (italic) { const w = doc.createElement("i"); w.appendChild(frag); frag = w; }
+                if (underline) { const w = doc.createElement("u"); w.appendChild(frag); frag = w; }
+                el.replaceWith(frag);
+                return;
+            }
+
+            // Tags não estruturais (DIV, FONT, TABLE, ...): fica só o conteúdo.
+            if (!PASTE_ALLOWED_TAGS.has(el.tagName)) {
+                el.replaceWith(...Array.from(el.childNodes));
+                return;
+            }
+
+            // Google Docs embrulha tudo em <b style="font-weight:normal"> /
+            // <i style="font-style:normal"> — manter poria o texto todo a
+            // negrito/itálico.
+            if ((el.tagName === "B" || el.tagName === "STRONG") &&
+                (el.style.fontWeight === "normal" || el.style.fontWeight === "400")) {
+                el.replaceWith(...Array.from(el.childNodes)); return;
+            }
+            if ((el.tagName === "I" || el.tagName === "EM") && el.style.fontStyle === "normal") {
+                el.replaceWith(...Array.from(el.childNodes)); return;
+            }
+
+            // Tag mantida: remove todos os atributos (style, class, cor, fundo,
+            // width...); nos links guarda apenas um href válido.
+            const href = el.tagName === "A" ? el.getAttribute("href") : null;
+            Array.from(el.attributes).forEach((attr) => el.removeAttribute(attr.name));
+            if (href && /^(https?:|mailto:|\/)/i.test(href)) {
+                el.setAttribute("href", href);
+                el.setAttribute("target", "_blank");
+                el.setAttribute("rel", "noopener noreferrer");
+            }
+        });
+    };
+    clean(doc.body);
+
+    // Parágrafos / itens de lista que ficaram vazios depois da limpeza.
+    doc.body.querySelectorAll("p, li").forEach((el) => {
+        if (!el.textContent?.trim() && !el.querySelector("br, img")) el.remove();
+    });
+
+    return doc.body.innerHTML.replace(/(&nbsp;|\s)+/g, " ").trim();
+};
+
 interface RichTextEditorProps {
     value: string;
     onChange: (value: string) => void;
@@ -178,6 +261,31 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
             onChange(editorRef.current.innerHTML);
             checkStyles();
         }
+    };
+
+    // Colar de qualquer origem: em vez de deixar entrar o HTML da origem com
+    // toda a formatação (fundo, cor, tipo de letra, tamanho), insere uma
+    // versão limpa que passa a obedecer à configuração do editor.
+    const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        const data = e.clipboardData;
+        if (!data) return;
+
+        const html = data.getData("text/html");
+        const plain = data.getData("text/plain");
+
+        let toInsert = html ? sanitizePastedHtml(html) : "";
+        if (!toInsert && plain) {
+            toInsert = plain
+                .split(/\r?\n\r?\n+/)
+                .filter((block) => block.trim())
+                .map((block) => `<p>${escapeHtml(block).replace(/\r?\n/g, "<br>")}</p>`)
+                .join("");
+        }
+        if (!toInsert) return;
+
+        document.execCommand("insertHTML", false, toInsert);
+        handleInput();
     };
 
     const execCommand = (command: string, value: string | undefined = undefined) => {
@@ -691,6 +799,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
                 contentEditable
                 className="rich-text-editor-content flex-1 px-4 py-4 min-h-[150px] outline-none text-black text-base overflow-y-visible prose prose-base max-w-none prose-headings:my-2 [&_b]:font-black [&_strong]:font-black prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 marker:text-emerald-600 [&_.rich-text-image-selected]:ring-2 [&_.rich-text-image-selected]:ring-emerald-500 [&_.rich-text-image-selected]:ring-offset-2"
                 onInput={handleInput}
+                onPaste={handlePaste}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
                 onClick={handleEditorClick}

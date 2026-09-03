@@ -11,7 +11,7 @@ import { Spinner } from "@/components/ui/spinner";
 export function RecruitCTA() {
     const router = useRouter();
     const supabase = createClient();
-    const { plan, loading: planLoading } = usePlanPermissions();
+    const { plan, canJobs, loading: planLoading } = usePlanPermissions();
     const [isLoading, setIsLoading] = useState(false);
 
     const handleRecruitClick = async () => {
@@ -20,20 +20,21 @@ export function RecruitCTA() {
             const { data: { user } } = await supabase.auth.getUser();
 
             if (!user) {
-                // Not logged in -> Redirect to company registration
-                router.push('/usuario/registo-empresa');
+                // Not logged in -> Redirect to login with destination
+                router.push('/auth/login?next=/usuario/dashboard/emprego');
                 return;
             }
 
             if (planLoading) return;
 
-            if (plan === 'Gratuito') {
-                // Logged in but Free plan -> Block
-                toast.error("Funcionalidade exclusiva para parceiros. Atualize seu plano para publicar vagas.");
+            if (!canJobs) {
+                // Logged in but Free/Basic plan -> Block
+                toast.error("A publicação de vagas é exclusiva dos planos Premium, Business e Parceiro. Atualize seu plano.");
+                router.push('/usuario/dashboard/emprego');
                 return;
             }
 
-            // Logged in and Paid plan -> Redirect to employment dashboard
+            // Logged in and eligible plan -> Redirect to employment dashboard
             router.push('/usuario/dashboard/emprego');
 
         } catch (error) {
@@ -48,7 +49,7 @@ export function RecruitCTA() {
         <button
             onClick={handleRecruitClick}
             disabled={isLoading || planLoading}
-            className="px-12 py-4 bg-emerald-500 text-white rounded-md font-bold text-base transition-all shadow-lg hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-md font-bold text-base transition-all shadow-lg hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto"
         >
             {isLoading ? (
                 <>

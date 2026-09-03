@@ -46,8 +46,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 // legítimo para QUALQUER conta — sem esta excepção o botão
                 // "Destacar a sua empresa" entrava em loop com a Central de
                 // Notícias para estes papéis.
-                const isCompanyForm = pathname?.includes("/usuario/registo-empresa");
-                if (isNewsTeamRole(profile?.role) && !isCompanyForm) {
+                const isAllowedForm = pathname?.includes("/usuario/registo-empresa") || pathname?.includes("/usuario/dashboard/emprego");
+                if (isNewsTeamRole(profile?.role) && !isAllowedForm) {
                     router.push("/admin/central-noticias");
                     return;
                 }

@@ -17,6 +17,7 @@ import {
     canHaveFeaturedCompany,
     canViewAnalytics,
     canManageProfileSharing,
+    canPublishJobs,
     type PlanType
 } from "@/lib/plan-fields";
 
@@ -35,6 +36,7 @@ interface UsePlanPermissionsResult {
     canFeatured: boolean;
     canAnalytics: boolean;
     canManageSharing: boolean;
+    canJobs: boolean;
     canCreateNewProduct: (productsThisMonth: number) => boolean;
     remainingProducts: (productsThisMonth: number) => number;
 }
@@ -99,6 +101,7 @@ export function usePlanPermissions(): UsePlanPermissionsResult {
         canFeatured: canHaveFeaturedCompany(plan),
         canAnalytics: canViewAnalytics(plan),
         canManageSharing: canManageProfileSharing(plan),
+        canJobs: canPublishJobs(plan),
         canCreateNewProduct: (productsThisMonth: number) => canCreateProduct(plan, productsThisMonth),
         remainingProducts: (productsThisMonth: number) => getRemainingProducts(plan, productsThisMonth)
     };

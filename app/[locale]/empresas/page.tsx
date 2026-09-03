@@ -182,6 +182,20 @@ export default function EmpresasPage() {
             }
         >
             <div className="space-y-8 pb-10">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-agro border-2 border-emerald-500/15 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-sm">
+                    <div>
+                        <p className="text-sm font-black text-slate-800">A sua empresa ainda não está aqui?</p>
+                        <p className="text-xs text-slate-500">Cadastre-a gratuitamente e apareça no repositório.</p>
+                    </div>
+                    <Link
+                        href="/usuario/registo-empresa"
+                        className="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-agro-btn bg-emerald-600 hover:bg-[#f97316] text-white font-black text-[11px] uppercase tracking-wider transition-all shadow-lg shrink-0"
+                    >
+                        <Building2 className="w-4 h-4" />
+                        Cadastrar a minha empresa
+                        <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                </div>
                 {loading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-agro">
                         {[1, 2, 3, 4, 5, 6].map((i: any) => (
