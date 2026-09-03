@@ -103,19 +103,11 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.rewrite(url);
     }
 
-    // Recuperação de senha: o link do e-mail cria uma sessão de recuperação
-    // (via /auth/reset-password) e marca o browser com o cookie `pw_recovery`.
-    // Essa sessão só serve para definir a nova senha — NÃO dá acesso ao painel.
-    const inPasswordRecovery =
-        request.nextUrl.searchParams.get('mode') === 'recovery' ||
-        request.cookies.has('pw_recovery');
-
-    if (isProtectedRoute && user && request.cookies.has('pw_recovery')) {
-        const url = request.nextUrl.clone();
-        url.pathname = '/auth/login';
-        url.search = 'mode=recovery';
-        return NextResponse.redirect(url);
-    }
+    // O formulário de nova senha vive em /auth/login?mode=recovery e precisa
+    // de abrir mesmo já existindo sessão (a sessão de recuperação criada pelo
+    // link do e-mail) — senão o utilizador ia direto para o painel sem
+    // definir senha nenhuma. Só este caso é que escapa ao redirect abaixo.
+    const inPasswordRecovery = request.nextUrl.searchParams.get('mode') === 'recovery';
 
     if (pathname === '/auth/login' && user && !inPasswordRecovery) {
         // Sessão já activa neste navegador (não é um login "de raiz") — tem de
