@@ -38,3 +38,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+// Nunca cacheável (dados sensíveis / por-utilizador). Impede o Next de
+// marcar a resposta como estática e a Cloudflare de a guardar.
+export const dynamic = "force-dynamic";

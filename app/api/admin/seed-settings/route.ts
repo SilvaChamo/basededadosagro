@@ -39,3 +39,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ message: "Site settings seeded successfully", data: defaultSettings });
 }
+
+// Nunca cacheável (dados sensíveis / por-utilizador). Impede o Next de
+// marcar a resposta como estática e a Cloudflare de a guardar.
+export const dynamic = "force-dynamic";

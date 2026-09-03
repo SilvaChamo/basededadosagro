@@ -23,7 +23,11 @@ export async function GET() {
             return NextResponse.json({ error: "Acesso restrito a administradores" }, { status: 403 });
         }
 
-        // 2. Fetch all profiles using the admin client (bypasses RLS)
+        // 2. Fetch all profiles using the admin client (bypasses RLS).
+        //    profiles vive no schema 'basededados' — é a lista de contas
+        //    ESPECÍFICAS desta base de dados (quem se registou pelo formulário
+        //    daqui). Nunca listar auth.users: essa tabela é partilhada com os
+        //    outros sites do mesmo Supabase.
         const supabaseAdmin = createAdminClient();
         const { data, error } = await supabaseAdmin
             .from('profiles')
@@ -38,3 +42,7 @@ export async function GET() {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+// Nunca cacheável (dados sensíveis / por-utilizador). Impede o Next de
+// marcar a resposta como estática e a Cloudflare de a guardar.
+export const dynamic = "force-dynamic";
