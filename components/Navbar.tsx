@@ -182,10 +182,10 @@ export function Navbar() {
                     <Link href="/">
                         <div className="group">
                             <Image
-                                src="/Logo.png"
+                                src="/Logo.svg"
                                 alt="Base Agro Data Logo"
-                                width={875}
-                                height={491}
+                                width={160}
+                                height={60}
                                 className="h-10 md:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-110"
                                 priority
                             />

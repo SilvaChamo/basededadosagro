@@ -124,39 +124,33 @@ function CheckoutContent() {
         }
 
         try {
-            // 1. Criar conta já confirmada via rota admin
-            const res = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: email.trim(),
-                    password,
-                    fullName: fullName.trim(),
-                    phone: phone.trim(),
-                    plan: planName,
-                }),
-            });
-            const payload = await res.json();
-            if (!res.ok) {
-                setError(payload.error || "Não foi possível criar a conta.");
-                setLoading(false);
-                return;
-            }
-
-            const { error: signInError } = await supabase.auth.signInWithPassword({
+            // 1. Create account
+            const { data: authData, error: signUpError } = await supabase.auth.signUp({
                 email: email.trim(),
-                password: password
+                password: password,
+                options: {
+                    data: {
+                        full_name: fullName.trim(),
+                        phone: phone.trim(),
+                        plan: planName
+                    }
+                }
             });
-            if (signInError) {
-                setError(signInError.message);
+
+            if (signUpError) {
+                if (signUpError.message.includes("already registered")) {
+                    setError("Este email já está registado. Faça login primeiro.");
+                } else {
+                    setError(signUpError.message);
+                }
                 setLoading(false);
                 return;
             }
 
             // 2. Create company record with selected plan
-            if (payload.userId) {
+            if (authData.user) {
                 await supabase.from('companies').insert({
-                    user_id: payload.userId,
+                    user_id: authData.user.id,
                     name: fullName.trim(),
                     plan: planName,
                     is_featured: highlightCompany,
@@ -594,10 +588,10 @@ export default function CheckoutPage() {
                         Voltar aos Planos
                     </Link>
                     <Image
-                        src="/Logo.png"
+                        src="/Logo.svg"
                         alt="Base Agro Data"
-                        width={875}
-                        height={491}
+                        width={180}
+                        height={60}
                         className="h-9 w-auto"
                     />
                     <div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
