@@ -88,6 +88,11 @@ function CheckoutContent() {
     // Pagamento
     const [paymentPhoneNumber, setPaymentPhoneNumber] = useState("");
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+    // O pedido ao M-Pesa pode voltar "pendente" (sem recusar nem confirmar)
+    // depois de até ~110s de espera — nunca se pode tratar isso como pago.
+    // Este estado distingue "a enviar o pedido" de "a aguardar o PIN no
+    // telemóvel", enquanto se consulta /status até haver confirmação real.
+    const [waitingPin, setWaitingPin] = useState(false);
 
     // Honeypot anti-bot — campo escondido; se vier preenchido, é robô.
     const [honeypot, setHoneypot] = useState("");
@@ -190,21 +195,29 @@ function CheckoutContent() {
 
             // upsert: só toca nas colunas indicadas — não apaga dados já
             // existentes da empresa (activity, endereço, descrição, etc.).
+            // NUNCA o plano nem o destaque aqui — esses só entram depois de
+            // o pagamento estar mesmo confirmado (grantPlan, mais abaixo);
+            // gravá-los já dava a empresa como assinante pago mesmo que o
+            // cliente nunca chegasse a autorizar nada no telemóvel.
             await supabase.from("companies").upsert(
                 {
                     user_id: currentUserId,
                     ...(needsCompanyName ? { name: fullName.trim() } : {}),
-                    plan: planName,
-                    is_featured: highlightCompany,
                     ...(phone.trim() ? { contact: phone.trim() } : {}),
                     updated_at: new Date().toISOString(),
                 },
                 { onConflict: "user_id" }
             );
 
+            const grantPlan = () =>
+                supabase.from("companies")
+                    .update({ plan: planName, is_featured: highlightCompany })
+                    .eq("user_id", currentUserId);
+
             const isFree = normalizePlanName(planName) === "Gratuito";
 
             if (isFree) {
+                await grantPlan();
                 setSuccess(true);
                 setLoading(false);
                 return;
@@ -219,28 +232,76 @@ function CheckoutContent() {
                         phoneNumber: paymentPhoneNumber.startsWith("258") ? paymentPhoneNumber : `258${paymentPhoneNumber}`,
                         amount: String(totalPriceNumeric),
                         planName,
-                        reference: `PLANO_${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
                     }),
                 });
                 const data = await res.json();
-                setIsProcessingPayment(false);
                 if (!data.success) {
-                    setError(data.message || "Erro ao processar o pagamento M-Pesa.");
+                    setIsProcessingPayment(false);
+                    setError(data.message || data.error || "Erro ao processar o pagamento M-Pesa.");
                     setLoading(false);
                     return;
                 }
+
+                if (data.pending) {
+                    if (!data.reference) {
+                        setIsProcessingPayment(false);
+                        setError("Não foi possível confirmar o pagamento. Tente novamente.");
+                        setLoading(false);
+                        return;
+                    }
+                    // Ainda por confirmar (o IPG demorou, ou está mesmo à
+                    // espera do PIN) — consulta /status até o M-Pesa
+                    // confirmar a sério; só ENTÃO é que o plano é atribuído.
+                    setWaitingPin(true);
+                    const MAX_ATTEMPTS = 40; // ~40 × 4s ≈ 2m40, cobre a espera do backend (110s) com folga
+                    let finalStatus: string = "pending";
+                    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+                        await new Promise(r => setTimeout(r, 4000));
+                        try {
+                            const statusRes = await fetch(`/api/payment/mpesa/status?reference=${encodeURIComponent(data.reference)}`);
+                            const statusData = await statusRes.json();
+                            if (statusData.status === "completed" || statusData.status === "failed") {
+                                finalStatus = statusData.status;
+                                break;
+                            }
+                        } catch {
+                            // falha a consultar não é falha do pagamento — tenta no próximo ciclo
+                        }
+                    }
+                    setWaitingPin(false);
+                    setIsProcessingPayment(false);
+                    if (finalStatus !== "completed") {
+                        setError(
+                            finalStatus === "failed"
+                                ? "O pagamento não foi confirmado (recusado ou cancelado no telemóvel). Tente novamente."
+                                : "Ainda não recebemos a confirmação do M-Pesa. Se já autorizou no telemóvel, tente novamente para verificarmos o estado."
+                        );
+                        setLoading(false);
+                        return;
+                    }
+                } else {
+                    setIsProcessingPayment(false);
+                }
+
+                // Confirmado a sério (INS-0 imediato, ou /status a devolver
+                // "completed") — activatePlan() já correu no servidor; isto
+                // só garante o destaque, que essa função não mexe.
+                await grantPlan();
                 setSuccess(true);
             } else {
                 // Visa/transferência — confirmação é manual (comprovativo via
                 // WhatsApp), tal como no formulário de registo de empresa.
                 const msg = `Olá, envio comprovativo de ${totalPriceFormatted} referente à assinatura do plano *${planName}*${email ? ` (conta: ${email})` : ""}.`;
                 window.open(`https://wa.me/258877575288?text=${encodeURIComponent(msg)}`, "_blank");
+                await grantPlan();
                 setSuccess(true);
             }
         } catch (err) {
             setError("Ocorreu um erro. Por favor, tente novamente.");
         } finally {
             setLoading(false);
+            setIsProcessingPayment(false);
+            setWaitingPin(false);
         }
     };
 
@@ -469,7 +530,7 @@ function CheckoutContent() {
                             style={{ borderRadius: "8px" }}
                         >
                             {loading ? (
-                                <><Spinner className="w-4 h-4" /> {isProcessingPayment ? "A processar pagamento..." : "A processar..."}</>
+                                <><Spinner className="w-4 h-4" /> {waitingPin ? "A aguardar PIN no telemóvel..." : isProcessingPayment ? "A processar pagamento..." : "A processar..."}</>
                             ) : normalizePlanName(planName) === "Gratuito" ? (
                                 <>Activar Plano Gratuito</>
                             ) : (
@@ -575,40 +636,36 @@ export default function CheckoutPage() {
         <div className="min-h-screen bg-slate-100 font-sans pb-20">
             {/* Cabeçalho — mesma configuração (altura, fundo, borda) do
                 cabeçalho de /usuario, para ficar uniforme com o cadastro. */}
-            <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-5 md:px-8 shadow-sm">
-                <Link href="/" className="hover:opacity-80 transition-opacity">
-                    <Image src="/Logo.png" alt="Base Agro Data Logo" width={875} height={491} className="h-10 w-auto object-contain" priority />
-                </Link>
-                <div className="flex items-center gap-4">
-                    <Link href="/planos" className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-all font-bold text-sm group">
-                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        Voltar aos Planos
+            <header className="h-16 bg-white border-b border-slate-200 shadow-sm">
+                <div className="container-site h-full flex items-center justify-between">
+                    <Link href="/" className="hover:opacity-80 transition-opacity">
+                        <Image src="/Logo.png" alt="Base Agro Data Logo" width={875} height={491} className="h-10 w-auto object-contain" priority />
                     </Link>
-                    <div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
-                        <Lock className="w-3 h-3" />
-                        Ambiente Seguro
+                    <div className="flex items-center gap-4">
+                        <Link href="/planos" className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-all font-bold text-sm group">
+                            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                            Voltar aos Planos
+                        </Link>
+                        <div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                            <Lock className="w-3 h-3" />
+                            Ambiente Seguro
+                        </div>
                     </div>
                 </div>
             </header>
 
-            <div className="p-5 md:p-8">
-                <div className="mb-6">
-                    <h1 className="text-xl font-black text-slate-800 flex items-center gap-2">
-                        <CreditCard className="w-5 h-5 text-emerald-600" />
-                        Finalizar Assinatura
-                    </h1>
-                    <p className="text-sm text-slate-500 mt-1">Preencha os seus dados e escolha o método de pagamento — tudo numa página.</p>
+            <div className="pb-5 md:pb-8" style={{ paddingTop: '30px' }}>
+                <div className="container-site">
+                    <Suspense
+                        fallback={
+                            <div className="min-h-[60vh] flex items-center justify-center">
+                                <Spinner className="w-12 h-12" />
+                            </div>
+                        }
+                    >
+                        <CheckoutContent />
+                    </Suspense>
                 </div>
-
-                <Suspense
-                    fallback={
-                        <div className="min-h-[60vh] flex items-center justify-center">
-                            <Spinner className="w-12 h-12" />
-                        </div>
-                    }
-                >
-                    <CheckoutContent />
-                </Suspense>
             </div>
         </div>
     );

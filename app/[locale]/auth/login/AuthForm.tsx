@@ -321,14 +321,24 @@ export function AuthForm(props: AuthFormProps) {
                     .select("role, plan")
                     .eq("id", data.user.id)
                     .single();
-                if (isAdminRole(profile?.role)) {
+
+                // Mesma prioridade do login por password: um `next` explícito
+                // (ex.: veio do botão "Destacar/Cadastrar Empresa") manda
+                // sempre para lá, seja qual for o role — só sem `next` é que
+                // o destino passa a depender do role (admin/editor/etc.).
+                const params = new URLSearchParams(window.location.search);
+                const rawNext = params.get("next");
+                const safeNext = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : null;
+
+                if (safeNext) {
+                    router.push(safeNext);
+                } else if (isAdminRole(profile?.role)) {
                     await prefetchDashboardStats();
                     router.push("/admin");
                 } else if (isNewsTeamRole(profile?.role)) {
                     router.push("/admin/central-noticias");
                 } else {
-                    const next = new URLSearchParams(window.location.search).get("next");
-                    router.push(next || "/usuario/dashboard");
+                    router.push("/usuario/dashboard");
                 }
             }
         } catch (err: any) {

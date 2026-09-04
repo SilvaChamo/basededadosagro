@@ -98,7 +98,46 @@ function PaymentItem({
     const [method, setMethod] = useState<'mpesa' | 'visa' | null>(null);
     const [phone, setPhone] = useState("");
     const [processing, setProcessing] = useState(false);
+    // A la o pedido ao M-Pesa demora até ~110s (é síncrono, espera o cliente
+    // meter o PIN) e pode voltar "pendente" sem ter sido recusado nem
+    // confirmado. NUNCA se pode tratar isso como pago — só entra aqui
+    // quando o /status confirmar mesmo "completed" a seguir a perguntar
+    // directamente ao M-Pesa. Sem isto, qualquer timeout era lido como
+    // pagamento feito sem o cliente ter autorizado nada.
+    const [waitingPin, setWaitingPin] = useState(false);
     const [confirmed, setConfirmed] = useState(false);
+    const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
+
+    const pollStatus = (reference: string) => {
+        let attempts = 0;
+        const MAX_ATTEMPTS = 40; // ~40 × 4s ≈ 2m40 — cobre a espera do backend (110s) com folga
+        pollRef.current = setInterval(async () => {
+            attempts++;
+            try {
+                const res = await fetch(`/api/payment/mpesa/status?reference=${encodeURIComponent(reference)}`);
+                const data = await res.json();
+                if (data.status === 'completed') {
+                    if (pollRef.current) clearInterval(pollRef.current);
+                    setWaitingPin(false);
+                    setConfirmed(true);
+                    onPaid('mpesa');
+                } else if (data.status === 'failed') {
+                    if (pollRef.current) clearInterval(pollRef.current);
+                    setWaitingPin(false);
+                    alert("O pagamento não foi confirmado (recusado ou cancelado no telemóvel). Pode tentar novamente.");
+                } else if (attempts >= MAX_ATTEMPTS) {
+                    if (pollRef.current) clearInterval(pollRef.current);
+                    setWaitingPin(false);
+                    alert("Ainda não recebemos a confirmação do M-Pesa. Se já autorizou no telemóvel, aguarde um pouco e tente pagar de novo para verificarmos o estado; caso contrário, tente outra vez.");
+                }
+            } catch {
+                // Falha a consultar o estado não é o mesmo que o pagamento ter
+                // falhado — tenta de novo no próximo ciclo.
+            }
+        }, 4000);
+    };
 
     const handleMpesa = async () => {
         if (phone.length < 9) { alert("Insira um número de M-Pesa válido."); return; }
@@ -111,16 +150,29 @@ function PaymentItem({
                     phoneNumber: phone.startsWith('258') ? phone : `258${phone}`,
                     amount: String(amount),
                     planName,
-                    reference: `EMP_${Math.random().toString(36).substring(2, 6).toUpperCase()}`
                 })
             });
             const data = await res.json();
-            if (data.success) {
+            if (!data.success) {
+                alert(data.message || data.error || "Erro ao processar pagamento.");
+                return;
+            }
+            if (data.pending) {
+                // Pedido enviado mas ainda por confirmar (o IPG demorou a
+                // responder, ou está mesmo à espera do PIN) — fica a
+                // consultar o estado real; só marca como pago quando o
+                // /status confirmar "completed".
+                if (!data.reference) {
+                    alert("Não foi possível confirmar o pagamento. Tente novamente.");
+                    return;
+                }
+                setWaitingPin(true);
+                pollStatus(data.reference);
+            } else {
+                // INS-0 imediato ou modo simulado (sem credenciais M-Pesa
+                // configuradas) — já é uma confirmação real, não uma suposição.
                 setConfirmed(true);
                 onPaid('mpesa');
-                alert("Pedido enviado! Verifique o seu telemóvel e insira o PIN.");
-            } else {
-                alert(data.message || data.error || "Erro ao processar pagamento.");
             }
         } catch {
             alert("Erro de conexão.");
@@ -170,11 +222,19 @@ function PaymentItem({
                     <Input placeholder="258 84/85 xxx xxxx"
                         value={phone}
                         onChange={e => setPhone(e.target.value)}
+                        disabled={waitingPin}
                         className="h-9 bg-emerald-900/50 border-emerald-800 text-white placeholder:text-emerald-600 text-xs font-mono" />
-                    <Button size="sm" disabled={processing} onClick={handleMpesa}
-                        className="w-full h-9 text-xs font-black uppercase text-white bg-[#E60000] hover:bg-[#cc0000]">
-                        {processing ? 'Processando...' : `Pagar ${amount.toLocaleString()} Mt`}
+                    <Button size="sm" disabled={processing || waitingPin} onClick={handleMpesa}
+                        className="w-full h-9 text-xs font-black uppercase text-white bg-[#E60000] hover:bg-[#cc0000] flex items-center justify-center gap-2">
+                        {waitingPin ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> A aguardar PIN no telemóvel...</>
+                            : processing ? 'A enviar pedido...'
+                                : `Pagar ${amount.toLocaleString()} Mt`}
                     </Button>
+                    {waitingPin && (
+                        <p className="text-[10px] text-emerald-300 leading-relaxed">
+                            Enviámos o pedido para {phone}. Confirme com o seu PIN M-Pesa no telemóvel — isto só fica pago depois de autorizar aí, pode demorar até 2 minutos.
+                        </p>
+                    )}
                 </div>
             )}
 
@@ -652,7 +712,7 @@ function RegistoEmpresaContent() {
                         <div className="flex flex-col md:flex-row gap-[10px] items-stretch">
                             <div
                                 onClick={() => logoInputRef.current?.click()}
-                                className="w-56 h-56 shrink-0 bg-white border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-all overflow-hidden relative"
+                                className="w-56 shrink-0 bg-white border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-all overflow-hidden relative"
                                 style={{ borderRadius: '8px' }}
                             >
                                 {uploadingLogo ? <Loader2 className="w-8 h-8 text-slate-400 animate-spin" /> :
@@ -678,7 +738,7 @@ function RegistoEmpresaContent() {
                                     style={{ borderRadius: '8px' }} />
                                 <div className="grid grid-cols-2 gap-[10px]">
                                     <Select value={formData.sector} onValueChange={v => setFormData(p => ({ ...p, sector: v }))}>
-                                        <SelectTrigger className="h-12 border-slate-200 bg-white px-4 font-semibold text-slate-600" style={{ borderRadius: '8px' }}>
+                                        <SelectTrigger className="w-full h-12 border-slate-200 bg-white px-4 font-semibold text-slate-600" style={{ borderRadius: '8px' }}>
                                             <SelectValue placeholder="Sector de Actuação" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -686,7 +746,7 @@ function RegistoEmpresaContent() {
                                         </SelectContent>
                                     </Select>
                                     <Select value={formData.province} onValueChange={v => setFormData(p => ({ ...p, province: v }))}>
-                                        <SelectTrigger className="h-12 border-slate-200 bg-white px-4 font-semibold text-slate-600" style={{ borderRadius: '8px' }}>
+                                        <SelectTrigger className="w-full h-12 border-slate-200 bg-white px-4 font-semibold text-slate-600" style={{ borderRadius: '8px' }}>
                                             <SelectValue placeholder="Província *" />
                                         </SelectTrigger>
                                         <SelectContent>
