@@ -793,7 +793,13 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
                 )}
             </div>
 
-            {/* Editor Area */}
+            {/* Editor Area — envolvido no seu próprio "relative" para que o
+                placeholder se posicione a partir DAQUI, não do componente
+                inteiro. Antes estava fixo a 50px do topo do componente,
+                contando com a barra de ferramentas ter sempre uma única
+                linha; em ecrãs pequenos a barra quebra para 2 linhas (fica
+                mais alta) e o placeholder acabava por sobrepor-se a ela. */}
+            <div className="relative flex-1 flex flex-col min-h-0">
             <div
                 ref={editorRef}
                 contentEditable
@@ -852,12 +858,15 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
                     margin-left: 0.15em;
                 }
             `}</style>
-            {/* Placeholder Overlay */}
+            {/* Placeholder Overlay — posicionado a partir do wrapper da área
+                do editor (acima), por isso fica sempre alinhado com o
+                início do texto, com a barra de ferramentas em 1 ou 2 linhas. */}
             {!value && (
-                <div className="absolute top-[50px] left-4 text-slate-400 text-sm pointer-events-none select-none">
+                <div className="absolute top-4 left-4 text-slate-400 text-sm pointer-events-none select-none">
                     {placeholder}
                 </div>
             )}
+            </div>
         </div>
     );
 }

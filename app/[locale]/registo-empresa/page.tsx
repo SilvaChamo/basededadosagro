@@ -381,6 +381,18 @@ function RegistoEmpresaContent() {
                 }));
                 if (company.banner_url) setBannerUrl(company.banner_url);
 
+                // Plano/destaque já activos na conta = já pagos antes — não
+                // voltar a pedir pagamento para a MESMA coisa outra vez. Ao
+                // seleccionar um plano diferente (upgrade/downgrade), o
+                // clique na lista de planos já repõe planPaid=false sozinho.
+                const savedPlanLower = String(company.plan || '').toLowerCase();
+                if (company.plan && savedPlanLower !== 'gratuito' && savedPlanLower !== 'free') {
+                    setPlanPaid(true);
+                }
+                if (company.is_featured) {
+                    setHighlightPaid(true);
+                }
+
                 const { data: existingProducts } = await supabase
                     .from('products')
                     .select('*')
