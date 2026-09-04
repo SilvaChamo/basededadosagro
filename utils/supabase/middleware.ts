@@ -111,7 +111,7 @@ export async function updateSession(request: NextRequest) {
 
     if (pathname === '/auth/login' && user && !inPasswordRecovery) {
         // Um `next` explícito (ex.: "Destacar a sua empresa" ->
-        // /auth/login?next=/usuario/registo-empresa) tem prioridade sobre o
+        // /auth/login?next=/registo-empresa) tem prioridade sobre o
         // destino por role — mesmo para quem já tem sessão activa.
         const rawNext = request.nextUrl.searchParams.get('next');
         const safeNext = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : null;

@@ -33,6 +33,7 @@ import { PLAN_HIERARCHY, normalizePlanName } from "@/lib/plan-fields";
 
 const navigation = [
     { name: "Minha Conta", href: "/usuario/dashboard/minha-conta", icon: User, requiredPlan: "Gratuito" },
+    { name: "Minha Empresa", href: "/registo-empresa", icon: Building2, requiredPlan: "Gratuito" },
     { name: "Meus Produtos", href: "/usuario/dashboard/produtos", icon: Package, requiredPlan: "Básico" },
     { name: "Mensagens", href: "/usuario/dashboard/mensagens", icon: Mail, requiredPlan: "Gratuito" },
     { name: "Contactos & Leads", href: "/usuario/dashboard/contactos", icon: Users, requiredPlan: "Básico" },

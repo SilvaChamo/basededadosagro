@@ -42,11 +42,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 // Central de Notícias. Sem isto, uma conta promovida a estes
                 // papéis ficava presa no painel de cliente sempre que chegasse
                 // aqui directamente (sessão antiga, marcador, etc.).
-                // EXCEPÇÃO: o formulário de registo/destaque de empresa é
-                // legítimo para QUALQUER conta — sem esta excepção o botão
-                // "Destacar a sua empresa" entrava em loop com a Central de
-                // Notícias para estes papéis.
-                const isAllowedForm = pathname?.includes("/usuario/registo-empresa") || pathname?.includes("/usuario/dashboard/emprego");
+                // O formulário de registo/destaque de empresa saiu de
+                // `/usuario/*` (vive agora em `/registo-empresa`), por isso já
+                // não precisa de excepção aqui — só as vagas continuam a
+                // precisar.
+                const isAllowedForm = pathname?.includes("/usuario/dashboard/emprego");
                 if (isNewsTeamRole(profile?.role) && !isAllowedForm) {
                     router.push("/admin/central-noticias");
                     return;

@@ -171,7 +171,7 @@ export function PricingPlans() {
                             {/* Minimalist Bottom Button */}
                             <div className="mt-auto flex justify-start">
                                 <Link
-                                    href={`/checkout/registro?plan=${encodeURIComponent(plan.name)}&price=${encodeURIComponent(plan.price)}&period=${encodeURIComponent(plan.period || '')}`}
+                                    href={`/checkout?plan=${encodeURIComponent(plan.name)}&price=${encodeURIComponent(plan.price)}&period=${encodeURIComponent(plan.period || '')}`}
                                     className="w-fit cursor-pointer"
                                 >
                                     <Button

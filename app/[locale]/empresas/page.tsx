@@ -188,7 +188,7 @@ export default function EmpresasPage() {
                         <p className="text-xs text-slate-500">Cadastre-a gratuitamente e apareça no repositório.</p>
                     </div>
                     <Link
-                        href="/usuario/registo-empresa"
+                        href="/registo-empresa"
                         className="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-agro-btn bg-emerald-600 hover:bg-[#f97316] text-white font-black text-[11px] uppercase tracking-wider transition-all shadow-lg shrink-0"
                     >
                         <Building2 className="w-4 h-4" />

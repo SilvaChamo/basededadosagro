@@ -1,30 +1,19 @@
 import type { NextConfig } from "next";
 import withPWAInit from "@ducanh2912/next-pwa";
 
+// PWA / service worker DESLIGADO de propósito (Set/2026).
+// O next-pwa com cacheOnFrontEndNav + aggressiveFrontEndNavCaching +
+// extendDefaultRuntimeCaching guardava HTML/RSC/JS no service worker e
+// servia versões antigas do site — o utilizador via páginas/formulários
+// desatualizados mesmo depois de deploy, sem forma óbvia de recuperar.
+// `disable: true` deixa de gerar/registar SW novo. A limpeza dos browsers
+// que JÁ têm o SW antigo é feita por public/sw.js (kill-switch que apaga
+// as caches, faz unregister() e recarrega). Não voltar a ligar sem uma
+// estratégia de invalidação (NetworkFirst para navegação, versões, etc.).
 const withPWA = withPWAInit({
   dest: "public",
-  disable: process.env.NODE_ENV === "development",
-  register: true,
-  cacheOnFrontEndNav: true,
-  aggressiveFrontEndNavCaching: true,
-  reloadOnOnline: true,
-  extendDefaultRuntimeCaching: true,
-  workboxOptions: {
-    disableDevLogs: true,
-    skipWaiting: true,
-    runtimeCaching: [
-      {
-        // A regra "apis" por defeito guardava QUALQUER resposta de /api/*
-        // (NetworkFirst, até 24h) — incluindo pesquisas às bibliotecas
-        // científicas, fazendo pesquisas novas devolverem resultados
-        // antigos ou, se a rota ainda não existia quando foi guardada em
-        // cache, nenhum resultado. Pesquisas nunca podem ficar em cache.
-        urlPattern: ({ sameOrigin, url }: any) =>
-          sameOrigin && url.pathname.startsWith("/api/articles/"),
-        handler: "NetworkOnly",
-      },
-    ],
-  },
+  disable: true,
+  register: false,
 });
 
 import path from "path";

@@ -15,7 +15,9 @@ export default function NavFooterToggle({ children }: { children: React.ReactNod
         pathname?.includes("login") ||
         pathname?.includes("registar") ||
         isPresentation ||
-        pathname?.includes("cadastro-empresa");
+        pathname?.includes("cadastro-empresa") ||
+        pathname?.includes("checkout") ||
+        pathname?.includes("registo-empresa");
 
     return (
         <>
