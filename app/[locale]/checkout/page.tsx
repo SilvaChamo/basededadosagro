@@ -117,9 +117,20 @@ function CheckoutContent() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Planos que já incluem a empresa destacada no preço — o interruptor
+    // fica ligado e bloqueado (não é um extra a pagar); só no Gratuito e no
+    // Básico é que continua a ser uma escolha do cliente, paga à parte.
+    const isHighlightIncluded = planName === "Premium" || planName === "Business Vendedor";
+    useEffect(() => {
+        if (isHighlightIncluded) setHighlightCompany(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isHighlightIncluded]);
+
     const basePriceNumeric = parseInt(price.replace(/[^0-9]/g, "")) || 0;
     const highlightPrice = period === "/mês" ? 1500 : 15000;
-    const totalPriceNumeric = highlightCompany ? basePriceNumeric + highlightPrice : basePriceNumeric;
+    // Só soma o extra quando o destaque não vem incluído no plano — incluído
+    // não tem custo adicional nenhum.
+    const totalPriceNumeric = highlightCompany && !isHighlightIncluded ? basePriceNumeric + highlightPrice : basePriceNumeric;
     const totalPriceFormatted = totalPriceNumeric.toLocaleString("pt-PT") + " MT";
     const needsAccountFields = !user;
     const needsCompanyName = !hasCompany;
@@ -581,15 +592,19 @@ function CheckoutContent() {
                                 </div>
                                 <button
                                     type="button"
+                                    disabled={isHighlightIncluded}
                                     onClick={() => setHighlightCompany(!highlightCompany)}
-                                    className={`w-10 h-5 rounded-full relative transition-colors cursor-pointer ${highlightCompany ? "bg-orange-500" : "bg-slate-600"}`}
+                                    title={isHighlightIncluded ? "Incluído neste plano — não é possível desligar" : undefined}
+                                    className={`w-10 h-5 rounded-full relative transition-colors ${highlightCompany ? "bg-orange-500" : "bg-slate-600"} ${isHighlightIncluded ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
                                 >
                                     <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-transform ${highlightCompany ? "translate-x-6" : "translate-x-1"}`} />
                                 </button>
                             </div>
                             <div className="flex justify-between items-center text-xs">
-                                <span className="text-slate-400">Investimento extra</span>
-                                <span className="text-orange-400 font-bold">+{highlightPrice.toLocaleString("pt-PT")} MT</span>
+                                <span className="text-slate-400">{isHighlightIncluded ? "Incluído no plano" : "Investimento extra"}</span>
+                                {!isHighlightIncluded && (
+                                    <span className="text-orange-400 font-bold">+{highlightPrice.toLocaleString("pt-PT")} MT</span>
+                                )}
                             </div>
                         </div>
 
