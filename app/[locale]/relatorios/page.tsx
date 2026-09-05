@@ -53,7 +53,7 @@ export default function RelatoriosPage() {
                         <p className="text-sm font-black uppercase tracking-widest text-slate-400">Carregando relatórios...</p>
                     </div>
                 ) : reports.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
                         {reports.map((report) => (
                             <div key={report.id} className="group bg-white rounded-[24px] overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col h-full">
                                 {/* Thumbnail Area */}

@@ -215,7 +215,7 @@ export default function AgroCastPage() {
 
                 {/* Loading State */}
                 {loading && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
                         {[1, 2, 3, 4, 5, 6].map((i) => (
                             <div key={i} className="animate-pulse">
                                 <div className="bg-slate-200 rounded-xl aspect-video mb-4" />
@@ -228,7 +228,7 @@ export default function AgroCastPage() {
 
                 {/* Episodes Grid */}
                 {!loading && filteredEpisodes.length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
                         {filteredEpisodes.map((episode) => (
                             <div
                                 key={episode.id}

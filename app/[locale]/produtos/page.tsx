@@ -245,7 +245,7 @@ function ProductsContent() {
                         <MarketPriceTable />
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                         {loading ? (
                             Array(6).fill(0).map((_, i) => (
                                 <div key={i} className="animate-pulse bg-white rounded-[15px] h-[300px]" />

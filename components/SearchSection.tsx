@@ -244,7 +244,7 @@ export function SearchSection({ isOpen, withBottomBorder = false, extraCategory 
                             <div className="space-y-16">
                                 {filteredResults.extra.length > 0 && (
                                     <div className="space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-5">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5">
                                             {filteredResults.extra.map((item: any, i: number) => (
                                                 <SearchResultCard key={i} item={{ ...item, icon: extraCategory?.icon }} colorClass="bg-orange-50 text-[#f97316]" />
                                             ))}
@@ -253,7 +253,7 @@ export function SearchSection({ isOpen, withBottomBorder = false, extraCategory 
                                 )}
                                 {filteredResults.empresas.length > 0 && (
                                     <div className="space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-5">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5">
                                             {filteredResults.empresas.map((item: any, i: number) => (
                                                 <SearchResultCard key={i} item={item} colorClass="bg-emerald-50 text-emerald-600" />
                                             ))}
@@ -262,7 +262,7 @@ export function SearchSection({ isOpen, withBottomBorder = false, extraCategory 
                                 )}
                                 {filteredResults.propriedades.length > 0 && (
                                     <div className="space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-5">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5">
                                             {filteredResults.propriedades.map((item: any, i: number) => (
                                                 <SearchResultCard key={i} item={item} colorClass="bg-emerald-50 text-emerald-600" />
                                             ))}
@@ -271,7 +271,7 @@ export function SearchSection({ isOpen, withBottomBorder = false, extraCategory 
                                 )}
                                 {filteredResults.produtos.length > 0 && (
                                     <div className="space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-5">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5">
                                             {filteredResults.produtos.map((item: any, i: number) => (
                                                 <SearchResultCard key={i} item={item} colorClass="bg-orange-50 text-[#f97316]" />
                                             ))}
@@ -280,7 +280,7 @@ export function SearchSection({ isOpen, withBottomBorder = false, extraCategory 
                                 )}
                                 {filteredResults.profissionais.length > 0 && (
                                     <div className="space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-5">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5">
                                             {filteredResults.profissionais.map((item: any, i: number) => (
                                                 <SearchResultCard key={i} item={item} colorClass="bg-orange-50 text-[#f97316]" isRound={true} />
                                             ))}
@@ -289,7 +289,7 @@ export function SearchSection({ isOpen, withBottomBorder = false, extraCategory 
                                 )}
                                 {filteredResults.artigos.length > 0 && (
                                     <div className="space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-5">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5">
                                             {filteredResults.artigos.map((item: any, i: number) => (
                                                 <SearchResultCard key={i} item={item} colorClass="bg-emerald-50 text-emerald-600" />
                                             ))}

@@ -47,7 +47,7 @@ export default function PresentationsGalleryPage() {
                         <p className="text-sm font-black uppercase tracking-widest text-slate-400">Carregando conteúdos...</p>
                     </div>
                 ) : presentations.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
                         {presentations.map((item) => {
                             const slideCount = item.slides?.length || 0;
                             const firstSlideImage = item.slides?.[0]?.image_url;

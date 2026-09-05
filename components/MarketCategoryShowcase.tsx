@@ -14,7 +14,7 @@ const CATEGORY_TABS = [
     { id: "fornecedores", label: "Fornecedores", valueChain: "Fornecedor", seeAllHref: "/empresas" },
     { id: "consumidores", label: "Consumidores", valueChain: "Consumidor", seeAllHref: "/empresas" },
     { id: "produtores", label: "Produtores", valueChain: "Produtor", seeAllHref: "/empresas" },
-    { id: "lojas", label: "Rede de Lojas", type: "Loja", seeAllHref: "/servicos/lojas" },
+    { id: "lojas", label: "Lojas de Insumos", type: "Loja", seeAllHref: "/servicos/lojas" },
 ] as const;
 
 export function MarketCategoryShowcase() {
@@ -58,11 +58,8 @@ export function MarketCategoryShowcase() {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10">
                     <div>
                         <h2 className="text-[24px] md:text-[32px] font-black text-slate-900 leading-tight">
-                            Quem faz parte do Mercado
+                            Redes de lojas
                         </h2>
-                        <p className="text-slate-500 font-medium mt-1">
-                            Navegue pelas mesmas categorias do menu Mercado.
-                        </p>
                     </div>
                     <Link
                         href={activeConfig.seeAllHref}
