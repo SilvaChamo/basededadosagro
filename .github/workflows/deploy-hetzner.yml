@@ -48,3 +48,41 @@ jobs:
         run: |
           ssh -p 2234 root@37.27.17.25 \
             "cd /opt/basededadosagro-site && npm install && rm -rf .next && npm run build && pm2 restart basededadosagro-site && pm2 save"
+
+      # Sem isto, o Cloudflare continua a servir a página/HTML antigos em
+      # cache (até 1h de s-maxage) mesmo depois do deploy correr sem
+      # nenhum erro — já aconteceu várias vezes parecer que "não publicou"
+      # quando na verdade só faltava isto. Purga tudo (mais simples e
+      # fiável do que tentar apanhar cada URL/chunk específico).
+      - name: Purgar cache do Cloudflare
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN_ACCOUNT }}
+          CF_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+          CF_KEY: ${{ secrets.CLOUDFLARE_GLOBAL_API_KEY }}
+        run: |
+          set -e
+          ZONE_JSON=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=basededadosagro.com" \
+            -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json")
+          OK=$(echo "$ZONE_JSON" | python3 -c "import json,sys;print(json.load(sys.stdin).get('success'))")
+
+          if [ "$OK" != "True" ]; then
+            echo "Token Bearer falhou, a tentar Global API Key..."
+            ZONE_JSON=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=basededadosagro.com" \
+              -H "X-Auth-Email: $CF_EMAIL" -H "X-Auth-Key: $CF_KEY" -H "Content-Type: application/json")
+            AUTH_ARGS=(-H "X-Auth-Email: $CF_EMAIL" -H "X-Auth-Key: $CF_KEY")
+          else
+            AUTH_ARGS=(-H "Authorization: Bearer $CF_TOKEN")
+          fi
+
+          ZONE_ID=$(echo "$ZONE_JSON" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d['result'][0]['id'] if d.get('result') else '')")
+          if [ -z "$ZONE_ID" ]; then
+            echo "Não consegui obter o zone_id — a saltar a purga (não falha o deploy por isto)."
+            echo "$ZONE_JSON"
+            exit 0
+          fi
+
+          echo "zone_id: $ZONE_ID"
+          RESULT=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" \
+            "${AUTH_ARGS[@]}" -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}')
+          echo "$RESULT" | python3 -m json.tool || echo "$RESULT"

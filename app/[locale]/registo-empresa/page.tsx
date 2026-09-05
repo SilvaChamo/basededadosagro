@@ -7,7 +7,7 @@ import { createClient } from "@/utils/supabase/client";
 import {
     Upload,
     Loader2, Save, Crown, Plus, Trash2, Pencil, Lock, ShoppingBag,
-    ShieldCheck, Info, LogOut, User
+    ShieldCheck, Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ import { RichTextEditor } from "@/components/RichTextEditor";
 import { COMPANY_CATEGORIES } from "@/lib/constants";
 import { VALUE_CHAINS, ESTABLISHMENT_TYPES } from "@/lib/agro-data";
 import { PaymentItem } from "@/components/PaymentItem";
+import { FormPageHeader } from "@/components/FormPageHeader";
 import Image from "next/image";
 
 // Plan config
@@ -103,11 +104,6 @@ function RegistoEmpresaContent() {
     const [checkingAuth, setCheckingAuth] = useState(true);
     const [user, setUser] = useState<any>(null);
     const [companyId, setCompanyId] = useState<string | null>(null);
-    // Nome/avatar reais de quem está logado — os metadados da conta
-    // (user.user_metadata) costumam vir vazios; o nome verdadeiro fica em
-    // "profiles", tal como já acontece em Minha Conta.
-    const [profileName, setProfileName] = useState("");
-    const [profileAvatar, setProfileAvatar] = useState("");
 
     const [loading, setLoading] = useState(false);
     // Estados separados — antes partilhavam um só "uploading" e o spinner
@@ -181,14 +177,6 @@ function RegistoEmpresaContent() {
             }
             setUser(user);
 
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('full_name, avatar_url')
-                .eq('id', user.id)
-                .maybeSingle();
-            setProfileName(profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || "");
-            setProfileAvatar(profile?.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture || "");
-
             const { data: company } = await supabase
                 .from('companies')
                 .select('*')
@@ -253,11 +241,6 @@ function RegistoEmpresaContent() {
         init();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-        router.push("/auth/login");
-    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -476,38 +459,10 @@ function RegistoEmpresaContent() {
 
     return (
         <div className="min-h-screen bg-slate-100 font-sans pb-20">
-            {/* Cabeçalho leve — a barra ocupa a largura total, o conteúdo
-                obedece à largura normal do site (container-site) */}
-            <header className="h-16 bg-white border-b border-slate-200 shadow-sm">
-                <div className="container-site h-full flex items-center justify-between">
-                    <Link href="/" className="hover:opacity-80 transition-opacity">
-                        <Image src="/Logo.png" alt="Base Agro Data Logo" width={875} height={491} className="h-10 w-auto object-contain" priority />
-                    </Link>
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-emerald-900 border border-emerald-700 flex items-center justify-center overflow-hidden shrink-0">
-                                {profileAvatar ? (
-                                    <img src={profileAvatar} alt="Perfil" className="w-full h-full object-cover" />
-                                ) : (
-                                    <User className="w-4 h-4 text-emerald-400" />
-                                )}
-                            </div>
-                            <span className="text-sm text-slate-500">
-                                Olá, <span className="font-bold text-slate-700">{profileName || "Usuário"}</span>
-                            </span>
-                        </div>
-                        <Button
-                            onClick={handleLogout}
-                            variant="outline"
-                            className="bg-slate-50 border-slate-200 text-slate-500 hover:bg-orange-50 hover:text-[#f97316] hover:border-orange-200 font-bold gap-2 transition-all shadow-sm"
-                            style={{ borderRadius: '8px' }}
-                        >
-                            <LogOut className="w-4 h-4" />
-                            Sair
-                        </Button>
-                    </div>
-                </div>
-            </header>
+            {/* Cabeçalho partilhado por todos os formulários fora dos
+                painéis — a barra ocupa a largura total, o conteúdo obedece
+                à largura normal do site (container-site). */}
+            <FormPageHeader />
 
             <div className="pb-5 md:pb-8" style={{ paddingTop: '30px' }}>
                 <div className="container-site flex flex-col lg:flex-row gap-[20px]">

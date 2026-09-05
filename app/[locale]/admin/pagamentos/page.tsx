@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import { useAdminTopBar } from "@/components/admin/AdminTopBar";
 import { Spinner } from "@/components/ui/spinner";
@@ -32,6 +32,7 @@ const ITEM_LABEL: Record<string, string> = {
 
 export default function AdminPagamentosPage() {
     const [rows, setRows] = useState<ProofRow[]>([]);
+    const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [busyId, setBusyId] = useState<string | null>(null);
     const [tab, setTab] = useState<"pending" | "completed" | "failed">("pending");
@@ -39,32 +40,10 @@ export default function AdminPagamentosPage() {
     const load = useCallback(async () => {
         setLoading(true);
         try {
-            const { data: txs, error } = await supabase
-                .from("payment_transactions")
-                .select("*")
-                .eq("method", "visa")
-                .order("created_at", { ascending: false });
-            if (error) throw error;
-
-            const userIds = Array.from(new Set((txs || []).map((t: any) => t.user_id)));
-            const [{ data: profiles }, { data: companies }] = await Promise.all([
-                userIds.length
-                    ? supabase.from("profiles").select("id, full_name").in("id", userIds)
-                    : Promise.resolve({ data: [] as any[] }),
-                userIds.length
-                    ? supabase.from("companies").select("user_id, name").in("user_id", userIds)
-                    : Promise.resolve({ data: [] as any[] }),
-            ]);
-            const nameById = new Map((profiles || []).map((p: any) => [p.id, p.full_name]));
-            const companyByUser = new Map((companies || []).map((c: any) => [c.user_id, c.name]));
-
-            setRows(
-                (txs || []).map((t: any) => ({
-                    ...t,
-                    userName: nameById.get(t.user_id) || "—",
-                    companyName: companyByUser.get(t.user_id) || "—",
-                }))
-            );
+            const response = await fetch("/api/admin/payment-proofs", { cache: "no-store" });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Erro ao carregar comprovativos.");
+            setRows(data.rows || []);
         } catch (err: any) {
             console.error("Erro ao carregar comprovativos:", err);
             toast.error("Erro ao carregar comprovativos.");
@@ -87,6 +66,7 @@ export default function AdminPagamentosPage() {
             if (!res.ok) throw new Error(data.error || "Erro ao processar.");
             toast.success(action === "approve" ? "Pagamento aprovado — plano já activo na conta." : "Comprovativo rejeitado.");
             setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: data.status } : r)));
+            if (action === "approve") setTab("completed");
         } catch (err: any) {
             toast.error(err.message || "Erro ao processar.");
         } finally {
@@ -141,22 +121,21 @@ export default function AdminPagamentosPage() {
                                 {/* Miniatura do comprovativo */}
                                 {row.receipt_url ? (
                                     isPdf(row.receipt_url) ? (
-                                        <a
-                                            href={row.receipt_url}
-                                            target="_blank"
-                                            rel="noreferrer"
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedReceipt(row.receipt_url)}
                                             className="w-16 h-16 shrink-0 rounded-lg border border-slate-200 bg-slate-50 flex flex-col items-center justify-center text-slate-400 hover:text-emerald-600 hover:border-emerald-200 transition-colors"
                                         >
                                             <FileText className="w-6 h-6" />
                                             <span className="text-[8px] font-black uppercase mt-0.5">PDF</span>
-                                        </a>
+                                        </button>
                                     ) : (
-                                        <a href={row.receipt_url} target="_blank" rel="noreferrer" className="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-slate-200 block group relative">
+                                        <button type="button" onClick={() => setSelectedReceipt(row.receipt_url)} className="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-slate-200 block group relative">
                                             <img src={row.receipt_url} alt="Comprovativo" className="w-full h-full object-cover" />
                                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 flex items-center justify-center transition-colors">
                                                 <ExternalLink className="w-4 h-4 text-white opacity-0 group-hover:opacity-100" />
                                             </div>
-                                        </a>
+                                        </button>
                                     )
                                 ) : (
                                     <div className="w-16 h-16 shrink-0 rounded-lg border border-dashed border-slate-200 flex items-center justify-center text-slate-300">
@@ -220,6 +199,34 @@ export default function AdminPagamentosPage() {
                     </div>
                 )}
             </div>
+
+            <Dialog open={Boolean(selectedReceipt)} onOpenChange={(open) => !open && setSelectedReceipt(null)}>
+                <DialogContent
+                    showCloseButton={false}
+                    className="h-[88vh] max-h-[900px] w-[min(92vw,720px)] max-w-none overflow-hidden border-slate-700 bg-slate-950 p-2 shadow-2xl sm:p-3"
+                >
+                    <DialogTitle className="sr-only">Comprovativo</DialogTitle>
+                    <DialogClose
+                        aria-label="Fechar"
+                        className="absolute right-3 top-3 z-20 flex h-11 w-11 items-center justify-center rounded-full border-2 border-white/80 bg-slate-900 text-white opacity-100 shadow-xl transition-colors hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-white"
+                    >
+                        <X className="h-6 w-6" />
+                    </DialogClose>
+                    {selectedReceipt && (
+                        isPdf(selectedReceipt) ? (
+                            <iframe
+                                src={selectedReceipt}
+                                title="Comprovativo"
+                                className="h-full w-full rounded-lg bg-white"
+                            />
+                        ) : (
+                            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-lg bg-black/30 p-2 pt-14 sm:p-4 sm:pt-16">
+                                <img src={selectedReceipt} alt="Comprovativo" className="max-h-full max-w-full object-contain" />
+                            </div>
+                        )
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
