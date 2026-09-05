@@ -29,6 +29,7 @@ import { COMPANY_CATEGORIES, PROVINCES } from "@/lib/constants";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { PageHeader } from "@/components/PageHeader";
 import { Spinner } from "@/components/ui/spinner";
+import { ReceiptUpload } from "@/components/ReceiptUpload";
 
 const PlanBadge = ({ plan }: { plan: 'Free' | 'Básico' | 'Premium' | 'Business Vendedor' | 'Parceiro' }) => {
     const styles = {
@@ -623,22 +624,10 @@ export default function SimpleRegistrationPage() {
                                                 </div>
                                             </div>
 
-                                            <Button
-                                                size="sm"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    // Construct dynamic message
-                                                    const message = `Olá, envio comprovativo de 1.500MT referente ao pagamento do destaque/plano da empresa *${companyName || "[Nome da Empresa]"}*.`;
-                                                    const encodedMessage = encodeURIComponent(message);
-                                                    window.open(`https://wa.me/258877575288?text=${encodedMessage}`, "_blank");
-                                                }}
-                                                className="w-full h-8 text-xs font-black uppercase text-white bg-[#25D366] hover:bg-[#1ebd59] flex items-center justify-center gap-2"
-                                            >
-                                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                                                    <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-2.846-.828-.927-.382-1.545-1.3-1.666-1.473-.12-.171-.397-.534-.403-.603-.099-.54.275-.826.47-.798.156.022.253.111.366.191.246.168.21.05.353.454.12.35.082.602-.016.793-.11.21-.262.31-.476.438-.344.184-1.127.674-1.17.653-.027-.013-.372-.444-.453-.556-.098-.135-.078-.292-.012-.423.1-.197.636-.59.715-.656.095-.081.259-.153.414-.158.125-.005.336-.007.493-.007.157 0 .341.055.518.254.178.199.646.619.646 1.509 0 .89.467 1.493.645 1.701zm-3.392-9.416c-4.966 0-9.006 4.04-9.006 9.007 0 1.948.517 3.738 1.424 5.289l-1.365 4.983 5.093-1.337c1.474.805 3.167 1.282 4.954 1.284 4.965 0 9.006-4.041 9.006-9.007.001-4.967-4.04-9.006-9.016-9.219z" />
-                                                </svg>
-                                                Enviar Comprovativo
-                                            </Button>
+                                            <p className="text-[10px] text-emerald-300/80 leading-relaxed">
+                                                Depois de transferir, anexe aqui o comprovativo (imagem ou PDF). Fica pendente até a nossa equipa confirmar.
+                                            </p>
+                                            <ReceiptUpload amount={1500} planName="Destaque" itemType="highlight" />
                                         </div>
                                     )}
 

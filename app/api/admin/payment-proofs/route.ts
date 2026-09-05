@@ -56,4 +56,39 @@ export async function GET() {
     });
 }
 
+export async function DELETE(request: Request) {
+    if (!(await requireAdmin())) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const { ids } = await request.json().catch(() => ({ ids: null }));
+    if (!Array.isArray(ids) || ids.length === 0 || !ids.every((id) => typeof id === "string")) {
+        return NextResponse.json({ error: "Indique pelo menos um comprovativo para eliminar." }, { status: 400 });
+    }
+
+    const adminClient = createAdminClient();
+    const { data: rows } = await adminClient
+        .from("payment_transactions")
+        .select("id, receipt_url")
+        .in("id", ids);
+
+    const { error } = await adminClient.from("payment_transactions").delete().in("id", ids);
+    if (error) {
+        console.error("Erro ao eliminar comprovativos:", error);
+        return NextResponse.json({ error: "Não foi possível eliminar os comprovativos." }, { status: 500 });
+    }
+
+    // Limpeza do ficheiro no storage — best-effort, não falha o pedido se
+    // o storage der erro (o registo na base de dados já foi removido, que
+    // é o que importa para o registo deixar de aparecer no painel).
+    const paths = (rows || [])
+        .map((row) => row.receipt_url?.split("/public-assets/")[1])
+        .filter((path): path is string => Boolean(path));
+    if (paths.length) {
+        await adminClient.storage.from("public-assets").remove(paths).catch(() => {});
+    }
+
+    return NextResponse.json({ success: true, deleted: ids.length });
+}
+
 export const dynamic = "force-dynamic";

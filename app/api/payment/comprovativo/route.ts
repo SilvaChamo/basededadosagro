@@ -25,7 +25,10 @@ const MAX_SIZE_BYTES = 8 * 1024 * 1024; // 8MB — a imagem já chega comprimida
 // A validação definitiva continua a ser humana: o admin vê o comprovativo
 // (imagem/PDF) ao lado do valor e plano reclamados antes de aprovar, em
 // /admin/pagamentos — nada é atribuído sem essa aprovação.
-const VALID_PLAN_NAMES = new Set(['Gratuito', 'Free', 'Básico', 'Premium', 'Business Vendedor', 'Parceiro']);
+// 'Destaque' cobre as páginas que só pagam o destaque da empresa (sem
+// escolher plano) — /destaque e /cadastrar-empresa — que enviam itemType
+// 'highlight'.
+const VALID_PLAN_NAMES = new Set(['Gratuito', 'Free', 'Básico', 'Premium', 'Business Vendedor', 'Parceiro', 'Destaque']);
 const MAX_AMOUNT = 100_000; // MT — generoso para qualquer plano/ciclo anual, recusa valores absurdos
 
 export async function POST(request: Request) {
@@ -75,7 +78,7 @@ export async function POST(request: Request) {
             .upload(path, bytes, { contentType: file.type, upsert: false });
         if (uploadError) {
             console.error('Erro ao guardar comprovativo:', uploadError);
-            return NextResponse.json({ error: 'Não foi possível guardar o ficheiro.' }, { status: 500 });
+            return NextResponse.json({ error: 'O servidor está a demorar a responder. Tente enviar o comprovativo novamente daqui a instantes.' }, { status: 503 });
         }
 
         const { data: { publicUrl } } = adminClient.storage.from('public-assets').getPublicUrl(path);
@@ -94,7 +97,7 @@ export async function POST(request: Request) {
         });
         if (insertError) {
             console.error('Erro ao registar comprovativo:', insertError);
-            return NextResponse.json({ error: 'Ficheiro guardado, mas houve um erro ao registar o pedido. Tente novamente.' }, { status: 500 });
+            return NextResponse.json({ error: 'O servidor está a demorar a responder e o registo do pedido falhou. Tente enviar o comprovativo novamente.' }, { status: 503 });
         }
 
         return NextResponse.json({ success: true, reference });

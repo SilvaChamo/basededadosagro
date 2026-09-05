@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { resilientFetch } from './resilient-fetch'
 
 interface Cookie {
     name: string
@@ -74,6 +75,8 @@ export async function createClient() {
         config.key,
         {
             db: { schema: 'basededados' },
+            // Re-tenta leituras quando a rede falha — ver resilient-fetch.ts.
+            global: { fetch: resilientFetch() },
             cookies: {
                 getAll() {
                     return cookieStore.getAll()
