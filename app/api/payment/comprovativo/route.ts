@@ -16,6 +16,18 @@ const ALLOWED_TYPES: Record<string, string> = {
 };
 const MAX_SIZE_BYTES = 8 * 1024 * 1024; // 8MB — a imagem já chega comprimida (<50kb); o PDF não passa por compressão.
 
+// Nomes de plano válidos, juntando os dois sítios que enviam para aqui
+// (registo-empresa e checkout/planos). Isto por si só não prova que o
+// "amount" enviado é o preço certo desse plano — os dois formulários têm
+// tabelas de preço próprias (e o checkout ainda soma o destaque de forma
+// diferente consoante o ciclo de facturação) — mas pelo menos recusa nomes
+// inventados, e o "amount" fica sempre limitado a um intervalo plausível.
+// A validação definitiva continua a ser humana: o admin vê o comprovativo
+// (imagem/PDF) ao lado do valor e plano reclamados antes de aprovar, em
+// /admin/pagamentos — nada é atribuído sem essa aprovação.
+const VALID_PLAN_NAMES = new Set(['Gratuito', 'Free', 'Básico', 'Premium', 'Business Vendedor', 'Parceiro']);
+const MAX_AMOUNT = 100_000; // MT — generoso para qualquer plano/ciclo anual, recusa valores absurdos
+
 export async function POST(request: Request) {
     try {
         const supabase = await createClient();
@@ -38,6 +50,13 @@ export async function POST(request: Request) {
         }
         if (itemType !== 'plan' && itemType !== 'highlight' && itemType !== 'both') {
             return NextResponse.json({ error: 'Item de pagamento inválido.' }, { status: 400 });
+        }
+        if (!VALID_PLAN_NAMES.has(String(planName))) {
+            return NextResponse.json({ error: 'Plano inválido.' }, { status: 400 });
+        }
+        const amountNumber = Number(amount);
+        if (!Number.isFinite(amountNumber) || amountNumber <= 0 || amountNumber > MAX_AMOUNT) {
+            return NextResponse.json({ error: 'Valor de pagamento inválido.' }, { status: 400 });
         }
         const ext = ALLOWED_TYPES[file.type];
         if (!ext) {

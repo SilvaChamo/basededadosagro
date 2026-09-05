@@ -230,6 +230,11 @@ export function ImageUpload({
             uploadForm.append("file", webpBlob, fileName);
             uploadForm.append("bucket", bucket);
             uploadForm.append("path", fileName);
+            // "folder" também vai à parte — a rota pública (/api/upload-image,
+            // usada fora do painel) ignora bucket/path vindos do pedido e
+            // constrói o caminho ela própria a partir disto + do utilizador
+            // autenticado, para não poder escrever fora do sítio pretendido.
+            uploadForm.append("folder", folder);
 
             const res = await fetch(endpoint, {
                 method: "POST",
