@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import {
-    Building2, Upload,
+    Upload,
     Loader2, Save, Crown, Plus, Trash2, Pencil, Lock, ShoppingBag,
     ShieldCheck, Info, LogOut, User
 } from "lucide-react";
@@ -24,6 +24,7 @@ import { getProductLimit } from "@/lib/plan-fields";
 import { Spinner } from "@/components/ui/spinner";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { COMPANY_CATEGORIES } from "@/lib/constants";
+import { VALUE_CHAINS, ESTABLISHMENT_TYPES } from "@/lib/agro-data";
 import Image from "next/image";
 
 // Plan config
@@ -373,6 +374,8 @@ function RegistoEmpresaContent() {
         district: "",
         address: "",
         sector: "",
+        valueChain: "",
+        establishmentType: "",
         description: "",
         tags: "",
         paymentMethod: "",
@@ -400,9 +403,12 @@ function RegistoEmpresaContent() {
         const init = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
+                // Sem sessão: vai directo para o formulário de criar
+                // conta/entrar (já tem os dois modos e um link para trocar
+                // entre eles) — sem ecrã intermédio a duplicar essa escolha.
                 const qs = searchParams.toString();
                 const next = encodeURIComponent(`/registo-empresa${qs ? `?${qs}` : ""}`);
-                router.push(`/auth/login?next=${next}`);
+                router.push(`/registar?next=${next}`);
                 return;
             }
             setUser(user);
@@ -434,6 +440,8 @@ function RegistoEmpresaContent() {
                     district: company.district || prev.district,
                     address: company.address || prev.address,
                     sector: company.category || prev.sector,
+                    valueChain: company.value_chain || prev.valueChain,
+                    establishmentType: company.registration_type || prev.establishmentType,
                     description: company.description || prev.description,
                     plan: company.plan || prev.plan,
                     website: company.website || prev.website,
@@ -629,6 +637,8 @@ function RegistoEmpresaContent() {
                 district: formData.district,
                 address: formData.address,
                 category: formData.sector,
+                value_chain: formData.valueChain,
+                registration_type: formData.establishmentType,
                 description: formData.description,
                 plan: formData.plan,
                 website: formData.website,
@@ -828,6 +838,24 @@ function RegistoEmpresaContent() {
                                             {["Cabo Delgado", "Niassa", "Nampula", "Zambézia", "Tete", "Manica", "Sofala", "Inhambane", "Gaza", "Maputo Província", "Maputo Cidade"].map(p => (
                                                 <SelectItem key={p} value={p}>{p}</SelectItem>
                                             ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid grid-cols-2 gap-[10px]">
+                                    <Select value={formData.establishmentType} onValueChange={v => setFormData(p => ({ ...p, establishmentType: v }))}>
+                                        <SelectTrigger className="w-full h-12 border-slate-200 bg-white px-4 font-semibold text-slate-600" style={{ borderRadius: '8px' }}>
+                                            <SelectValue placeholder="Tipo de Estabelecimento" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {ESTABLISHMENT_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                    <Select value={formData.valueChain} onValueChange={v => setFormData(p => ({ ...p, valueChain: v }))}>
+                                        <SelectTrigger className="w-full h-12 border-slate-200 bg-white px-4 font-semibold text-slate-600" style={{ borderRadius: '8px' }}>
+                                            <SelectValue placeholder="Cadeia de Valor" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {VALUE_CHAINS.map(vc => <SelectItem key={vc} value={vc}>{vc}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
                                 </div>

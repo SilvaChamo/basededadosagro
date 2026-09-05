@@ -98,7 +98,7 @@ export default function InsumosPage() {
                     title="Tem uma loja de insumos?"
                     description="Aumente a visibilidade do seu negócio e alcance mais produtores em todo o país. Registe a sua loja hoje mesmo."
                     buttonText="Registar Loja Nova"
-                    href="/registar"
+                    href="/registo-empresa"
                 />
             </div>
         </main>

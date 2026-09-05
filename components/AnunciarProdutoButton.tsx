@@ -19,7 +19,7 @@ export function AnunciarProdutoButton() {
     return (
         <button
             onClick={handleAnunciarClick}
-            className="px-12 py-4 bg-white text-emerald-900 rounded-md font-black uppercase text-sm tracking-widest hover:scale-105 active:scale-95 shadow-xl transition-all"
+            className="px-12 py-4 bg-white text-emerald-900 rounded-[7px] font-black uppercase text-sm tracking-widest hover:scale-105 active:scale-95 shadow-xl transition-all"
         >
             Anunciar Produto
         </button>

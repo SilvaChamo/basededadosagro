@@ -1,5 +1,5 @@
 import React from "react";
-import { TrendingUp, BarChart3, Globe2, ArrowRight, MousePointer2, ShoppingBag } from "lucide-react";
+import { TrendingUp, BarChart3, Globe2, ArrowRight, ShoppingBag } from "lucide-react";
 
 import { MercadoHeaderSearch } from "@/components/MercadoHeaderSearch";
 import { MarketPriceTableServer } from "@/components/MarketPriceTableServer";
@@ -19,9 +19,9 @@ export default function MercadoPage() {
 
             {/* 1. Secção Principal (Conteúdo em Grid) */}
             <main className="container-site pt-12 pb-20">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     {/* Main Content Area */}
-                    <div className="lg:col-span-8 space-y-8">
+                    <div className="lg:col-span-8 space-y-6">
                         {/* Mercado Digital Carousel */}
                         <section>
                             <SupermarketCarousel />
@@ -65,7 +65,7 @@ export default function MercadoPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Glass Card 1 */}
-                        <div className="relative bg-white/5 p-8 rounded-2xl border border-white/10 group overflow-hidden transition-all hover:bg-white/10 hover:-translate-y-2 duration-500">
+                        <div className="relative bg-white/5 p-8 rounded-[10px] border border-white/10 group overflow-hidden transition-all hover:bg-white/10 hover:-translate-y-2 duration-500">
                             <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
                                 <TrendingUp className="w-6 h-6 text-white" />
                             </div>
@@ -79,7 +79,7 @@ export default function MercadoPage() {
                         </div>
 
                         {/* Glass Card 2 */}
-                        <div className="relative bg-white/5 p-8 rounded-2xl border border-white/10 group overflow-hidden transition-all hover:bg-white/10 hover:-translate-y-2 duration-500">
+                        <div className="relative bg-white/5 p-8 rounded-[10px] border border-white/10 group overflow-hidden transition-all hover:bg-white/10 hover:-translate-y-2 duration-500">
                             <div className="w-12 h-12 bg-[#f97316] rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-orange-500/20 group-hover:scale-110 transition-transform">
                                 <Globe2 className="w-6 h-6 text-white" />
                             </div>
@@ -93,7 +93,7 @@ export default function MercadoPage() {
                         </div>
 
                         {/* Glass Card 3 */}
-                        <div className="relative bg-white/5 p-8 rounded-2xl border border-white/10 group overflow-hidden transition-all hover:bg-white/10 hover:-translate-y-2 duration-500">
+                        <div className="relative bg-white/5 p-8 rounded-[10px] border border-white/10 group overflow-hidden transition-all hover:bg-white/10 hover:-translate-y-2 duration-500">
                             <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-blue-600/20 group-hover:scale-110 transition-transform">
                                 <BarChart3 className="w-6 h-6 text-white" />
                             </div>
@@ -110,9 +110,9 @@ export default function MercadoPage() {
             </div>
 
             {/* 3. Call to Action (Light Theme - Premium Accent) */}
-            <div className="w-full bg-white py-20 border-t border-slate-100">
+            <div className="w-full bg-emerald-50 py-20">
                 <div className="container-site">
-                    <div className="bg-emerald-50 rounded-[32px] p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-10 border border-emerald-100 shadow-sm relative overflow-hidden">
+                    <div className="p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-10 relative overflow-hidden">
                         {/* Decorative background element */}
                         <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-emerald-100/50 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -125,28 +125,16 @@ export default function MercadoPage() {
                                 Registe a sua empresa hoje mesmo e comece a ser encontrado por milhares de compradores em todo o país.
                             </p>
                             <div className="flex flex-wrap gap-4">
-                                <Link href="/registar">
-                                    <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-3">
-                                        Registar Empresa <MousePointer2 className="w-4 h-4" />
-                                    </button>
-                                </Link>
-                                <Link
-                                    href="/registar"
-                                    className="inline-flex items-center justify-center gap-2 bg-[#f97316] hover:bg-[#ea6a0a] text-white font-bold px-8 py-4 rounded-lg transition-all duration-300 hover:scale-105"
-                                >
-                                    Registar como Produtor
-                                    <ArrowRight className="w-5 h-5" />
-                                </Link>
-                                <Link href="/contactos">
-                                    <button className="bg-white hover:bg-slate-50 text-emerald-950 px-8 py-4 rounded-xl font-black uppercase tracking-widest text-xs transition-all border border-emerald-200">
-                                        Falar com Consultor
+                                <Link href="/registo-empresa">
+                                    <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-[7px] font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-3">
+                                        Vender Produtos <ArrowRight className="w-4 h-4" />
                                     </button>
                                 </Link>
                             </div>
                         </div>
 
                         <div className="relative shrink-0 z-10">
-                            <div className="w-48 h-48 md:w-64 md:h-64 bg-white rounded-3xl shadow-2xl flex items-center justify-center p-8 border border-emerald-100 transform rotate-3 hover:rotate-0 transition-transform duration-500">
+                            <div className="w-48 h-48 md:w-64 md:h-64 bg-white rounded-[10px] shadow-2xl flex items-center justify-center p-8 border border-emerald-100 transform rotate-3 hover:rotate-0 transition-transform duration-500">
                                 <ShoppingBag className="w-24 h-24 md:w-32 md:h-32 text-emerald-500 opacity-20" strokeWidth={1} />
                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
                                     <span className="text-[40px] md:text-[56px] font-black text-emerald-600 leading-none">+250</span>

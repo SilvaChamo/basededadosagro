@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
+import Link from "next/link";
 import {
     Carousel,
     CarouselContent,
@@ -9,65 +9,53 @@ import {
     CarouselNext,
     CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Building2, ShoppingCart } from "lucide-react";
+import { ShoppingCart, Store } from "lucide-react";
+
+// Fotos de loja são representativas da marca (não fotografias das lojas em
+// Moçambique especificamente) — guardadas localmente em vez de hotlink
+// porque o CSP do site (next.config.ts, img-src) só permite alguns
+// domínios, e o domínio do logo do Premier (premier.co.mz) já nem resolve.
+const supermarkets = [
+    {
+        name: "Shoprite",
+        bgImage: "/images/markets/shoprite_store.jpg",
+    },
+    {
+        name: "Spar",
+        bgImage: "/images/markets/spar_store.jpg",
+    },
+    {
+        name: "Premier",
+        color: "bg-slate-50",
+        borderColor: "border-slate-100",
+    },
+    {
+        name: "Game",
+        color: "bg-red-50",
+        borderColor: "border-red-100",
+    },
+];
 
 export function SupermarketCarousel() {
-    const supermarkets = [
-        {
-            name: "Shoprite",
-            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Shoprite_Holdings_Logo.svg/1200px-Shoprite_Holdings_Logo.svg.png",
-            bgImage: "/images/markets/shoprite_bg.png",
-            color: "bg-red-50",
-            borderColor: "border-red-100"
-        },
-        {
-            name: "Spar",
-            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Spar_Logo.svg/1200px-Spar_Logo.svg.png",
-            bgImage: "/images/markets/spar_bg.png",
-            color: "bg-emerald-50",
-            borderColor: "border-emerald-100"
-        },
-        {
-            name: "Choppies",
-            logo: "https://upload.wikimedia.org/wikipedia/commons/2/28/Choppies_Logo.png",
-            bgImage: "/images/markets/choppies_bg.png",
-            color: "bg-orange-50",
-            borderColor: "border-orange-100"
-        },
-        {
-            name: "Super Marés",
-            logo: "https://lh3.googleusercontent.com/p/AF1QipN3XQ_lqX_lqX_lqX_lqX_lqX_lqX_lqX_lqX",
-            bgImage: "/images/markets/premier_bg.png", // Reusing premier style for Marés
-            fallbackText: "Super Marés",
-            color: "bg-blue-50",
-            borderColor: "border-blue-100"
-        },
-        {
-            name: "Premier",
-            logo: "https://premier.co.mz/wp-content/uploads/2021/09/Logo-Premier-1.png",
-            bgImage: "/images/markets/premier_bg.png",
-            color: "bg-slate-50",
-            borderColor: "border-slate-100"
-        },
-        {
-            name: "Woolworths",
-            logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Woolworths_logo.svg/1200px-Woolworths_logo.svg.png",
-            bgImage: "/images/markets/woolworths_bg.png",
-            color: "bg-neutral-50",
-            borderColor: "border-neutral-100"
-        }
-    ];
-
     return (
-        <div className="w-full bg-white rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200 p-6 md:p-8 mb-8">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-                    <ShoppingCart className="w-5 h-5 text-[#f97316]" />
+        <div className="w-full bg-white rounded-[10px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200 p-6 md:p-8 mb-8">
+            <div className="flex items-center justify-between gap-3 mb-6">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                        <ShoppingCart className="w-5 h-5 text-[#f97316]" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-black text-slate-800 leading-none">Mercado Digital</h3>
+                        <p className="text-xs text-slate-500 font-medium mt-1">Principais parceiros comerciais</p>
+                    </div>
                 </div>
-                <div>
-                    <h3 className="text-lg font-black text-slate-800">Mercado Digital</h3>
-                    <p className="text-xs text-slate-500 font-medium">Principais parceiros comerciais</p>
-                </div>
+                <Link
+                    href="/registo-empresa"
+                    className="shrink-0 inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-widest px-4 py-2.5 rounded-[7px] transition-colors"
+                >
+                    <Store className="w-4 h-4" />
+                    Cadastrar Mercado
+                </Link>
             </div>
 
             <Carousel
@@ -77,32 +65,28 @@ export function SupermarketCarousel() {
                 }}
                 className="w-full"
             >
-                <CarouselContent className="-ml-2 md:-ml-4">
+                <CarouselContent className="-ml-6">
                     {supermarkets.map((market, index) => (
-                        <CarouselItem key={index} className="pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
-                            <div className={`relative p-4 rounded-2xl border overflow-hidden ${market.borderColor} ${market.color} h-32 flex flex-col items-center justify-center gap-2 group cursor-pointer hover:shadow-md transition-all`}>
-                                {/* Background Image with Overlay */}
-                                <div className="absolute inset-0 z-0">
+                        <CarouselItem key={index} className="pl-6 basis-1/2 md:basis-1/3 lg:basis-1/4">
+                            {market.bgImage ? (
+                                <div className="relative rounded-[10px] border border-slate-200 overflow-hidden h-32 group cursor-pointer hover:shadow-md transition-all">
                                     <img
                                         src={market.bgImage}
                                         alt=""
-                                        className="w-full h-full object-cover opacity-10 group-hover:opacity-20 transition-opacity"
+                                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     />
-                                    <div className="absolute inset-0 bg-white/40"></div>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                                    <span className="absolute bottom-3 left-0 right-0 text-center font-black text-white text-sm tracking-wide drop-shadow">
+                                        {market.name}
+                                    </span>
                                 </div>
-
-                                <div className="relative z-10 w-full h-12 flex items-center justify-center">
-                                    {market.fallbackText ? (
-                                        <span className="font-black text-slate-700 text-center leading-tight">{market.fallbackText}</span>
-                                    ) : (
-                                        <img
-                                            src={market.logo}
-                                            alt={market.name}
-                                            className="h-full w-auto object-contain mix-blend-multiply opacity-80 group-hover:opacity-100 transition-opacity"
-                                        />
-                                    )}
+                            ) : (
+                                <div className={`relative p-4 rounded-[10px] border overflow-hidden ${market.borderColor} ${market.color} h-32 flex flex-col items-center justify-center gap-2 group cursor-pointer hover:shadow-md transition-all`}>
+                                    <div className="relative z-10 w-full h-12 flex items-center justify-center">
+                                        <span className="font-black text-slate-700 text-center leading-tight">{market.name}</span>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </CarouselItem>
                     ))}
                 </CarouselContent>

@@ -6,7 +6,7 @@ export function MarketSidebar() {
         <div className="space-y-6 sticky top-24">
 
             {/* 1. Weather Widget */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="bg-white rounded-[10px] shadow-sm border border-slate-100 overflow-hidden">
                 <div className="bg-sky-50 p-4 border-b border-sky-100 flex justify-between items-center">
                     <h3 className="font-bold text-slate-700 flex items-center gap-2">
                         <Sun className="w-5 h-5 text-amber-500" />
@@ -36,7 +36,7 @@ export function MarketSidebar() {
             </div>
 
             {/* 2. Weather Alert */}
-            <div className="bg-red-50 rounded-2xl border border-red-100 p-5 relative overflow-hidden group">
+            <div className="bg-red-50 rounded-[10px] border border-red-100 p-5 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-red-100 rounded-bl-full -mr-4 -mt-4 opacity-50 transition-transform group-hover:scale-110"></div>
                 <div className="flex items-start gap-3 relative z-10">
                     <div className="bg-red-100 p-2 rounded-lg shrink-0 text-red-600">
@@ -53,7 +53,7 @@ export function MarketSidebar() {
             </div>
 
             {/* 3. Price Drop Alert */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 group hover:border-emerald-200 transition-colors">
+            <div className="bg-white rounded-[10px] shadow-sm border border-slate-100 p-5 group hover:border-emerald-200 transition-colors">
                 <div className="flex items-center gap-2 mb-4">
                     <div className="bg-emerald-100 p-1.5 rounded-md text-emerald-600">
                         <TrendingDown className="w-5 h-5" />
@@ -78,7 +78,7 @@ export function MarketSidebar() {
             </div>
 
             {/* 4. Market Info / Hints */}
-            <div className="bg-slate-900 rounded-2xl p-6 text-white relative overflow-hidden">
+            <div className="bg-slate-900 rounded-[10px] p-6 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#f97316] rounded-full blur-[60px] opacity-20"></div>
 
                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2">

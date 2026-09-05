@@ -85,6 +85,20 @@ export const VALUE_CHAINS = [
     "Produtor", "Consumidor", "Fornecedor", "Prestador de Serviços"
 ];
 
+// Tipo de estabelecimento — usado no registo público de empresa para
+// distinguir supermercados/lojas de outros tipos de negócio. Guardado na
+// coluna já existente "registration_type" (mesma que o admin usa para
+// Empresa/Loja), sem precisar de nova coluna na base de dados.
+export const ESTABLISHMENT_TYPES = [
+    "Empresa Agrícola",
+    "Supermercado",
+    "Indústria",
+    "Loja de Insumos",
+    "Cooperativa",
+    "Distribuidor",
+    "Outro",
+];
+
 export const COMPANY_DESIGNATIONS = [
     "Empresa Pública",
     "Empresa Privada",
