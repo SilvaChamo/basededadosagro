@@ -28,7 +28,12 @@ const ALLOWED_TYPES: Record<string, string> = {
     "image/png": "png",
     "image/webp": "webp",
 };
-const MAX_SIZE_BYTES = 5 * 1024 * 1024; // a imagem já chega comprimida (ImageUpload visa <50kb) — 5MB é margem generosa, não um alvo.
+// O ficheiro que chega aqui já vem comprimido pelo browser para <50kb (ver
+// ImageUpload.tsx, hardCapMB=0.05) — isto é só um tecto de segurança no
+// servidor caso alguém chame a rota directamente sem passar pelo formulário,
+// não um alvo. 300kb dá margem (encodificações menos eficientes, etc.) sem
+// deixar passar nada perto de um upload não comprimido.
+const MAX_SIZE_BYTES = 300 * 1024;
 
 // Só a pasta ("professionals", etc.) vem do chamador, e só para organizar —
 // nunca o caminho completo. Sem isto, qualquer letra/dígito/traço serve;
