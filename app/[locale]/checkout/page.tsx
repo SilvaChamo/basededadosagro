@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import {
-    ArrowLeft,
     CreditCard,
     ShieldCheck,
     CheckCircle2,
@@ -62,10 +61,14 @@ const PLAN_FEATURES: Record<string, string[]> = {
 function CheckoutContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const pathname = usePathname();
     const supabase = createClient();
     const planName = searchParams.get("plan") || "Básico";
     const price = searchParams.get("price") || "1 000 MT";
     const period = searchParams.get("period") || "/mês";
+    const locale = pathname.split("/")[1] || "pt";
+    const requestedReturnPath = searchParams.get("returnTo");
+    const returnPath = requestedReturnPath?.startsWith("/") ? requestedReturnPath : `/${locale}`;
 
     // Sessão actual — se já tiver conta, o checkout não pede para a criar de
     // novo: só confirma o plano e cobra. Se já tiver empresa, também não
@@ -352,6 +355,8 @@ function CheckoutContent() {
                     setReceiptSentAt(new Date());
                     setReceiptFile(null);
                     if (receiptInputRef.current) receiptInputRef.current.value = "";
+                    router.push(returnPath);
+                    return;
                 } finally {
                     setSubmittingReceipt(false);
                 }
@@ -369,7 +374,7 @@ function CheckoutContent() {
     useEffect(() => {
         if (success) {
             const timer = setTimeout(() => {
-                router.push("/usuario/dashboard");
+                router.push(returnPath);
             }, paymentMethod === "visa" ? 6000 : 4000);
             return () => clearTimeout(timer);
         }
@@ -404,7 +409,7 @@ function CheckoutContent() {
                 </p>
                 <p className="text-sm text-slate-400 mb-4">A redireccionar para o seu painel...</p>
                 <Button
-                    onClick={() => router.push("/usuario/dashboard")}
+                    onClick={() => router.push(returnPath)}
                     className="bg-slate-900 hover:bg-slate-800 px-8 h-12 rounded-xl font-bold"
                 >
                     Ir para o Painel
@@ -730,14 +735,7 @@ export default function CheckoutPage() {
             {/* Cabeçalho partilhado por todos os formulários fora dos
                 painéis (o mesmo do registo/destaque de empresa) — logótipo
                 + utilizador (avatar/nome/Sair) quando há sessão. */}
-            <FormPageHeader
-                rightExtra={
-                    <Link href="/planos" className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-all font-bold text-sm group">
-                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        Voltar aos Planos
-                    </Link>
-                }
-            />
+            <FormPageHeader />
 
             <div className="pb-5 md:pb-8" style={{ paddingTop: '30px' }}>
                 <div className="container-site">

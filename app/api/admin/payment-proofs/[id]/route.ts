@@ -55,9 +55,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     if (action === "reject") {
-        await adminClient.from("payment_transactions")
+        const { error: rejectError } = await adminClient.from("payment_transactions")
             .update({ status: "failed" })
             .eq("id", id);
+        if (rejectError) {
+            console.error("Erro ao rejeitar comprovativo:", rejectError);
+            return NextResponse.json({ error: "Não foi possível rejeitar o comprovativo." }, { status: 500 });
+        }
         return NextResponse.json({ success: true, status: "failed" });
     }
 
@@ -72,9 +76,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         await adminClient.from("companies").update({ is_featured: true }).eq("user_id", tx.user_id);
     }
 
-    await adminClient.from("payment_transactions")
+    const { error: completedError } = await adminClient.from("payment_transactions")
         .update({ status: "completed", completed_at: new Date().toISOString() })
         .eq("id", id);
+    if (completedError) {
+        console.error("Erro ao aprovar comprovativo:", completedError);
+        return NextResponse.json({ error: "O plano foi processado, mas não foi possível guardar a aprovação." }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true, status: "completed" });
 }

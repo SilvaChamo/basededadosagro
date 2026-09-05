@@ -65,7 +65,7 @@ export default function AdminPagamentosPage() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Erro ao processar.");
             toast.success(action === "approve" ? "Pagamento aprovado — plano já activo na conta." : "Comprovativo rejeitado.");
-            setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: data.status } : r)));
+            await load();
             if (action === "approve") setTab("completed");
         } catch (err: any) {
             toast.error(err.message || "Erro ao processar.");
@@ -78,6 +78,8 @@ export default function AdminPagamentosPage() {
 
     const filtered = rows.filter((r) => r.status === tab);
     const pendingCount = rows.filter((r) => r.status === "pending").length;
+    const completedCount = rows.filter((r) => r.status === "completed").length;
+    const failedCount = rows.filter((r) => r.status === "failed").length;
 
     const isPdf = (url: string) => url.toLowerCase().endsWith(".pdf");
 
@@ -100,7 +102,7 @@ export default function AdminPagamentosPage() {
                                 onClick={() => setTab(t)}
                                 className={`px-3 py-1.5 rounded-md text-[11px] font-black uppercase tracking-widest transition-all ${tab === t ? "bg-white text-emerald-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
                             >
-                                {t === "pending" ? `Pendentes${pendingCount ? ` (${pendingCount})` : ""}` : t === "completed" ? "Aprovados" : "Rejeitados"}
+                                {t === "pending" ? `Pendentes (${pendingCount})` : t === "completed" ? `Aprovados (${completedCount})` : `Rejeitados (${failedCount})`}
                             </button>
                         ))}
                     </div>
