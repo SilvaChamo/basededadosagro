@@ -113,8 +113,20 @@ export function getCachedDashboardExtra(): AdminDashboardExtra | null {
 export async function fetchAndCacheDashboardExtra(): Promise<AdminDashboardExtra> {
     const sinceOneWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const [pendingResult, weeklyResult, companiesRecent, productsRecent, professionalsRecent, articlesRecent, pendingPaymentsResult] = await Promise.all([
+    // "Pendentes" no dashboard tem de bater certo com o que a própria vista
+    // /admin/noticias?tab=Pendentes considera pendente: fila do robô
+    // (articles_pending) SOMADA aos artigos reais em revisão
+    // (articles.publish_status='review') — antes só contava a primeira, por
+    // isso o card dizia "0" mesmo havendo notícias por rever. Não replica
+    // aqui os filtros finos de categoria/arquivadas que a vista aplica do
+    // lado do cliente (relatório não conta como "notícia", arquivadas não
+    // contam) — preferível um número um pouco por cima do que arriscar uma
+    // consulta partida a voltar a mostrar zero.
+    const [pendingResult, pendingReviewResult, weeklyResult, companiesRecent, productsRecent, professionalsRecent, articlesRecent, pendingPaymentsResult] = await Promise.all([
         supabase.from('articles_pending').select('*', { count: 'exact', head: true }),
+        supabase.from('articles').select('*', { count: 'exact', head: true })
+            .is('deleted_at', null)
+            .eq('publish_status', 'review'),
         supabase.from('articles').select('*', { count: 'exact', head: true }).gte('created_at', sinceOneWeek),
         supabase.from('companies').select('id, name, created_at').order('created_at', { ascending: false }).limit(15),
         supabase.from('products').select('id, name, created_at').order('created_at', { ascending: false }).limit(15),
@@ -143,7 +155,7 @@ export async function fetchAndCacheDashboardExtra(): Promise<AdminDashboardExtra
         .slice(0, 3);
 
     const data: AdminDashboardExtra = {
-        pendingCount: pendingResult.count || 0,
+        pendingCount: (pendingResult.count || 0) + (pendingReviewResult.count || 0),
         weeklyArticlesCount: weeklyResult.count || 0,
         recentItems,
         pendingPaymentsCount: pendingPaymentsResult.count || 0,
