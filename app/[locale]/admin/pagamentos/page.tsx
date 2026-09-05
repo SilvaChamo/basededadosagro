@@ -251,17 +251,17 @@ export default function AdminPagamentosPage() {
                                     <p className="text-[10px] text-slate-400 font-mono mt-1">{row.reference}</p>
                                 </div>
 
-                                <div className="text-center px-3">
+                                <div className="text-left px-3">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{ITEM_LABEL[row.item_type || ""] || "—"}</p>
                                     <p className="text-sm font-bold text-slate-700">{row.plan_name}</p>
                                 </div>
 
-                                <div className="text-center px-3">
+                                <div className="text-left px-3">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Valor</p>
                                     <p className="text-base font-black text-emerald-600">{Number(row.amount).toLocaleString("pt-PT")} MT</p>
                                 </div>
 
-                                <div className="text-center px-3 hidden md:block">
+                                <div className="text-left px-3 hidden md:block">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Enviado</p>
                                     <p className="text-xs font-medium text-slate-500">{new Date(row.created_at).toLocaleDateString("pt-PT", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
                                 </div>
@@ -358,9 +358,9 @@ export default function AdminPagamentosPage() {
 
                             <DialogClose
                                 aria-label="Fechar"
-                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900/85 text-white shadow-lg backdrop-blur-sm transition-colors hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-white"
+                                className="group flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white/90 transition-colors hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-white"
                             >
-                                <X className="h-5 w-5" />
+                                <X className="h-5 w-5 transition-transform duration-300 group-hover:rotate-180" />
                             </DialogClose>
                         </div>
                     )}
