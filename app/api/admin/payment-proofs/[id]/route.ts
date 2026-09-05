@@ -86,3 +86,5 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     return NextResponse.json({ success: true, status: "completed" });
 }
+
+export const dynamic = "force-dynamic";

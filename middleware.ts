@@ -26,6 +26,23 @@ const handleI18nRouting = createIntlMiddleware({
   localeCookie: false,
 });
 
+// Host PÚBLICO. Atrás de Cloudflare -> Apache -> PM2 o Host que chega ao
+// Node é interno (localhost) — o next-intl usa-o sozinho para montar o
+// cabeçalho `Link` (hreflang), por isso esse header saía sempre com
+// "https://localhost/..." em produção. Mesmo fallback fixo usado em
+// auth/callback e auth/reset-password para este problema.
+function publicOrigin(request: NextRequest): string {
+  if (process.env.NODE_ENV === 'development') return request.nextUrl.origin;
+  const pick = (v: string | null) => (v ?? '').split(',')[0].trim();
+  const fwdHost = pick(request.headers.get('x-forwarded-host'));
+  const fwdProto = pick(request.headers.get('x-forwarded-proto')) || 'https';
+  try {
+    return fwdHost ? new URL(`${fwdProto}://${fwdHost}`).origin : 'https://basededadosagro.com';
+  } catch {
+    return 'https://basededadosagro.com';
+  }
+}
+
 export async function middleware(request: NextRequest) {
   // 1. Executar lógica do Supabase (Sessão/Auth)
   const response = await updateSession(request);
@@ -58,6 +75,14 @@ export async function middleware(request: NextRequest) {
   // injecta-se o cabeçalho directamente na resposta que o next-intl já
   // preparou, preservando o que ele decidiu (rewrite ou passagem directa).
   intlResponse.headers.set('x-middleware-request-x-pathname', request.nextUrl.pathname);
+
+  // Corrige o `Link` (hreflang) do next-intl, que veio montado com o Host
+  // interno em vez do domínio público — ver publicOrigin() acima.
+  const linkHeader = intlResponse.headers.get('link');
+  if (linkHeader && /https?:\/\/localhost(:\d+)?\//.test(linkHeader)) {
+    intlResponse.headers.set('link', linkHeader.replace(/https?:\/\/localhost(:\d+)?/g, publicOrigin(request)));
+  }
+
   return intlResponse;
 }
  
