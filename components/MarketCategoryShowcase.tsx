@@ -6,15 +6,32 @@ import { ArrowRight, Search } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { CompanyCard } from "@/components/CompanyCard";
 
-// As mesmas 4 categorias do mega menu do "Mercado" (components/MarketMegaMenu.tsx):
-// Produtor/Fornecedor/Consumidor vêm do campo "value_chain" da empresa
-// (o mesmo seletor "Cadeia de Valor" do /registo-empresa); "Rede de Lojas"
-// é o mesmo filtro (type = 'Loja') já usado em /servicos/lojas.
+// As mesmas 4 categorias do mega menu do "Mercado" (components/MarketMegaMenu.tsx).
+// Cada separador filtra por dados reais, não só por "type = 'Loja'" — isso
+// deixava passar empresas mal-classificadas (ex: uma processadora com
+// type='Loja' aparecia em "Lojas de Insumos" só por causa do type).
 const CATEGORY_TABS = [
-    { id: "fornecedores", label: "Fornecedores", valueChain: "Fornecedor", seeAllHref: "/empresas" },
-    { id: "consumidores", label: "Consumidores", valueChain: "Consumidor", seeAllHref: "/empresas" },
-    { id: "produtores", label: "Produtores", valueChain: "Produtor", seeAllHref: "/empresas" },
-    { id: "lojas", label: "Lojas de Insumos", type: "Loja", seeAllHref: "/servicos/lojas" },
+    {
+        id: "fornecedores", label: "Fornecedores", seeAllHref: "/empresas",
+        applyFilter: (q: any) => q.ilike('value_chain', '%Fornecedor%'),
+    },
+    {
+        id: "consumidores", label: "Consumidores", seeAllHref: "/empresas",
+        // Consumidor final da cadeia de valor OU quem revende ao consumidor
+        // (supermercados e lojas que vendem produtos agrícolas ao público).
+        applyFilter: (q: any) => q.or("value_chain.ilike.%Consumidor%,registration_type.eq.Supermercado,category.ilike.%Supermercado%"),
+    },
+    {
+        id: "produtores", label: "Produtores", seeAllHref: "/empresas",
+        applyFilter: (q: any) => q.ilike('value_chain', '%Produtor%'),
+    },
+    {
+        id: "lojas", label: "Lojas de Insumos", seeAllHref: "/servicos/lojas",
+        // type='Loja' sozinho não chega — só o sector/categoria confirma que
+        // é mesmo uma loja de insumos (sementes, fertilizantes, maquinaria,
+        // etc.), não qualquer empresa marcada como "Loja" por engano.
+        applyFilter: (q: any) => q.eq('type', 'Loja').ilike('category', '%Insumo%'),
+    },
 ] as const;
 
 export function MarketCategoryShowcase() {
@@ -35,9 +52,7 @@ export function MarketCategoryShowcase() {
                 .eq('is_archived', false)
                 .limit(8);
 
-            query = 'type' in tab
-                ? query.eq('type', tab.type)
-                : query.ilike('value_chain', `%${tab.valueChain}%`);
+            query = tab.applyFilter(query);
 
             const { data, error } = await query;
             if (!cancelled) {
