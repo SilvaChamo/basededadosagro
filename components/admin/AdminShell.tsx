@@ -48,6 +48,7 @@ import {
     BookOpen,
     Scale,
     UserPlus,
+    Coins,
 } from "lucide-react";
 
 interface AdminShellProps {
@@ -535,7 +536,7 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                         {/* GROUP: MÓDULOS ESPECIAIS */}
                         <div className="flex flex-col gap-0.5">
                             {!isCollapsed && (
-                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/podcast', '/admin/actividades', '/admin/servicos']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
+                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/podcast', '/admin/actividades', '/admin/servicos', '/admin/pagamentos']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
                                     <button
                                         onClick={() => handleGroupClick('modules', '/admin/podcast')}
                                         className="flex items-center gap-2.5 flex-1 min-w-0 pl-6 pr-2 py-1.5 text-[15px] font-semibold text-left transition-all duration-300 ease-out hover:translate-x-1.5 hover:text-orange-500"
@@ -559,6 +560,7 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                                     <LinkItem href="/admin/podcast" icon={Wifi} label="Podcast" isSub />
                                     <LinkItem href="/admin/actividades" icon={LayoutDashboard} label="Actividades" isSub />
                                     <LinkItem href="/admin/servicos" icon={Grid2X2} label="Serviços" isSub />
+                                    <LinkItem href="/admin/pagamentos" icon={Coins} label="Pagamentos" isSub />
                                 </div>
                             )}
                         </div>

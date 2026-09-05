@@ -94,6 +94,7 @@ export interface AdminDashboardExtra {
     pendingCount: number;
     weeklyArticlesCount: number;
     recentItems: RecentItem[];
+    pendingPaymentsCount: number;
 }
 
 const EXTRA_CACHE_KEY = "admin_dashboard_extra_cache_v1";
@@ -112,13 +113,17 @@ export function getCachedDashboardExtra(): AdminDashboardExtra | null {
 export async function fetchAndCacheDashboardExtra(): Promise<AdminDashboardExtra> {
     const sinceOneWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const [pendingResult, weeklyResult, companiesRecent, productsRecent, professionalsRecent, articlesRecent] = await Promise.all([
+    const [pendingResult, weeklyResult, companiesRecent, productsRecent, professionalsRecent, articlesRecent, pendingPaymentsResult] = await Promise.all([
         supabase.from('articles_pending').select('*', { count: 'exact', head: true }),
         supabase.from('articles').select('*', { count: 'exact', head: true }).gte('created_at', sinceOneWeek),
         supabase.from('companies').select('id, name, created_at').order('created_at', { ascending: false }).limit(15),
         supabase.from('products').select('id, name, created_at').order('created_at', { ascending: false }).limit(15),
         supabase.from('professionals').select('id, name, created_at').order('created_at', { ascending: false }).limit(15),
         supabase.from('articles').select('id, title, created_at').order('created_at', { ascending: false }).limit(15),
+        // Comprovativos de transferência bancária por aprovar — política de
+        // leitura própria em payment_transactions (só admin vê todas as
+        // linhas; um utilizador normal só vê as suas, por RLS).
+        supabase.from('payment_transactions').select('*', { count: 'exact', head: true }).eq('method', 'visa').eq('status', 'pending'),
     ]);
 
     // Descarta linhas sem nome preenchido em vez de mostrar um placeholder —
@@ -141,6 +146,7 @@ export async function fetchAndCacheDashboardExtra(): Promise<AdminDashboardExtra
         pendingCount: pendingResult.count || 0,
         weeklyArticlesCount: weeklyResult.count || 0,
         recentItems,
+        pendingPaymentsCount: pendingPaymentsResult.count || 0,
     };
 
     writeCache(EXTRA_CACHE_KEY, data);

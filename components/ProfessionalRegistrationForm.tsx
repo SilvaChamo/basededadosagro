@@ -267,6 +267,7 @@ export function ProfessionalRegistrationForm({ initialData, isAdmin }: Professio
                                     label=""
                                     recommendedSize=""
                                     folder="professionals"
+                                    endpoint="/api/upload-image"
                                     className="w-full h-full absolute inset-0 flex items-center justify-center"
                                     imageClassName="w-full h-full object-cover"
                                     showRecommendedBadge={false}

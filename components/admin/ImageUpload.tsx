@@ -25,6 +25,11 @@ interface ImageUploadProps {
     useBackgroundImage?: boolean; // If true, use background-image instead of img element
     backgroundSize?: "cover" | "contain"; // Background size mode when useBackgroundImage is true
     disabled?: boolean;
+    // Rota que recebe o ficheiro já comprimido. Por omissão é a de admin
+    // (exige admin/editor) — usada em todos os editores do painel. Formulários
+    // fora do painel (ex.: registo de profissional) devem passar
+    // "/api/upload-image", que só exige sessão iniciada, não admin.
+    endpoint?: string;
 }
 
 export function ImageUpload({
@@ -45,7 +50,8 @@ export function ImageUpload({
     className,
     useBackgroundImage = false,
     backgroundSize = "cover",
-    disabled = false
+    disabled = false,
+    endpoint = "/api/admin/upload-image",
 }: ImageUploadProps) {
     const supabase = createClient();
     // Tecto absoluto por imagem (mantendo a melhor qualidade possível dentro
@@ -225,7 +231,7 @@ export function ImageUpload({
             uploadForm.append("bucket", bucket);
             uploadForm.append("path", fileName);
 
-            const res = await fetch("/api/admin/upload-image", {
+            const res = await fetch(endpoint, {
                 method: "POST",
                 body: uploadForm,
             });

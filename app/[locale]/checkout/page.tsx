@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
     ArrowLeft,
@@ -14,6 +14,7 @@ import {
     Mail,
     Eye,
     EyeOff,
+    Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { normalizePlanName } from "@/lib/plan-fields";
+import { compressImage } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
 
 const PLAN_FEATURES: Record<string, string[]> = {
@@ -93,6 +95,14 @@ function CheckoutContent() {
     // Este estado distingue "a enviar o pedido" de "a aguardar o PIN no
     // telemóvel", enquanto se consulta /status até haver confirmação real.
     const [waitingPin, setWaitingPin] = useState(false);
+    // Comprovativo de transferência bancária — nunca se auto-confirma; fica
+    // pendente até um admin aprovar em /admin/pagamentos. O botão de enviar
+    // fica sempre disponível (pode reenviar), nunca passa para o ecrã de
+    // sucesso sozinho — só a mudança para M-Pesa é que tira este painel.
+    const receiptInputRef = useRef<HTMLInputElement>(null);
+    const [receiptFile, setReceiptFile] = useState<File | null>(null);
+    const [submittingReceipt, setSubmittingReceipt] = useState(false);
+    const [receiptSentAt, setReceiptSentAt] = useState<Date | null>(null);
 
     // Honeypot anti-bot — campo escondido; se vier preenchido, é robô.
     const [honeypot, setHoneypot] = useState("");
@@ -161,6 +171,10 @@ function CheckoutContent() {
             setError("Insira um número de M-Pesa válido.");
             return;
         }
+        if (paymentMethod === "visa" && normalizePlanName(planName) !== "Gratuito" && !receiptFile) {
+            setError("Anexe o comprovativo da transferência (imagem ou PDF) antes de confirmar.");
+            return;
+        }
 
         setLoading(true);
         setError("");
@@ -196,6 +210,10 @@ function CheckoutContent() {
                     return;
                 }
                 currentUserId = payload.userId;
+                // Reflecte a conta recém-criada no estado local — sem isto,
+                // reenviar um comprovativo (Visa) tentava criar a conta outra
+                // vez, já que needsAccountFields continuava a ler `user` como null.
+                setUser({ id: currentUserId, email: email.trim() });
             }
 
             if (!currentUserId) {
@@ -300,12 +318,43 @@ function CheckoutContent() {
                 await grantPlan();
                 setSuccess(true);
             } else {
-                // Visa/transferência — confirmação é manual (comprovativo via
-                // WhatsApp), tal como no formulário de registo de empresa.
-                const msg = `Olá, envio comprovativo de ${totalPriceFormatted} referente à assinatura do plano *${planName}*${email ? ` (conta: ${email})` : ""}.`;
-                window.open(`https://wa.me/258877575288?text=${encodeURIComponent(msg)}`, "_blank");
-                await grantPlan();
-                setSuccess(true);
+                // Visa/transferência — NUNCA se auto-confirma: fica pendente
+                // até um admin aprovar em /admin/pagamentos (só nesse
+                // momento é que activatePlan()/is_featured entram em jogo).
+                // Por isso não chama grantPlan nem setSuccess aqui — a conta
+                // fica criada, o comprovativo é enviado, e o botão continua
+                // disponível para reenviar se for preciso.
+                setSubmittingReceipt(true);
+                try {
+                    let toSend: Blob = receiptFile as File;
+                    let filename = "comprovativo";
+                    if ((receiptFile as File).type.startsWith("image/")) {
+                        toSend = await compressImage(receiptFile as File, { targetSizeKb: 50, maxWidth: 1600, maxHeight: 1600 });
+                        filename = "comprovativo.webp";
+                    } else {
+                        filename = "comprovativo.pdf";
+                    }
+                    const itemType = highlightCompany ? "both" : "plan";
+                    const proofForm = new FormData();
+                    proofForm.append("file", toSend, filename);
+                    proofForm.append("amount", String(totalPriceNumeric));
+                    proofForm.append("planName", planName);
+                    proofForm.append("itemType", itemType);
+                    const proofRes = await fetch("/api/payment/comprovativo", { method: "POST", body: proofForm });
+                    const proofData = await proofRes.json();
+                    if (!proofData.success) {
+                        setError(proofData.error || "Erro ao enviar comprovativo.");
+                        return;
+                    }
+                    // Reflecte a conta recém-criada no estado local, para um
+                    // reenvio não tentar criar tudo outra vez.
+                    setHasCompany(true);
+                    setReceiptSentAt(new Date());
+                    setReceiptFile(null);
+                    if (receiptInputRef.current) receiptInputRef.current.value = "";
+                } finally {
+                    setSubmittingReceipt(false);
+                }
             }
         } catch (err) {
             setError("Ocorreu um erro. Por favor, tente novamente.");
@@ -526,7 +575,23 @@ function CheckoutContent() {
                                             <div className="flex justify-between"><span className="text-slate-400">NIB:</span><span className="select-all">003400000544672210195</span></div>
                                             <div className="flex justify-between pt-1 border-t border-slate-200 mt-1"><span className="text-slate-400">Titular:</span><span>Visual Design</span></div>
                                         </div>
-                                        <p className="text-xs text-slate-500">Ao confirmar, abrimos o WhatsApp para enviar o comprovativo da transferência. O plano fica activo assim que confirmarmos.</p>
+                                        <input ref={receiptInputRef} type="file" accept="image/jpeg,image/png,image/webp,application/pdf"
+                                            className="hidden"
+                                            onChange={(e) => { const f = e.target.files?.[0]; if (!f) return; if (!f.type.startsWith("image/") && f.type !== "application/pdf") { setError("Formato não suportado. Envie uma imagem (JPG, PNG, WebP) ou um PDF."); return; } setReceiptFile(f); setReceiptSentAt(null); setError(""); }}
+                                        />
+                                        <button type="button" onClick={() => receiptInputRef.current?.click()}
+                                            className="w-full h-11 px-3 text-xs font-bold text-slate-600 bg-white border border-dashed border-slate-300 hover:border-orange-400 transition-colors flex items-center justify-center gap-2"
+                                            style={{ borderRadius: "8px" }}>
+                                            <Upload className="w-4 h-4 shrink-0 text-slate-400" />
+                                            <span className="truncate">{receiptFile ? receiptFile.name : "Anexar comprovativo (imagem ou PDF)"}</span>
+                                        </button>
+                                        <p className="text-xs text-slate-500">Anexe o comprovativo e clique em "Enviar Comprovativo" abaixo. Fica pendente até a nossa equipa confirmar — o plano só activa depois disso.</p>
+                                        {receiptSentAt && (
+                                            <div className="bg-emerald-50 border border-emerald-100 p-3 flex gap-2 items-start" style={{ borderRadius: "8px" }}>
+                                                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                                                <p className="text-xs text-emerald-700">Comprovativo enviado — a aguardar aprovação da equipa. Pode enviar outro abaixo se precisar.</p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -541,9 +606,11 @@ function CheckoutContent() {
                             style={{ borderRadius: "8px" }}
                         >
                             {loading ? (
-                                <><Spinner className="w-4 h-4" /> {waitingPin ? "A aguardar PIN no telemóvel..." : isProcessingPayment ? "A processar pagamento..." : "A processar..."}</>
+                                <><Spinner className="w-4 h-4" /> {waitingPin ? "A aguardar PIN no telemóvel..." : submittingReceipt ? "A enviar comprovativo..." : isProcessingPayment ? "A processar pagamento..." : "A processar..."}</>
                             ) : normalizePlanName(planName) === "Gratuito" ? (
                                 <>Activar Plano Gratuito</>
+                            ) : paymentMethod === "visa" ? (
+                                <>{receiptSentAt ? "Enviar Novo Comprovativo" : "Enviar Comprovativo"}</>
                             ) : (
                                 <>Confirmar e Pagar {totalPriceFormatted} <ChevronRight className="w-4 h-4" /></>
                             )}

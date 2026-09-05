@@ -16,6 +16,7 @@ import {
     Newspaper,
     Images,
     Bot,
+    Coins,
 } from "lucide-react";
 import Link from "next/link";
 import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
@@ -34,6 +35,7 @@ export default function AdminDashboardPage() {
     const [userName, setUserName] = useState("");
     const [pendingCount, setPendingCount] = useState(0);
     const [weeklyArticlesCount, setWeeklyArticlesCount] = useState(0);
+    const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
     const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
     const [recentLoading, setRecentLoading] = useState(true);
 
@@ -59,10 +61,11 @@ export default function AdminDashboardPage() {
         }
         fetchUserName();
 
-        function applyExtra(data: { pendingCount: number; weeklyArticlesCount: number; recentItems: RecentItem[] }) {
+        function applyExtra(data: { pendingCount: number; weeklyArticlesCount: number; recentItems: RecentItem[]; pendingPaymentsCount: number }) {
             setPendingCount(data.pendingCount);
             setWeeklyArticlesCount(data.weeklyArticlesCount);
             setRecentItems(data.recentItems);
+            setPendingPaymentsCount(data.pendingPaymentsCount);
             setRecentLoading(false);
         }
 
@@ -79,7 +82,7 @@ export default function AdminDashboardPage() {
 
     const tiles = [
         { label: "Ver Notícias", value: loading ? "..." : stats.articles, valueColor: "text-slate-800", icon: Newspaper, color: "text-blue-600", bg: "bg-blue-50", href: "/admin/noticias" },
-        { label: "Nova Notícia", value: loading ? "..." : weeklyArticlesCount, valueColor: "text-emerald-600", icon: Plus, color: "text-emerald-600", bg: "bg-emerald-50", href: "/admin/noticias" },
+        { label: "Pagamentos", value: recentLoading ? "..." : pendingPaymentsCount, valueColor: "text-emerald-600", icon: Coins, color: "text-emerald-600", bg: "bg-emerald-50", href: "/admin/pagamentos" },
         { label: "Galeria", value: "→", valueColor: "text-slate-800", icon: Images, color: "text-purple-600", bg: "bg-purple-50", href: "/admin/galeria" },
         { label: "Pendentes", value: loading ? "..." : pendingCount, valueColor: "text-slate-800", icon: Bot, color: "text-orange-600", bg: "bg-orange-50", href: "/admin/noticias?tab=Pendentes" },
     ];

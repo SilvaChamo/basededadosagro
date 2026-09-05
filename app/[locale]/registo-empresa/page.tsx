@@ -88,11 +88,13 @@ function PaymentItem({
     label,
     amount,
     planName,
+    itemType,
     onPaid,
 }: {
     label: string;
     amount: number;
     planName: string;
+    itemType: 'plan' | 'highlight' | 'both';
     onPaid: (method: 'mpesa' | 'visa') => void;
 }) {
     const [method, setMethod] = useState<'mpesa' | 'visa' | null>(null);
@@ -181,11 +183,60 @@ function PaymentItem({
         }
     };
 
-    const handleVisa = () => {
-        const msg = `Olá, envio comprovativo de ${amount.toLocaleString()}MT referente a *${label}*.`;
-        window.open(`https://wa.me/258877575288?text=${encodeURIComponent(msg)}`, "_blank");
-        setConfirmed(true);
-        onPaid('visa');
+    // Transferência bancária/Visa — ao contrário do M-Pesa, isto NUNCA se
+    // auto-confirma: fica pendente até um humano aprovar em
+    // /admin/pagamentos. Por isso este bloco nunca chama onPaid nem
+    // "confirmed" — o botão fica sempre disponível (pode enviar de novo se
+    // precisar), só desaparece se se mudar para o M-Pesa ao lado.
+    const receiptInputRef = useRef<HTMLInputElement>(null);
+    const [receiptFile, setReceiptFile] = useState<File | null>(null);
+    const [submittingReceipt, setSubmittingReceipt] = useState(false);
+    const [receiptSentAt, setReceiptSentAt] = useState<Date | null>(null);
+
+    const handleReceiptSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const f = e.target.files?.[0];
+        if (!f) return;
+        if (!f.type.startsWith('image/') && f.type !== 'application/pdf') {
+            alert("Formato não suportado. Envie uma imagem (JPG, PNG, WebP) ou um PDF.");
+            return;
+        }
+        setReceiptFile(f);
+        setReceiptSentAt(null);
+    };
+
+    const handleSendReceipt = async () => {
+        if (!receiptFile) { alert("Anexe o comprovativo (imagem ou PDF) primeiro."); return; }
+        setSubmittingReceipt(true);
+        try {
+            let toSend: Blob = receiptFile;
+            let filename = "comprovativo";
+            if (receiptFile.type.startsWith('image/')) {
+                // Mesma compressão de sempre (<50kb) — um PDF não passa por
+                // aqui, não há como comprimi-lo da mesma forma.
+                toSend = await compressImage(receiptFile, { targetSizeKb: 50, maxWidth: 1600, maxHeight: 1600 });
+                filename = "comprovativo.webp";
+            } else {
+                filename = "comprovativo.pdf";
+            }
+            const form = new FormData();
+            form.append('file', toSend, filename);
+            form.append('amount', String(amount));
+            form.append('planName', planName);
+            form.append('itemType', itemType);
+            const res = await fetch('/api/payment/comprovativo', { method: 'POST', body: form });
+            const data = await res.json();
+            if (!data.success) {
+                alert(data.error || "Erro ao enviar comprovativo.");
+                return;
+            }
+            setReceiptSentAt(new Date());
+            setReceiptFile(null);
+            if (receiptInputRef.current) receiptInputRef.current.value = "";
+        } catch {
+            alert("Erro de conexão ao enviar o comprovativo.");
+        } finally {
+            setSubmittingReceipt(false);
+        }
     };
 
     if (confirmed) {
@@ -244,11 +295,23 @@ function PaymentItem({
                         <div className="flex justify-between"><span className="text-emerald-400">NIB:</span><span className="select-all">003400000544672210195</span></div>
                         <div className="flex justify-between"><span className="text-emerald-400">Titular:</span><span>Visual Design</span></div>
                     </div>
-                    <Button size="sm" onClick={handleVisa}
+                    <input ref={receiptInputRef} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" className="hidden" onChange={handleReceiptSelect} />
+                    <button type="button" onClick={() => receiptInputRef.current?.click()}
+                        className="w-full h-9 px-3 text-xs font-bold text-emerald-100 bg-emerald-900/40 border border-dashed border-emerald-700 hover:border-emerald-500 transition-colors flex items-center justify-center gap-2"
+                        style={{ borderRadius: '8px' }}>
+                        <Upload className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{receiptFile ? receiptFile.name : "Anexar comprovativo (imagem ou PDF)"}</span>
+                    </button>
+                    <Button size="sm" disabled={submittingReceipt} onClick={handleSendReceipt}
                         className="w-full h-9 text-xs font-black uppercase text-white bg-[#25D366] hover:bg-[#1ebd59] flex items-center justify-center gap-2">
-                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-2.846-.828-.927-.382-1.545-1.3-1.666-1.473-.12-.171-.397-.534-.403-.603-.099-.54.275-.826.47-.798.156.022.253.111.366.191.246.168.21.05.353.454.12.35.082.602-.016.793-.11.21-.262.31-.476.438-.344.184-1.127.674-1.17.653-.027-.013-.372-.444-.453-.556-.098-.135-.078-.292-.012-.423.1-.197.636-.59.715-.656.095-.081.259-.153.414-.158.125-.005.336-.007.493-.007.157 0 .341.055.518.254.178.199.646.619.646 1.509 0 .89.467 1.493.645 1.701zm-3.392-9.416c-4.966 0-9.006 4.04-9.006 9.007 0 1.948.517 3.738 1.424 5.289l-1.365 4.983 5.093-1.337c1.474.805 3.167 1.282 4.954 1.284 4.965 0 9.006-4.041 9.006-9.007.001-4.967-4.04-9.006-9.016-9.219z" /></svg>
-                        Enviar Comprovativo
+                        {submittingReceipt ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> A enviar...</> : "Enviar Comprovativo"}
                     </Button>
+                    {receiptSentAt && (
+                        <p className="text-[10px] text-emerald-300 leading-relaxed flex items-start gap-1.5">
+                            <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                            Comprovativo enviado — a aguardar aprovação da equipa. Pode enviar outro se precisar.
+                        </p>
+                    )}
                 </div>
             )}
         </div>
@@ -1083,6 +1146,7 @@ function RegistoEmpresaContent() {
                                             }
                                             amount={(highlightDue ? highlightCost : 0) + (planDue ? planCost : 0)}
                                             planName={formData.plan}
+                                            itemType={highlightDue && planDue ? 'both' : highlightDue ? 'highlight' : 'plan'}
                                             onPaid={() => {
                                                 if (highlightDue) setHighlightPaid(true);
                                                 if (planDue) setPlanPaid(true);
