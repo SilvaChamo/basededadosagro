@@ -19,6 +19,9 @@ const withPWA = withPWAInit({
 import path from "path";
 
 const nextConfig: NextConfig = {
+  // Mantém o cache/chunks do desenvolvimento separado da build de produção.
+  // Assim, `next build` não corrompe um `next dev` que esteja aberto.
+  distDir: process.env.NODE_ENV === "development" ? ".next-dev" : ".next",
   eslint: {
     ignoreDuringBuilds: true,
   },
