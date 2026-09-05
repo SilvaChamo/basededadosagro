@@ -110,7 +110,10 @@ export default function MercadoPage() {
                 </div>
             </div>
 
-            {/* 3. Call to Action (Light Theme - Premium Accent) */}
+            {/* 3. Categorias do Mercado (mesmas do mega menu) */}
+            <MarketCategoryShowcase />
+
+            {/* 4. Call to Action (Light Theme - Premium Accent) — última secção, logo antes do rodapé */}
             <div className="w-full bg-emerald-50 py-20">
                 <div className="container-site">
                     <div className="p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-10 relative overflow-hidden">
@@ -147,9 +150,6 @@ export default function MercadoPage() {
                     </div>
                 </div>
             </div>
-
-            {/* 4. Categorias do Mercado (mesmas do mega menu) */}
-            <MarketCategoryShowcase />
         </div>
     );
 }

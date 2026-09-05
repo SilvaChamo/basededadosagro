@@ -73,19 +73,22 @@ export function MarketCategoryShowcase() {
                 </div>
 
                 {/* Tabs — só texto, sem fundo; laranja no hover e no activo */}
-                <div className="flex flex-wrap gap-8 border-b border-slate-200 mb-8">
-                    {CATEGORY_TABS.map(tab => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`pb-4 text-sm font-black uppercase tracking-widest transition-colors ${activeTab === tab.id
-                                ? "text-[#f97316]"
-                                : "text-slate-400 hover:text-[#f97316]"
-                                }`}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
+                <div className="flex flex-wrap gap-1 border-b border-slate-200 mb-8">
+                    {CATEGORY_TABS.map(tab => {
+                        const isActive = activeTab === tab.id;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`lowercase -mb-px px-5 py-3 text-sm font-black tracking-wide border rounded-t-md transition-colors ${isActive
+                                    ? "text-[#f97316] border-slate-200 border-b-white bg-white"
+                                    : "text-slate-400 hover:text-[#f97316] border-transparent"
+                                    }`}
+                            >
+                                {tab.label}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {loading ? (
