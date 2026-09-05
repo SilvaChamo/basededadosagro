@@ -6,6 +6,7 @@ import { MarketPriceTableServer } from "@/components/MarketPriceTableServer";
 import { MarketSidebar } from "@/components/MarketSidebar";
 import { SupermarketCarousel } from "@/components/SupermarketCarousel";
 import { AnunciarProdutoButton } from "@/components/AnunciarProdutoButton";
+import { MarketCategoryShowcase } from "@/components/MarketCategoryShowcase";
 import Link from "next/link";
 
 // Cotações mudam ao longo do dia — revalida a cada 5 min em vez de congelar
@@ -146,6 +147,9 @@ export default function MercadoPage() {
                     </div>
                 </div>
             </div>
+
+            {/* 4. Categorias do Mercado (mesmas do mega menu) */}
+            <MarketCategoryShowcase />
         </div>
     );
 }
