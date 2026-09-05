@@ -1,4 +1,12 @@
-import { supabase } from "@/lib/supabaseClient";
+// lib/supabaseClient.ts cria um cliente "solto", sem sessão nenhuma
+// associada (não usa cookies) — qualquer tabela que exija estar
+// autenticado/admin (articles_pending, payment_transactions, etc.) volta
+// sempre vazia através dele, sem erro nenhum, parecendo "zero" mesmo
+// havendo dados a sério. Este ficheiro precisa mesmo da sessão de quem
+// está a ver o dashboard — usa o cliente com sessão (o mesmo do resto do
+// painel), não o solto.
+import { createClient } from "@/utils/supabase/client";
+const supabase = createClient();
 
 const CACHE_TTL_MS = 8 * 60 * 60 * 1000; // 8 horas
 

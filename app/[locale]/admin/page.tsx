@@ -5,7 +5,9 @@ import {
     getCachedDashboardStats, fetchAndCacheDashboardStats,
     getCachedDashboardExtra, fetchAndCacheDashboardExtra, type RecentItem,
 } from "@/lib/adminDashboardCache";
-import { supabase } from "@/lib/supabaseClient";
+// Não lib/supabaseClient (esse não tem sessão nenhuma associada) — aqui
+// precisa mesmo de saber quem está autenticado.
+import { createClient } from "@/utils/supabase/client";
 import {
     Activity,
     MessageSquare,
@@ -24,6 +26,7 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { useAdminTopBar } from "@/components/admin/AdminTopBar";
 
 export default function AdminDashboardPage() {
+    const supabase = createClient();
     const [stats, setStats] = useState({
         articles: 0,
         companies: 0,
