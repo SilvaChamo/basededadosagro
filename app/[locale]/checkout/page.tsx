@@ -511,16 +511,16 @@ function CheckoutContent() {
                                 )}
                             </div>
                             {needsAccountFields && (
-                                <button
-                                    type="button"
+                                <Link
+                                    href={`/auth/login?next=${encodeURIComponent(`/checkout?${searchParams.toString()}`)}`}
                                     onClick={() => {
-                                        const next = encodeURIComponent(`/checkout?${searchParams.toString()}`);
-                                        router.push(`/auth/login?next=${next}`);
+                                        setError("");
                                     }}
-                                    className="text-sm font-bold text-emerald-600 hover:text-emerald-700 hover:underline"
+                                    className="flex min-h-11 items-center justify-center border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-700 transition-colors hover:border-emerald-300 hover:bg-emerald-100 hover:text-emerald-800"
+                                    style={{ borderRadius: "8px" }}
                                 >
-                                    Já tem uma conta? Entrar
-                                </button>
+                                    Tens uma conta? Entrar
+                                </Link>
                             )}
                         </div>
                     )}
