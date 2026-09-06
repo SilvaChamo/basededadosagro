@@ -20,6 +20,8 @@ interface Campaign {
     sender_email: string;
     target_audiences: string[];
     recipient_count: number;
+    delivered_count?: number | null;
+    failed_count?: number | null;
     status: string;
     sent_at: string;
     created_at: string;
@@ -44,8 +46,8 @@ export default function CampaignsPage() {
     // "Nova Campanha" abre o compositor aqui mesmo (sem sair da rota).
     const [showComposer, setShowComposer] = useState(false);
 
-    const fetchCampaigns = useCallback(async () => {
-        setLoading(true);
+    const fetchCampaigns = useCallback(async (silent = false) => {
+        if (!silent) setLoading(true);
         const { data, error } = await supabase
             .from('email_campaigns')
             .select('*')
@@ -53,16 +55,25 @@ export default function CampaignsPage() {
 
         if (error) {
             console.error(error);
-            toast.error("Erro ao carregar campanhas.");
+            if (!silent) toast.error("Erro ao carregar campanhas.");
         } else {
             setCampaigns(data || []);
         }
-        setLoading(false);
+        if (!silent) setLoading(false);
     }, [supabase]);
 
     useEffect(() => {
         fetchCampaigns();
     }, [fetchCampaigns]);
+
+    // Enquanto houver campanha "enviando" (envio um-a-um em curso no servidor),
+    // recarrega em silêncio para ver o progresso e o estado final.
+    const hasSending = campaigns.some((c) => c.status === 'enviando');
+    useEffect(() => {
+        if (!hasSending) return;
+        const id = setInterval(() => fetchCampaigns(true), 5000);
+        return () => clearInterval(id);
+    }, [hasSending, fetchCampaigns]);
 
     const handleExpand = async (campaignId: string) => {
         if (expandedId === campaignId) {
@@ -90,6 +101,7 @@ export default function CampaignsPage() {
     const getStatusBadge = (status: string) => {
         const styles: Record<string, string> = {
             enviada: 'bg-emerald-50 text-emerald-700',
+            parcial: 'bg-amber-50 text-amber-700',
             falhada: 'bg-red-50 text-red-600',
             agendada: 'bg-amber-50 text-amber-700',
             enviando: 'bg-blue-50 text-blue-600',
@@ -97,6 +109,7 @@ export default function CampaignsPage() {
         };
         const icons: Record<string, React.ReactNode> = {
             enviada: <CheckCircle2 className="w-3 h-3" />,
+            parcial: <CheckCircle2 className="w-3 h-3" />,
             falhada: <XCircle className="w-3 h-3" />,
             agendada: <Clock className="w-3 h-3" />,
             enviando: <Spinner className="w-3 h-3 animate-spin" />,
@@ -242,6 +255,19 @@ export default function CampaignsPage() {
                                         <span className="text-[10px] text-slate-400 font-bold">
                                             {campaign.recipient_count} destinatários
                                         </span>
+                                        {(campaign.delivered_count != null || campaign.failed_count != null) && (
+                                            <>
+                                                <span className="text-[10px] text-slate-300">•</span>
+                                                <span className="text-[10px] font-bold text-emerald-600">
+                                                    {campaign.delivered_count ?? 0} entregues
+                                                </span>
+                                                {(campaign.failed_count ?? 0) > 0 && (
+                                                    <span className="text-[10px] font-bold text-red-500">
+                                                        {campaign.failed_count} falhados
+                                                    </span>
+                                                )}
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -270,22 +296,28 @@ export default function CampaignsPage() {
                         {/* Expanded Detail */}
                         {expandedId === campaign.id && (
                             <div className="border-t border-slate-100 bg-slate-50/50 px-6 py-4 animate-in slide-in-from-top-1 duration-200">
-                                {!logsLoading && (
-                                    <div className="grid grid-cols-3 gap-3 mb-4">
-                                        <div className="rounded-[8px] border border-slate-200 bg-white px-3 py-2">
-                                            <p className="text-lg font-black text-slate-900">{campaign.recipient_count ?? logs.length}</p>
-                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Destinatários</p>
+                                {(() => {
+                                    // Contadores da campanha quando existem (envio um-a-um);
+                                    // senão soma-se pelos logs carregados.
+                                    const recebidos = campaign.delivered_count ?? logs.filter(l => l.status === 'enviado').length;
+                                    const naoRecebidos = campaign.failed_count ?? logs.filter(l => l.status !== 'enviado').length;
+                                    return (
+                                        <div className="grid grid-cols-3 gap-3 mb-4">
+                                            <div className="rounded-[8px] border border-slate-200 bg-white px-3 py-2">
+                                                <p className="text-lg font-black text-slate-900">{campaign.recipient_count ?? logs.length}</p>
+                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Destinatários</p>
+                                            </div>
+                                            <div className="rounded-[8px] border border-slate-200 bg-white px-3 py-2">
+                                                <p className="text-lg font-black text-emerald-600">{recebidos}</p>
+                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Receberam</p>
+                                            </div>
+                                            <div className="rounded-[8px] border border-slate-200 bg-white px-3 py-2">
+                                                <p className="text-lg font-black text-red-500">{naoRecebidos}</p>
+                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Não receberam</p>
+                                            </div>
                                         </div>
-                                        <div className="rounded-[8px] border border-slate-200 bg-white px-3 py-2">
-                                            <p className="text-lg font-black text-emerald-600">{logs.filter(l => l.status === 'enviado').length}</p>
-                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Receberam</p>
-                                        </div>
-                                        <div className="rounded-[8px] border border-slate-200 bg-white px-3 py-2">
-                                            <p className="text-lg font-black text-red-500">{logs.filter(l => l.status !== 'enviado').length}</p>
-                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Não receberam</p>
-                                        </div>
-                                    </div>
-                                )}
+                                    );
+                                })()}
                                 <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-3">Log de Entrega</h4>
                                 {logsLoading ? (
                                     <div className="p-6 flex items-center justify-center">

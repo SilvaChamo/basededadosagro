@@ -38,12 +38,56 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
 
     const [isSending, setIsSending] = useState(false);
     const [showTemplates, setShowTemplates] = useState(false);
+    const [testEmail, setTestEmail] = useState("");
+    const [isTesting, setIsTesting] = useState(false);
 
     const handlePlanToggle = (plan: string) => {
         if (selectedPlans.includes(plan)) {
             setSelectedPlans(selectedPlans.filter((p: any) => p !== plan));
         } else {
             setSelectedPlans([...selectedPlans, plan]);
+        }
+    };
+
+    // Conteúdo + lista de anexos no fim (igual no envio real e no teste).
+    const buildHtml = () => {
+        let out = content;
+        if (attachments.length > 0) {
+            out += `<br/><div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;"><strong>Anexos:</strong><ul style="list-style: none; padding: 0; margin-top: 8px;">`;
+            attachments.forEach(url => {
+                const fileName = url.split('/').pop() || "Documento";
+                out += `<li style="margin-bottom: 8px;"><a href="${url}" target="_blank" style="color: #2563eb; text-decoration: underline; display: inline-flex; align-items: center; gap: 4px;">📎 ${fileName}</a></li>`;
+            });
+            out += `</ul></div>`;
+        }
+        return out;
+    };
+
+    const handleTest = async () => {
+        if (!testEmail || !subject || !content) {
+            alert("Preenche o assunto, o conteúdo e o email de teste.");
+            return;
+        }
+        setIsTesting(true);
+        try {
+            const res = await fetch('/api/messages/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    testEmail,
+                    subject,
+                    html: buildHtml(),
+                    attachments,
+                    replyTo: senderEmail,
+                }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || "Falha no envio de teste");
+            alert(`Email de teste enviado para ${testEmail}.`);
+        } catch (e: any) {
+            alert(`Erro: ${e.message}`);
+        } finally {
+            setIsTesting(false);
         }
     };
 
@@ -56,16 +100,7 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
         setIsSending(true);
 
         try {
-            // Append attachments to content
-            let finalContent = content;
-            if (attachments.length > 0) {
-                finalContent += `<br/><div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;"><strong>Anexos:</strong><ul style="list-style: none; padding: 0; margin-top: 8px;">`;
-                attachments.forEach(url => {
-                    const fileName = url.split('/').pop() || "Documento";
-                    finalContent += `<li style="margin-bottom: 8px;"><a href="${url}" target="_blank" style="color: #2563eb; text-decoration: underline; display: inline-flex; align-items: center; gap: 4px;">📎 ${fileName}</a></li>`;
-                });
-                finalContent += `</ul></div>`;
-            }
+            const finalContent = buildHtml();
 
             // 1. Create Message Record
             const { data: msgData, error: msgError } = await supabase
@@ -194,7 +229,7 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
                     console.error("SMTPSend Error:", errorData);
                     alert(`Mensagem salva, mas erro ao enviar emails: ${errorData.error}`);
                 } else {
-                    alert(`Mensagem enviada com sucesso para ${uniqueRecipients.length} destinatários!`);
+                    alert(`Campanha criada para ${uniqueRecipients.length} destinatários. O envio é um-a-um e está a decorrer — acompanha o progresso e as entregas na lista de Campanhas.`);
                 }
             } else {
                 alert(`Mensagem salva. Notificações criadas para ${registeredUsers.length} usuários (Sem emails válidos para envio).`);
@@ -374,13 +409,36 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
                             : `${selectedPlans.length} grupo(s) selecionado(s)`}
                     </p>
 
+                    {/* Teste — envia só para 1 endereço, não cria campanha */}
+                    <div className="pt-1 border-t border-slate-100">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Enviar teste para</label>
+                        <div className="flex gap-2 mt-1.5">
+                            <input
+                                type="email"
+                                value={testEmail}
+                                onChange={(e) => setTestEmail(e.target.value)}
+                                placeholder="teu@email.com"
+                                className="flex-1 min-w-0 h-9 rounded-[7px] border border-slate-200 bg-white px-3 text-sm outline-none focus:border-emerald-500"
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleTest}
+                                disabled={isTesting || !testEmail}
+                                className="h-9 rounded-[7px] text-xs font-bold shrink-0"
+                            >
+                                {isTesting ? "..." : "Testar"}
+                            </Button>
+                        </div>
+                    </div>
+
                     <Button
                         onClick={handleSend}
                         disabled={isSending}
                         className="w-full bg-emerald-600 hover:bg-[#f97316] text-white h-12 rounded-lg font-bold uppercase tracking-wider shadow-lg shadow-emerald-500/20 transition-all"
                     >
                         <Send className="w-4 h-4 mr-2" />
-                        Enviar Mensagem
+                        {isSending ? "A criar campanha..." : "Enviar Mensagem"}
                     </Button>
 
                     {onCancel && (
