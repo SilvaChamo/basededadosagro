@@ -185,7 +185,7 @@ export default function SubscribersPage() {
 
             {/* Stats Strip */}
             <div className="grid grid-cols-3 gap-4">
-                <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
+                <div className="bg-white rounded-[8px] border border-slate-100 p-4 shadow-sm">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center">
                             <Users className="w-5 h-5 text-emerald-600" />
@@ -196,7 +196,7 @@ export default function SubscribersPage() {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
+                <div className="bg-white rounded-[8px] border border-slate-100 p-4 shadow-sm">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
                             <CheckCircle2 className="w-5 h-5 text-blue-600" />
@@ -207,7 +207,7 @@ export default function SubscribersPage() {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
+                <div className="bg-white rounded-[8px] border border-slate-100 p-4 shadow-sm">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
                             <XCircle className="w-5 h-5 text-red-500" />
@@ -222,7 +222,7 @@ export default function SubscribersPage() {
 
             {/* Bulk Import Panel */}
             {showBulkImport && (
-                <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm space-y-4 animate-in slide-in-from-top-2">
+                <div className="bg-white rounded-[8px] border border-slate-100 p-6 shadow-sm space-y-4 animate-in slide-in-from-top-2">
                     <h3 className="text-xs font-black uppercase text-slate-500 tracking-wider">Importação em Massa</h3>
                     <p className="text-xs text-slate-400">Cole os emails separados por vírgulas, ponto e vírgulas ou linhas.</p>
                     <textarea
@@ -241,20 +241,20 @@ export default function SubscribersPage() {
                 </div>
             )}
 
-            {/* Add & Search */}
-            <div className="flex gap-4">
-                <form onSubmit={handleAddSubscriber} className="flex gap-2 flex-1">
-                    <div className="relative flex-1">
+            {/* Add & Search — adicionar (campo + botão) à esquerda, pesquisa à direita */}
+            <div className="flex items-center justify-between gap-4">
+                <form onSubmit={handleAddSubscriber} className="flex gap-2">
+                    <div className="relative w-64">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <Input
                             type="email"
                             placeholder="Adicionar email..."
                             value={newEmail}
                             onChange={(e) => setNewEmail(e.target.value)}
-                            className="pl-10"
+                            className="pl-10 bg-white"
                         />
                     </div>
-                    <Button type="submit" disabled={adding} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-xs font-bold uppercase">
+                    <Button type="submit" disabled={adding} className="h-11 rounded-[7px] bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-xs font-bold uppercase">
                         {<Plus className="w-4 h-4" />}
                         Adicionar
                     </Button>
@@ -265,13 +265,13 @@ export default function SubscribersPage() {
                         placeholder="Pesquisar..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 bg-white"
                     />
                 </div>
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-[8px] border border-slate-100 shadow-sm overflow-hidden">
                 {filteredSubscribers.length === 0 ? (
                     <div className="p-12 text-center">
                         <Users className="w-10 h-10 text-slate-300 mx-auto mb-3" />

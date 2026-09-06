@@ -270,6 +270,22 @@ export default function CampaignsPage() {
                         {/* Expanded Detail */}
                         {expandedId === campaign.id && (
                             <div className="border-t border-slate-100 bg-slate-50/50 px-6 py-4 animate-in slide-in-from-top-1 duration-200">
+                                {!logsLoading && (
+                                    <div className="grid grid-cols-3 gap-3 mb-4">
+                                        <div className="rounded-[8px] border border-slate-200 bg-white px-3 py-2">
+                                            <p className="text-lg font-black text-slate-900">{campaign.recipient_count ?? logs.length}</p>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Destinatários</p>
+                                        </div>
+                                        <div className="rounded-[8px] border border-slate-200 bg-white px-3 py-2">
+                                            <p className="text-lg font-black text-emerald-600">{logs.filter(l => l.status === 'enviado').length}</p>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Receberam</p>
+                                        </div>
+                                        <div className="rounded-[8px] border border-slate-200 bg-white px-3 py-2">
+                                            <p className="text-lg font-black text-red-500">{logs.filter(l => l.status !== 'enviado').length}</p>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Não receberam</p>
+                                        </div>
+                                    </div>
+                                )}
                                 <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-3">Log de Entrega</h4>
                                 {logsLoading ? (
                                     <div className="p-6 flex items-center justify-center">

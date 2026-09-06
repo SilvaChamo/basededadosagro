@@ -491,7 +491,7 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                         {/* GROUP: INTERAÇÕES */}
                         <div className="flex flex-col gap-0.5">
                             {!isCollapsed && (
-                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/estatisticas', '/admin/indicadores', '/admin/mensagens']) && !isActive('/admin/mensagens/subscritores') ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
+                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/estatisticas', '/admin/mensagens']) && !isActive('/admin/mensagens/subscritores') ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
                                     <button
                                         onClick={() => handleGroupClick('interactions', '/admin/estatisticas')}
                                         className="flex items-center gap-2.5 flex-1 min-w-0 pl-6 pr-2 py-1.5 text-[15px] font-semibold text-left transition-all duration-300 ease-out hover:translate-x-1.5 hover:text-orange-500"
@@ -513,7 +513,6 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                                 <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
                                     {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-2 w-[1.5px] bg-slate-100" />}
                                     <LinkItem href="/admin/estatisticas" icon={BarChart3} label="Estatísticas" isSub />
-                                    <LinkItem href="/admin/indicadores" icon={Target} label="Indicadores" isSub />
 
                                     {/* exact: sem isto, qualquer subpágina de /admin/mensagens
                                         faz "startsWith" e acende o item errado.
