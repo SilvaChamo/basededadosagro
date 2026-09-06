@@ -23,7 +23,6 @@ import {
     Menu,
     ShoppingCart,
     Contact,
-    MailPlus,
     GraduationCap,
     LandPlot,
     Database,
@@ -48,6 +47,7 @@ import {
     BookOpen,
     Scale,
     Coins,
+    User,
 } from "lucide-react";
 
 interface AdminShellProps {
@@ -312,7 +312,7 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                         {/* GROUP: GESTÃO */}
                         <div className="flex flex-col gap-0.5">
                             {!isCollapsed && (
-                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/empresas', '/admin/lojas', '/admin/produtos', '/admin/propriedades', '/admin/profissionais', '/admin/central-noticias', '/admin/formacao', '/admin/apresentacoes', '/admin/emprego']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
+                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/empresas', '/admin/lojas', '/admin/produtos', '/admin/propriedades', '/admin/central-noticias', '/admin/formacao', '/admin/apresentacoes', '/admin/emprego']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
                                     <button
                                         onClick={() => handleGroupClick('gestao', '/admin/empresas')}
                                         className="flex items-center gap-2.5 flex-1 min-w-0 pl-6 pr-2 py-1.5 text-[15px] font-semibold text-left transition-all duration-300 ease-out hover:translate-x-1.5 hover:text-orange-500"
@@ -337,7 +337,6 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                                     <LinkItem href="/admin/lojas" icon={Store} label="Lojas" isSub />
                                     <LinkItem href="/admin/produtos" icon={ShoppingCart} label="Produtos" isSub />
                                     <LinkItem href="/admin/propriedades" icon={LandPlot} label="Propriedades" isSub />
-                                    <LinkItem href="/admin/profissionais" icon={Users} label="Profissionais" isSub />
                                     <LinkItem href="/admin/central-noticias" icon={Rss} label="Central de Notícias" isSub />
                                     <LinkItem href="/admin/formacao" icon={GraduationCap} label="Formação" isSub />
                                     <LinkItem href="/admin/apresentacoes" icon={Presentation} label="Apresentações" isSub />
@@ -516,12 +515,11 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                                     <LinkItem href="/admin/estatisticas" icon={BarChart3} label="Estatísticas" isSub />
                                     <LinkItem href="/admin/indicadores" icon={Target} label="Indicadores" isSub />
 
-                                    {/* Mensagem Sub-items — exact: sem isto, qualquer subpágina
-                                        (newsletter/campanhas) faz "startsWith('/admin/mensagens')"
-                                        bater certo e acender Nova Mensagem também. "Email" foi removido
-                                        por duplicar exactamente este mesmo destino (mesma página, sem abas).
+                                    {/* exact: sem isto, qualquer subpágina de /admin/mensagens
+                                        faz "startsWith" e acende o item errado.
+                                        "Nova Mensagem" deixou de ter entrada própria — o compositor
+                                        abre dentro de "Campanhas" (botão "Nova Campanha").
                                         Subscritores e Contactos passaram para o menu "Contas". */}
-                                    <LinkItem href="/admin/mensagens" icon={MailPlus} label="Nova Mensagem" isSub exact />
                                     <LinkItem href="/admin/mensagens/newsletter" icon={Newspaper} label="Newsletter" isSub exact />
                                     <LinkItem href="/admin/mensagens/campanhas" icon={BarChart3} label="Campanhas" isSub exact />
                                 </div>
@@ -565,11 +563,11 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                         <div className={`my-2 border-b border-slate-100 ${isCollapsed ? "mx-2" : "mx-6"}`}></div>
 
                         {/* GROUP: CONTAS (separadores: Utilizadores da plataforma +
-                            Subscritores da newsletter + Contactos — cada um aponta
-                            para a sua página existente) */}
+                            Subscritores da newsletter + Contactos + Profissionais —
+                            cada um aponta para a sua página existente) */}
                         <div className="flex flex-col gap-0.5">
                             {!isCollapsed && (
-                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/utilizadores', '/admin/mensagens/subscritores', '/admin/contactos']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
+                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/utilizadores', '/admin/mensagens/subscritores', '/admin/contactos', '/admin/profissionais']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
                                     <button
                                         onClick={() => handleGroupClick('contas', '/admin/utilizadores')}
                                         className="flex items-center gap-2.5 flex-1 min-w-0 pl-6 pr-2 py-1.5 text-[15px] font-semibold text-left transition-all duration-300 ease-out hover:translate-x-1.5 hover:text-orange-500"
@@ -593,6 +591,7 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                                     <LinkItem href="/admin/utilizadores" icon={Users} label="Utilizadores" isSub exact />
                                     <LinkItem href="/admin/mensagens/subscritores" icon={Users} label="Subscritores" isSub exact />
                                     <LinkItem href="/admin/contactos" icon={Contact} label="Contactos" isSub />
+                                    <LinkItem href="/admin/profissionais" icon={User} label="Profissionais" isSub />
                                 </div>
                             )}
                         </div>

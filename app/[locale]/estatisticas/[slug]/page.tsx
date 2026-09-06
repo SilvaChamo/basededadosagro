@@ -16,7 +16,7 @@ export default async function StatisticsPage({ params }: PageProps) {
     }
 
     return (
-        <main className="min-h-screen bg-[#EFF2F6] pb-20">
+        <main className="min-h-screen bg-background pb-20">
             <StatsDashboard slug={slug} />
         </main>
     );

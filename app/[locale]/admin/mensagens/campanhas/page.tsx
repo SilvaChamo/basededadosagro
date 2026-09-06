@@ -5,14 +5,14 @@ import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
     BarChart3, Loader2, Send, CheckCircle2,
-    XCircle, Clock, ChevronDown, ChevronUp, Users, Mail
+    XCircle, Clock, ChevronDown, ChevronUp, Users, Mail, ArrowLeft
 } from "lucide-react";
-import Link from "next/link";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import { useAdminTopBar } from "@/components/admin/AdminTopBar";
 import { LogoutButton } from "@/components/LogoutButton";
+import { MessageComposer } from "@/components/admin/MessageComposer";
 
 interface Campaign {
     id: string;
@@ -41,6 +41,8 @@ export default function CampaignsPage() {
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [logs, setLogs] = useState<CampaignLog[]>([]);
     const [logsLoading, setLogsLoading] = useState(false);
+    // "Nova Campanha" abre o compositor aqui mesmo (sem sair da rota).
+    const [showComposer, setShowComposer] = useState(false);
 
     const fetchCampaigns = useCallback(async () => {
         setLoading(true);
@@ -121,18 +123,35 @@ export default function CampaignsPage() {
     return (
         <div className="w-full max-w-full space-y-6 pb-20">
             <AdminListToolbar className="flex-nowrap">
-                <AdminToolbarTitle
-                    title="Campanhas"
-                    searchValue={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    searchPlaceholder="Pesquisar campanhas..."
-                />
+                {showComposer ? (
+                    <AdminToolbarTitle title="Nova Campanha" />
+                ) : (
+                    <AdminToolbarTitle
+                        title="Campanhas"
+                        searchValue={searchQuery}
+                        onSearchChange={setSearchQuery}
+                        searchPlaceholder="Pesquisar campanhas..."
+                    />
+                )}
                 <div className="flex items-center gap-2 shrink-0">
-                    <Link href="/admin/mensagens">
-                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-xs font-bold uppercase h-9">
+                    {showComposer ? (
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setShowComposer(false)}
+                            className="gap-2 text-xs font-bold uppercase h-9 border-slate-200"
+                        >
+                            <ArrowLeft className="w-4 h-4" /> Voltar às campanhas
+                        </Button>
+                    ) : (
+                        <Button
+                            size="sm"
+                            onClick={() => setShowComposer(true)}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-xs font-bold uppercase h-9"
+                        >
                             <Send className="w-4 h-4" /> Nova Campanha
                         </Button>
-                    </Link>
+                    )}
                     <LogoutButton
                         variant="outline"
                         className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 border-slate-200"
@@ -142,6 +161,15 @@ export default function CampaignsPage() {
                 </div>
             </AdminListToolbar>
 
+            {showComposer && (
+                <MessageComposer
+                    onSent={() => { setShowComposer(false); fetchCampaigns(); }}
+                    onCancel={() => setShowComposer(false)}
+                />
+            )}
+
+            {!showComposer && (
+            <>
             {/* Stats Strip */}
             <div className="grid grid-cols-3 gap-4">
                 <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
@@ -280,6 +308,8 @@ export default function CampaignsPage() {
                     </div>
                 ))}
             </div>
+            </>
+            )}
         </div>
     );
 }
