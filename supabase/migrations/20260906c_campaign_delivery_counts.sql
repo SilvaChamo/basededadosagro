@@ -5,6 +5,9 @@
 ALTER TABLE email_campaigns ADD COLUMN IF NOT EXISTS delivered_count INTEGER DEFAULT 0;
 ALTER TABLE email_campaigns ADD COLUMN IF NOT EXISTS failed_count INTEGER DEFAULT 0;
 
+-- NOT VALID: a constraint passa a valer para INSERT/UPDATE novos, mas não
+-- rejeita linhas já existentes (há pelo menos uma com um status legado fora
+-- desta lista — não vale a pena bloquear a migração por causa dela).
 ALTER TABLE email_campaigns DROP CONSTRAINT IF EXISTS email_campaigns_status_check;
 ALTER TABLE email_campaigns ADD CONSTRAINT email_campaigns_status_check
-    CHECK (status IN ('rascunho', 'agendada', 'enviando', 'enviada', 'falhada', 'parcial'));
+    CHECK (status IN ('rascunho', 'agendada', 'enviando', 'enviada', 'falhada', 'parcial')) NOT VALID;
