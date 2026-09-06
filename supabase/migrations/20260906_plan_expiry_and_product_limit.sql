@@ -82,7 +82,7 @@ BEGIN
        AND created_at >= date_trunc('month', now());
 
     IF v_count >= v_limit THEN
-        RAISE EXCEPTION 'Atingiu o limite de % produto(s) por mês do seu plano. Faça upgrade para publicar mais.', v_limit
+        RAISE EXCEPTION 'Atingiu o limite de % produto(s) deste mês no plano actual. Faça upgrade do plano para adicionar mais produtos, ou aguarde o início do próximo mês.', v_limit
             USING ERRCODE = 'check_violation';
     END IF;
 
