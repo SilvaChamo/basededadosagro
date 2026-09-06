@@ -225,21 +225,33 @@ function CheckoutContent() {
                 return;
             }
 
-            // upsert: só toca nas colunas indicadas — não apaga dados já
-            // existentes da empresa (activity, endereço, descrição, etc.).
-            // NUNCA o plano nem o destaque aqui — esses só entram depois de
-            // o pagamento estar mesmo confirmado (grantPlan, mais abaixo);
-            // gravá-los já dava a empresa como assinante pago mesmo que o
-            // cliente nunca chegasse a autorizar nada no telemóvel.
-            await supabase.from("companies").upsert(
-                {
-                    user_id: currentUserId,
+            // Só toca nas colunas indicadas — não apaga dados já existentes
+            // da empresa (activity, endereço, descrição, etc.). NUNCA o plano
+            // nem o destaque aqui — esses só entram depois de o pagamento
+            // estar mesmo confirmado (grantPlan, mais abaixo); gravá-los já
+            // dava a empresa como assinante pago mesmo que o cliente nunca
+            // chegasse a autorizar nada no telemóvel.
+            //
+            // `companies` não tem constraint UNIQUE em `user_id` na base de
+            // dados, por isso upsert com onConflict rebenta — decidimos à
+            // mão: UPDATE se já existe empresa, senão INSERT.
+            {
+                const companyPatch = {
                     ...(needsCompanyName ? { name: fullName.trim() } : {}),
                     ...(phone.trim() ? { contact: phone.trim() } : {}),
                     updated_at: new Date().toISOString(),
-                },
-                { onConflict: "user_id" }
-            );
+                };
+                const { data: existingCompany } = await supabase
+                    .from("companies")
+                    .select("id")
+                    .eq("user_id", currentUserId)
+                    .maybeSingle();
+                if (existingCompany?.id) {
+                    await supabase.from("companies").update(companyPatch).eq("id", existingCompany.id);
+                } else {
+                    await supabase.from("companies").insert({ user_id: currentUserId, ...companyPatch });
+                }
+            }
 
             const grantPlan = () =>
                 supabase.from("companies")

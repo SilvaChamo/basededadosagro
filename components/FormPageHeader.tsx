@@ -43,11 +43,18 @@ export function FormPageHeader({ rightExtra }: { rightExtra?: ReactNode }) {
 
     return (
         <header className="h-16 bg-white border-b border-slate-200 shadow-sm">
-            <div className="container-site h-full flex items-center justify-between">
-                <Link href="/" className="hover:opacity-80 transition-opacity">
+            {/* Sem sessão, não há nada à direita para equilibrar o logótipo
+                à esquerda — por isso centra-se na barra enquanto não há
+                login. Com sessão, volta ao lugar de sempre (esquerda), já
+                que a direita passa a ter o utilizador. */}
+            <div className="container-site h-full relative flex items-center">
+                <Link
+                    href="/"
+                    className={`hover:opacity-80 transition-opacity ${loggedIn ? "" : "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"}`}
+                >
                     <Image src="/Logo.png" alt="Base Agro Data Logo" width={875} height={491} className="h-10 w-auto object-contain" priority />
                 </Link>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 ml-auto">
                     {rightExtra}
                     {loggedIn && (
                         <>

@@ -376,7 +376,7 @@ function RegistoEmpresaContent() {
                 finalBannerUrl = supabase.storage.from('public-assets').getPublicUrl(path).data.publicUrl;
             }
 
-            const { error } = await supabase.from('companies').upsert({
+            const companyPayload = {
                 user_id: user.id,
                 name: formData.companyName,
                 activity: formData.activity,
@@ -403,15 +403,31 @@ function RegistoEmpresaContent() {
                 payment_phone: formData.paymentPhone,
                 geo_location: `${formData.province}, ${formData.district}`,
                 updated_at: new Date().toISOString()
-            }, { onConflict: 'user_id' });
+            };
 
-            if (error) throw error;
-
-            // Vai buscar o id a seguir (mesmo padrão já usado para carregar a
-            // empresa no arranque) — encadear .select().single() a um upsert
-            // no cliente do browser é frágil por causa das políticas RLS.
+            // A tabela `companies` na base de dados NÃO tem constraint UNIQUE
+            // em `user_id`, por isso um upsert com { onConflict: 'user_id' }
+            // rebenta com "there is no unique or exclusion constraint matching
+            // the ON CONFLICT specification". Fazemos a decisão à mão: se já
+            // existe empresa deste utilizador, UPDATE; senão, INSERT. (Buscar
+            // o id por select separado — encadear .select() a uma escrita no
+            // cliente do browser é frágil por causa das políticas RLS.)
             let newCompanyId = companyId;
             if (!newCompanyId) {
+                const { data: freshCompany } = await supabase
+                    .from('companies')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+                newCompanyId = freshCompany?.id || null;
+            }
+
+            if (newCompanyId) {
+                const { error } = await supabase.from('companies').update(companyPayload).eq('id', newCompanyId);
+                if (error) throw error;
+            } else {
+                const { error } = await supabase.from('companies').insert(companyPayload);
+                if (error) throw error;
                 const { data: freshCompany } = await supabase
                     .from('companies')
                     .select('id')
