@@ -10,31 +10,29 @@ import { PLAN_PRIVILEGES, normalizePlanName } from "@/lib/plan-fields";
 import { Spinner } from "@/components/ui/spinner";
 
 export function ActivePlanCard() {
-    const { plan, planDisplayName, loading: permissionsLoading } = usePlanPermissions();
+    const { plan, planDisplayName, planExpiresAt, loading: permissionsLoading } = usePlanPermissions();
     const [companyId, setCompanyId] = useState<string | null>(null);
-    const [renewalDate, setRenewalDate] = useState<string>("");
     const [isCancelling, setIsCancelling] = useState(false);
     const supabase = createClient();
     const router = useRouter();
+
+    // Data real de validade do plano (definida na aprovação do pagamento —
+    // sem renovação automática). Sem data => plano sem validade / Gratuito.
+    const validUntil = planExpiresAt
+        ? new Date(planExpiresAt).toLocaleDateString('pt-PT', { day: 'numeric', month: 'short', year: 'numeric' })
+        : "";
 
     useEffect(() => {
         const fetchCompanyData = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                // Fetch company linked to user to get ID and dates
                 const { data: company } = await supabase
                     .from('companies')
-                    .select('id, updated_at')
+                    .select('id')
                     .eq('user_id', user.id)
                     .single();
 
-                if (company) {
-                    setCompanyId(company.id);
-                    // Simulate renewal date (updated_at + 30 days)
-                    const lastUpdate = new Date(company.updated_at || Date.now());
-                    const renewal = new Date(lastUpdate.setDate(lastUpdate.getDate() + 30));
-                    setRenewalDate(renewal.toLocaleDateString('pt-PT', { day: 'numeric', month: 'short', year: 'numeric' }));
-                }
+                if (company) setCompanyId(company.id);
             }
         };
 
@@ -97,7 +95,9 @@ export function ActivePlanCard() {
                     </div>
                     <h3 className="text-2xl font-black mb-1 text-white">{planDisplayName}</h3>
                     {!isFree ? (
-                        <p className="text-emerald-400 text-sm font-medium">Renova em: {renewalDate}</p>
+                        <p className="text-emerald-400 text-sm font-medium">
+                            {validUntil ? `Válido até: ${validUntil}` : "Plano activo"}
+                        </p>
                     ) : (
                         <p className="text-slate-400 text-sm font-medium">Sem subscrição ativa</p>
                     )}

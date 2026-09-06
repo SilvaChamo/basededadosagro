@@ -24,6 +24,10 @@ import {
 interface UsePlanPermissionsResult {
     plan: PlanType;
     loading: boolean;
+    /** ISO date em que o plano pago expira (null = sem validade / Gratuito). */
+    planExpiresAt: string | null;
+    /** true quando havia um plano pago mas a validade já passou. */
+    planExpired: boolean;
     canEdit: (fieldName: string) => boolean;
     getRequiredPlanForField: (fieldName: string) => PlanType | null;
     editableFields: string[];
@@ -43,6 +47,8 @@ interface UsePlanPermissionsResult {
 
 export function usePlanPermissions(): UsePlanPermissionsResult {
     const [plan, setPlan] = useState<PlanType>('Gratuito');
+    const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null);
+    const [planExpired, setPlanExpired] = useState(false);
     const [loading, setLoading] = useState(true);
     useEffect(() => {
         const fetchPlan = async () => {
@@ -59,8 +65,22 @@ export function usePlanPermissions(): UsePlanPermissionsResult {
                 // Fetch both company and profile plans
                 const [companyResult, profileResult] = await Promise.all([
                     supabase.from('companies').select('plan').eq('user_id', user.id).maybeSingle(),
-                    supabase.from('profiles').select('plan').eq('id', user.id).maybeSingle()
+                    supabase.from('profiles').select('plan, plan_expires_at').eq('id', user.id).maybeSingle()
                 ]);
+
+                // profiles.plan_expires_at é a fonte de verdade da expiração
+                // (coluna protegida por trigger). Passada a data, o plano
+                // volta a Gratuito até nova aprovação — não há renovação
+                // automática.
+                const expiresAt: string | null = profileResult.data?.plan_expires_at ?? null;
+                const expired = !!expiresAt && new Date(expiresAt).getTime() < Date.now();
+                setPlanExpiresAt(expiresAt);
+                setPlanExpired(expired);
+
+                if (expired) {
+                    setPlan('Gratuito');
+                    return;
+                }
 
                 const companyPlan = normalizePlanName(companyResult.data?.plan);
                 const profilePlan = normalizePlanName(profileResult.data?.plan);
@@ -89,6 +109,8 @@ export function usePlanPermissions(): UsePlanPermissionsResult {
     return {
         plan,
         loading,
+        planExpiresAt,
+        planExpired,
         canEdit: (fieldName: string) => canEditField(plan, fieldName),
         getRequiredPlanForField: (fieldName: string) => getRequiredPlan(fieldName),
         editableFields: getEditableFields(plan),

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
+import { grantPlanWithExpiry } from "@/lib/plan-activation";
 
 // Aprovação é dinheiro real (transferência bancária confirmada à mão) —
 // restrito só a "admin", ao contrário de outras rotas do painel que também
@@ -22,12 +23,12 @@ async function requireAdmin() {
     return { error: null, user };
 }
 
-// Mesma lógica de activação já usada pelo M-Pesa (lib duplicada de propósito
-// — ver app/api/payment/mpesa/route.ts — para não arriscar mexer numa rota
-// de pagamento já a funcionar só para partilhar 2 linhas).
+// Concede o plano com data de validade (ver lib/plan-activation.ts). Sem
+// renovação automática — passada a data, o plano volta a Gratuito até nova
+// aprovação. As cópias do M-Pesa (dormente, em sandbox) continuam sem
+// expiração; quando o M-Pesa entrar em produção unifica-se tudo aqui.
 async function activatePlan(adminClient: ReturnType<typeof createAdminClient>, userId: string, planName: string) {
-    await adminClient.from('profiles').update({ plan: planName }).eq('id', userId);
-    await adminClient.from('companies').update({ plan: planName }).eq('user_id', userId);
+    await grantPlanWithExpiry(adminClient, userId, planName);
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
