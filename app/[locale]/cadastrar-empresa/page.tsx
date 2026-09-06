@@ -29,6 +29,7 @@ import { COMPANY_CATEGORIES } from "@/lib/constants";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { Spinner } from "@/components/ui/spinner";
 import { ReceiptUpload } from "@/components/ReceiptUpload";
+import { MPESA_ENABLED } from "@/lib/payments";
 
 const PlanBadge = ({ plan }: { plan: 'Básico' | 'Premium' | 'Parceiro' }) => {
     const styles = {
@@ -69,7 +70,7 @@ export default function CadastrarEmpresaPage() {
     const [website, setWebsite] = useState("");
     const [representative, setRepresentative] = useState("");
     const [nuit, setNuit] = useState("");
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'mpesa' | 'visa' | null>(null);
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'mpesa' | 'visa' | null>(MPESA_ENABLED ? null : 'visa');
     const [paymentPhoneNumber, setPaymentPhoneNumber] = useState("");
     const [contact, setContact] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -589,22 +590,24 @@ export default function CadastrarEmpresaPage() {
                                         <span className="text-2xl font-black text-white">1 500 Mt</span>
                                     </div>
 
-                                    <div className="flex gap-2">
-                                        {/* M-Pesa */}
-                                        <div
-                                            onClick={e => { e.stopPropagation(); setSelectedPaymentMethod('mpesa'); }}
-                                            className={`bg-white p-0 rounded-md border flex items-center justify-center h-8 w-[50px] transition-all cursor-pointer overflow-hidden relative ${selectedPaymentMethod === 'mpesa' ? 'border-[#E60000] ring-2 ring-[#E60000]/30' : 'border-slate-200 hover:border-[#E60000]'}`}
-                                        >
-                                            <Image src="/assets/Mpesa.png" alt="M-Pesa" fill className="object-cover" />
+                                    {MPESA_ENABLED && (
+                                        <div className="flex gap-2">
+                                            {/* M-Pesa */}
+                                            <div
+                                                onClick={e => { e.stopPropagation(); setSelectedPaymentMethod('mpesa'); }}
+                                                className={`bg-white p-0 rounded-md border flex items-center justify-center h-8 w-[50px] transition-all cursor-pointer overflow-hidden relative ${selectedPaymentMethod === 'mpesa' ? 'border-[#E60000] ring-2 ring-[#E60000]/30' : 'border-slate-200 hover:border-[#E60000]'}`}
+                                            >
+                                                <Image src="/assets/Mpesa.png" alt="M-Pesa" fill className="object-cover" />
+                                            </div>
+                                            {/* Visa */}
+                                            <div
+                                                onClick={e => { e.stopPropagation(); setSelectedPaymentMethod('visa'); }}
+                                                className={`bg-white px-2 py-1 rounded-md border flex items-center justify-center h-8 transition-all cursor-pointer overflow-hidden ${selectedPaymentMethod === 'visa' ? 'border-[#1A1F71] ring-2 ring-[#1A1F71]/30' : 'border-slate-200 hover:border-[#1A1F71]'}`}
+                                            >
+                                                <Image src="/assets/Visa.webp" alt="Visa" width={50} height={25} className="h-full w-auto object-contain" />
+                                            </div>
                                         </div>
-                                        {/* Visa */}
-                                        <div
-                                            onClick={e => { e.stopPropagation(); setSelectedPaymentMethod('visa'); }}
-                                            className={`bg-white px-2 py-1 rounded-md border flex items-center justify-center h-8 transition-all cursor-pointer overflow-hidden ${selectedPaymentMethod === 'visa' ? 'border-[#1A1F71] ring-2 ring-[#1A1F71]/30' : 'border-slate-200 hover:border-[#1A1F71]'}`}
-                                        >
-                                            <Image src="/assets/Visa.webp" alt="Visa" width={50} height={25} className="h-full w-auto object-contain" />
-                                        </div>
-                                    </div>
+                                    )}
 
                                     {/* M-Pesa input */}
                                     {selectedPaymentMethod === 'mpesa' && (

@@ -1,78 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Check, Crown, Zap, XCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Check, Crown, Zap, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { usePlanPermissions } from "@/hooks/usePlanPermissions";
 import { PLAN_PRIVILEGES, normalizePlanName } from "@/lib/plan-fields";
-import { Spinner } from "@/components/ui/spinner";
 
 export function ActivePlanCard() {
-    const { plan, planDisplayName, planExpiresAt, loading: permissionsLoading } = usePlanPermissions();
-    const [companyId, setCompanyId] = useState<string | null>(null);
-    const [isCancelling, setIsCancelling] = useState(false);
-    const supabase = createClient();
+    const { plan, planDisplayName, planExpiresAt, planExpired, loading: permissionsLoading } = usePlanPermissions();
     const router = useRouter();
 
-    // Data real de validade do plano (definida na aprovação do pagamento —
-    // sem renovação automática). Sem data => plano sem validade / Gratuito.
+    // Data real de validade do plano — definida na aprovação do pagamento.
+    // Não há renovação automática nem cobrança recorrente: passada a data, o
+    // plano volta a Gratuito sozinho (não há nada para "cancelar").
     const validUntil = planExpiresAt
         ? new Date(planExpiresAt).toLocaleDateString('pt-PT', { day: 'numeric', month: 'short', year: 'numeric' })
         : "";
-
-    useEffect(() => {
-        const fetchCompanyData = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                const { data: company } = await supabase
-                    .from('companies')
-                    .select('id')
-                    .eq('user_id', user.id)
-                    .single();
-
-                if (company) setCompanyId(company.id);
-            }
-        };
-
-        fetchCompanyData();
-    }, [supabase]);
-
-    const handleCancel = async () => {
-        if (!companyId) return;
-
-        if (confirm("Tem certeza que deseja cancelar sua subscrição? Você perderá acesso aos recursos premium no final do ciclo atual.")) {
-            setIsCancelling(true);
-            try {
-                // Update plan to 'Gratuito' in Database
-                const { error } = await supabase
-                    .from('companies')
-                    .update({ plan: 'Gratuito', updated_at: new Date().toISOString() })
-                    .eq('id', companyId);
-
-                if (error) throw error;
-
-                // Also update profile plan
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
-                    await supabase
-                        .from('profiles')
-                        .update({ plan: 'Gratuito' })
-                        .eq('id', user.id);
-                }
-
-                alert("Subscrição cancelada com sucesso. Seu plano agora é Gratuito.");
-                router.push("/");
-                router.refresh();
-            } catch (error) {
-                console.error("Error canceling subscription:", error);
-                alert("Erro ao cancelar subscrição. Tente novamente.");
-            } finally {
-                setIsCancelling(false);
-            }
-        }
-    };
 
     if (permissionsLoading) return <div className="animate-pulse h-64 bg-slate-100 rounded-[15px]"></div>;
 
@@ -96,8 +39,10 @@ export function ActivePlanCard() {
                     <h3 className="text-2xl font-black mb-1 text-white">{planDisplayName}</h3>
                     {!isFree ? (
                         <p className="text-emerald-400 text-sm font-medium">
-                            {validUntil ? `Válido até: ${validUntil}` : "Plano activo"}
+                            {validUntil ? `Válido até ${validUntil}` : "Plano activo"}
                         </p>
+                    ) : planExpired ? (
+                        <p className="text-orange-300 text-sm font-medium">O seu plano expirou{validUntil ? ` a ${validUntil}` : ""} — renove para reactivar</p>
                     ) : (
                         <p className="text-slate-400 text-sm font-medium">Sem subscrição ativa</p>
                     )}
@@ -120,24 +65,19 @@ export function ActivePlanCard() {
                 </div>
 
                 {/* Action */}
-                <div className="shrink-0 w-full md:w-auto flex flex-col gap-3">
+                <div className="shrink-0 w-full md:w-auto flex flex-col gap-2">
                     {normalizePlanName(plan) !== 'Parceiro' && (
                         <Button
                             className={`w-full text-white font-bold h-11 px-6 shadow-lg uppercase tracking-wide text-xs transition-all hover:scale-105 ${isFree ? "bg-orange-500 hover:bg-orange-600 shadow-orange-900/20" : "bg-[#f97316] hover:bg-[#ea580c] shadow-orange-900/20"}`}
                             onClick={() => router.push("/planos")}
                         >
-                            {isFree ? "Fazer Upgrade Agora" : "Fazer Upgrade"}
+                            {isFree ? (planExpired ? "Renovar Plano" : "Fazer Upgrade Agora") : "Mudar de Plano"}
                         </Button>
                     )}
-                    {!isFree && companyId && (
-                        <button
-                            onClick={handleCancel}
-                            disabled={isCancelling}
-                            className="w-full flex items-center justify-center gap-2 text-[10px] font-bold text-red-400 hover:text-red-300 uppercase tracking-widest transition-colors py-2 disabled:opacity-50"
-                        >
-                            {<XCircle className="w-3 h-3" />}
-                            {isCancelling ? "Cancelando..." : "Cancelar Subscrição"}
-                        </button>
+                    {!isFree && (
+                        <p className="text-[10px] text-emerald-300/70 text-center leading-relaxed max-w-[160px]">
+                            Sem renovação automática. No fim da validade volta a Gratuito.
+                        </p>
                     )}
                 </div>
             </div>

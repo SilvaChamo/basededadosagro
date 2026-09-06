@@ -24,6 +24,8 @@ import { compressImage } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
 import { FormPageHeader } from "@/components/FormPageHeader";
 
+import { MPESA_ENABLED } from "@/lib/payments";
+
 const PLAN_FEATURES: Record<string, string[]> = {
     "Gratuito": [
         "Newsletter Semanal",
@@ -77,7 +79,7 @@ function CheckoutContent() {
     const [user, setUser] = useState<any>(null);
     const [hasCompany, setHasCompany] = useState(false);
 
-    const [paymentMethod, setPaymentMethod] = useState<"mpesa" | "visa">("mpesa");
+    const [paymentMethod, setPaymentMethod] = useState<"mpesa" | "visa">(MPESA_ENABLED ? "mpesa" : "visa");
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [highlightCompany, setHighlightCompany] = useState(false);
@@ -545,30 +547,32 @@ function CheckoutContent() {
                     {/* Método de pagamento — só relevante para planos pagos */}
                     {normalizePlanName(planName) !== "Gratuito" && (
                         <>
-                            <div className="grid grid-cols-2 gap-[10px]">
-                                <button
-                                    type="button"
-                                    onClick={() => setPaymentMethod("mpesa")}
-                                    className={`flex flex-col items-center justify-center p-4 border-2 transition-all group cursor-pointer ${paymentMethod === "mpesa" ? "border-orange-500 bg-orange-50/50" : "border-slate-200 hover:border-slate-300 bg-white"}`}
-                                    style={{ borderRadius: "8px" }}
-                                >
-                                    <div className={`p-3 rounded-full mb-2 flex items-center justify-center ${paymentMethod === "mpesa" ? "bg-white shadow-sm" : "bg-slate-100"}`}>
-                                        <Image src="/assets/Mpesa.png" alt="M-Pesa" width={28} height={28} className="object-contain" />
-                                    </div>
-                                    <span className={`font-bold text-sm ${paymentMethod === "mpesa" ? "text-slate-900" : "text-slate-500"}`}>M-Pesa</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setPaymentMethod("visa")}
-                                    className={`flex flex-col items-center justify-center p-4 border-2 transition-all group cursor-pointer ${paymentMethod === "visa" ? "border-orange-500 bg-orange-50/50" : "border-slate-200 hover:border-slate-300 bg-white"}`}
-                                    style={{ borderRadius: "8px" }}
-                                >
-                                    <div className={`p-3 rounded-full mb-2 flex items-center justify-center ${paymentMethod === "visa" ? "bg-white shadow-sm" : "bg-slate-100"}`}>
-                                        <Image src="/assets/Visa.webp" alt="Visa" width={28} height={28} className="object-contain" />
-                                    </div>
-                                    <span className={`font-bold text-sm ${paymentMethod === "visa" ? "text-slate-900" : "text-slate-500"}`}>Visa / Transferência</span>
-                                </button>
-                            </div>
+                            {MPESA_ENABLED && (
+                                <div className="grid grid-cols-2 gap-[10px]">
+                                    <button
+                                        type="button"
+                                        onClick={() => setPaymentMethod("mpesa")}
+                                        className={`flex flex-col items-center justify-center p-4 border-2 transition-all group cursor-pointer ${paymentMethod === "mpesa" ? "border-orange-500 bg-orange-50/50" : "border-slate-200 hover:border-slate-300 bg-white"}`}
+                                        style={{ borderRadius: "8px" }}
+                                    >
+                                        <div className={`p-3 rounded-full mb-2 flex items-center justify-center ${paymentMethod === "mpesa" ? "bg-white shadow-sm" : "bg-slate-100"}`}>
+                                            <Image src="/assets/Mpesa.png" alt="M-Pesa" width={28} height={28} className="object-contain" />
+                                        </div>
+                                        <span className={`font-bold text-sm ${paymentMethod === "mpesa" ? "text-slate-900" : "text-slate-500"}`}>M-Pesa</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPaymentMethod("visa")}
+                                        className={`flex flex-col items-center justify-center p-4 border-2 transition-all group cursor-pointer ${paymentMethod === "visa" ? "border-orange-500 bg-orange-50/50" : "border-slate-200 hover:border-slate-300 bg-white"}`}
+                                        style={{ borderRadius: "8px" }}
+                                    >
+                                        <div className={`p-3 rounded-full mb-2 flex items-center justify-center ${paymentMethod === "visa" ? "bg-white shadow-sm" : "bg-slate-100"}`}>
+                                            <Image src="/assets/Visa.webp" alt="Visa" width={28} height={28} className="object-contain" />
+                                        </div>
+                                        <span className={`font-bold text-sm ${paymentMethod === "visa" ? "text-slate-900" : "text-slate-500"}`}>Visa / Transferência</span>
+                                    </button>
+                                </div>
+                            )}
 
                             <div className="bg-white p-5 border border-slate-200 shadow-sm" style={{ borderRadius: "8px" }}>
                                 {paymentMethod === "mpesa" ? (
