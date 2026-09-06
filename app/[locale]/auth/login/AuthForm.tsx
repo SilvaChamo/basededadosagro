@@ -20,11 +20,20 @@ import Script from "next/script";
 // O Client ID não é segredo — aparece sempre no browser.
 const GOOGLE_CLIENT_ID = "461209971814-tmtcfn4sniit1bpcmdssk5do70nod02i.apps.googleusercontent.com";
 
-// Login por telemóvel (OTP/SMS) continua desligado até haver gateway de SMS
-// em produção. O botão de Facebook foi REPOSTO a pedido do administrador
-// (2026-09-06). Para o fluxo OAuth funcionar é preciso o provider Facebook
-// activo no Supabase + app Meta aprovada; sem isso o botão aparece mas o
-// clique devolve erro do Supabase.
+// Login por telemóvel (OTP/SMS): usa os endpoints próprios
+// /api/auth/otp/request e /api/auth/otp/verify (código gerado por nós e
+// enviado pelo telemóvel via httpSMS), NÃO o OTP nativo do Supabase. É um
+// método ADICIONAL — email/senha, Google e Facebook ficam intactos.
+//
+// Fica FALSE em produção até o servidor Hetzner ter as vars HTTPSMS_API_KEY,
+// HTTPSMS_FROM e SMS_DRY_RUN=false (ver .env.local). Com estas três postas no
+// servidor e este flag a true + redeploy, o separador "Telefone (SMS)" passa
+// a aparecer e a funcionar. Assim não mostramos um login que ainda não envia.
+//
+// O botão de Facebook foi REPOSTO a pedido do administrador (2026-09-06).
+// Para o fluxo OAuth funcionar é preciso o provider Facebook activo no
+// Supabase + app Meta aprovada; sem isso o botão aparece mas o clique
+// devolve erro do Supabase.
 const PHONE_OTP_LOGIN_ENABLED = false;
 const FACEBOOK_LOGIN_ENABLED = true;
 
@@ -140,39 +149,53 @@ export function AuthForm(props: AuthFormProps) {
         setStatus(null);
 
         try {
-            // PHONE AUTH HANDLER
+            // PHONE AUTH HANDLER — endpoints próprios (httpSMS), não o OTP
+            // nativo do Supabase. Ver comentário em PHONE_OTP_LOGIN_ENABLED.
             if (authMethod === 'phone') {
+                const cleanPhone = formData.phoneNumber.replace(/\s/g, '').replace(/-/g, '');
+
                 if (!showOtpInput) {
-                    // Step 1: Send OTP
-                    const cleanPhone = formData.phoneNumber.replace(/\s/g, '').replace(/-/g, '');
-                    const { error } = await supabase.auth.signInWithOtp({
-                        phone: cleanPhone,
+                    // Passo 1: pedir o código
+                    const res = await fetch('/api/auth/otp/request', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone: cleanPhone }),
                     });
-                    if (error) throw error;
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) throw new Error(data.error || 'Não foi possível enviar o código.');
 
                     setShowOtpInput(true);
-                    setStatus({ type: 'success', message: `Código enviado para ${cleanPhone}` });
-                } else {
-                    // Step 2: Verify OTP
-                    const cleanPhone = formData.phoneNumber.replace(/\s/g, '').replace(/-/g, '');
-                    const { data, error } = await supabase.auth.verifyOtp({
-                        phone: cleanPhone,
-                        token: otpCode,
-                        type: 'sms',
+                    setStatus({
+                        type: 'success',
+                        message: data.dryRun
+                            ? 'Modo de teste: o código aparece no log do servidor.'
+                            : `Se o número estiver registado, enviámos um código para ${cleanPhone}.`,
                     });
+                } else {
+                    // Passo 2: validar o código e abrir a sessão
+                    const res = await fetch('/api/auth/otp/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone: cleanPhone, code: otpCode }),
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok || !data.tokenHash) throw new Error(data.error || 'Código inválido.');
 
+                    const { data: verified, error } = await supabase.auth.verifyOtp({
+                        token_hash: data.tokenHash,
+                        type: 'magiclink',
+                    });
                     if (error) throw error;
 
-                    if (data.session) {
-                        // Check role and plan for redirect
+                    if (verified.session) {
                         const { data: profile } = await supabase
                             .from('profiles')
                             .select('role, plan')
-                            .eq('id', data.session.user.id)
+                            .eq('id', verified.session.user.id)
                             .single();
 
                         if (isAdminRole(profile?.role)) {
-                            // Password/OTP já confirmada — prepara os dados do painel em
+                            // Sessão confirmada — prepara os dados do painel em
                             // segundo plano (até 4s) antes de navegar, para abrir sem loading.
                             await prefetchDashboardStats();
                             setLoading(false);
