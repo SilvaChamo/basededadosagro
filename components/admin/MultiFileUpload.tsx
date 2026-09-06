@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Upload, X, File as FileIcon, Loader2, Paperclip, Trash2, FileText, FileArchive, Image } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -81,7 +82,13 @@ export function MultiFileUpload({
         }
 
         if (errors.length > 0) {
-            setError(errors.join(", "));
+            // No layout minimal (barra de ferramentas) o erro inline deformava
+            // o layout — aí vai por toast; no default fica inline como antes.
+            if (layout === 'minimal') {
+                toast.error(errors.join(", "));
+            } else {
+                setError(errors.join(", "));
+            }
         }
 
         if (newUrls.length > 0) {
@@ -157,8 +164,8 @@ export function MultiFileUpload({
                 disabled={uploading}
             />
 
-            {/* Error Message */}
-            {error && (
+            {/* Error Message — só no layout default (no minimal vai por toast) */}
+            {error && layout !== 'minimal' && (
                 <p className="text-xs font-bold text-red-500 bg-red-50 p-2 rounded-lg border border-red-100">
                     {error}
                 </p>

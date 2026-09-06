@@ -32,7 +32,7 @@ function page(title: string, message: string) {
         `<!doctype html><html lang="pt"><head><meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
         <title>${title}</title></head>
-        <body style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#E6EAF1;margin:0;display:flex;min-height:100vh;align-items:center;justify-content:center;">
+        <body style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#CDD4E0;margin:0;display:flex;min-height:100vh;align-items:center;justify-content:center;">
           <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:32px 28px;max-width:420px;text-align:center;">
             <h1 style="font-size:18px;margin:0 0 8px;color:#1e293b;">${title}</h1>
             <p style="font-size:14px;color:#64748b;margin:0;">${message}</p>

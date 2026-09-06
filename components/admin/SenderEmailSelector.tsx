@@ -82,9 +82,47 @@ export function SenderEmailSelector({ value, onChange }: SenderEmailSelectorProp
     };
 
     return (
-        <div className="flex gap-4 items-center w-full min-w-0">
+        <div className="w-full min-w-0 bg-white">
+            {/* Cadastrar Email — FORA do campo: encostado ao topo/direita,
+                sem cantos e sem padding à volta; o campo vem logo a seguir. */}
+            <div className="flex justify-end">
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                        <button
+                            type="button"
+                            className="flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-emerald-700 hover:text-emerald-800 rounded-none"
+                        >
+                            <Plus className="w-3.5 h-3.5" />
+                            Cadastrar Email
+                        </button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Cadastrar Novo Email de Plataforma</DialogTitle>
+                            <DialogDescription>
+                                Adicione um novo endereço de email para ser usado como remetente nas mensagens do sistema.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Endereço de Email</label>
+                                <Input
+                                    placeholder="ex: novidades@basededadosagro.com"
+                                    value={newEmail}
+                                    onChange={(e) => setNewEmail(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
+                            <Button onClick={handleAddEmail} className="bg-emerald-600 hover:bg-emerald-700 text-white">Adicionar Email</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </div>
+
             <Select value={value} onValueChange={onChange}>
-                <SelectTrigger className="w-full min-w-0 !h-9 bg-slate-50 border-slate-200">
+                <SelectTrigger className="w-full min-w-0 !h-10 rounded-none border-0 shadow-none bg-white">
                     <div className="flex items-center gap-2 text-slate-700 min-w-0">
                         <Mail className="w-4 h-4 text-slate-400 shrink-0" />
                         <SelectValue placeholder="Selecione um email de origem" className="truncate" />
@@ -95,43 +133,11 @@ export function SenderEmailSelector({ value, onChange }: SenderEmailSelectorProp
                         <SelectItem key={email} value={email} className="group cursor-pointer">
                             <div className="flex items-center justify-between w-full min-w-[300px]">
                                 <span>{email}</span>
-                                {/* Only show delete for non-defaults if we wanted, but let's allow all for flexibility except the very first default maybe? For now allow all. */}
                             </div>
                         </SelectItem>
                     ))}
                 </SelectContent>
             </Select>
-
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                    <Button variant="outline" className="shrink-0 gap-2 border-emerald-300 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 hover:text-emerald-800">
-                        <Plus className="w-4 h-4" />
-                        Cadastrar Email
-                    </Button>
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Cadastrar Novo Email de Plataforma</DialogTitle>
-                        <DialogDescription>
-                            Adicione um novo endereço de email para ser usado como remetente nas mensagens do sistema.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">Endereço de Email</label>
-                            <Input
-                                placeholder="ex: novidades@basededadosagro.com"
-                                value={newEmail}
-                                onChange={(e) => setNewEmail(e.target.value)}
-                            />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleAddEmail} className="bg-emerald-600 hover:bg-emerald-700 text-white">Adicionar Email</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
         </div>
     );
 }

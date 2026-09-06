@@ -52,8 +52,9 @@
 
 :root {
   --radius: 0.625rem;
-  /* Fundo geral do site — escurecido ligeiramente (era #EFF2F6). */
-  --background: #E6EAF1;
+  /* Fundo geral do site — escurecido em passos
+     (#EFF2F6 -> #E6EAF1 -> #DDE2EB -> #D4DAE5). */
+  --background: #CDD4E0;
   --foreground: #1e293b;
   /* Slate-800 equivalent */
 

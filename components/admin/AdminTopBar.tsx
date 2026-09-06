@@ -10,7 +10,7 @@ import { LogoutButton } from "@/components/LogoutButton";
 // pathname (não por useAdminTopBar, que só corre num useLayoutEffect do
 // cliente) para que já no HTML do servidor / refresh não haja "Sair"
 // duplicado a piscar até a hidratação.
-const ROUTE_OWNS_TOPBAR = /\/admin\/(noticias|documentos|artigos|galeria)(\/|$)/;
+const ROUTE_OWNS_TOPBAR = /\/admin\/(noticias|documentos|artigos|galeria|mensagens)(\/|$)/;
 
 interface TopBarConfig {
     title: string;

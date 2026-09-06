@@ -56,7 +56,10 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Apenas administradores podem enviar campanhas de email' }, { status: 403 });
         }
 
-        const { to, subject, html, replyTo, attachments, targetAudiences, testEmail } = await req.json();
+        const { to, cc, bcc, subject, html, replyTo, attachments, targetAudiences } = await req.json();
+
+        const ccList: string[] = Array.isArray(cc) ? cc.filter((e: any) => typeof e === 'string' && e.includes('@')) : [];
+        const bccList: string[] = Array.isArray(bcc) ? bcc.filter((e: any) => typeof e === 'string' && e.includes('@')) : [];
 
         // 1. Basic Validation
         if (!subject || !html) {
@@ -87,27 +90,32 @@ export async function POST(req: Request) {
             ? attachments.map((url: string) => ({ path: url }))
             : [];
 
-        // ---- Modo TESTE: envia só para um endereço, não cria campanha ----
-        if (testEmail) {
+        const hasList = Array.isArray(to) && to.length > 0;
+
+        // ---- Modo WEBMAIL: sem lista de planos, só CC/BCC -> um envio único,
+        //      sem campanha nem registos por destinatário. ----
+        if (!hasList) {
+            if (ccList.length === 0 && bccList.length === 0) {
+                return NextResponse.json({ error: 'Sem destinatários (nem planos, nem CC/BCC)' }, { status: 400 });
+            }
             try {
                 await transporter.sendMail({
                     from: fromHeader,
                     replyTo: replyTo || process.env.SMTP_USER,
-                    to: testEmail,
-                    subject: `[TESTE] ${subject}`,
-                    html: html + unsubscribeFooter(testEmail),
+                    to: process.env.SMTP_USER,
+                    cc: ccList.length ? ccList : undefined,
+                    bcc: bccList.length ? bccList : undefined,
+                    subject,
+                    html,
                     attachments: mailAttachments,
                 });
-                return NextResponse.json({ success: true, test: true });
+                return NextResponse.json({ success: true, webmail: true, recipientCount: ccList.length + bccList.length });
             } catch (e: any) {
-                return NextResponse.json({ error: `Falha no envio de teste: ${e.message}` }, { status: 500 });
+                return NextResponse.json({ error: `Falha no envio: ${e.message}` }, { status: 500 });
             }
         }
 
         // ---- Campanha real: um email por destinatário, em segundo plano ----
-        if (!to || !Array.isArray(to) || to.length === 0) {
-            return NextResponse.json({ error: 'Missing recipients' }, { status: 400 });
-        }
 
         // Lista final: sem vazios, sem duplicados, minúsculas.
         const recipients = Array.from(
@@ -186,6 +194,25 @@ export async function POST(req: Request) {
                 await sleep(SEND_DELAY_MS);
             }
             await flush();
+
+            // Cópia única para quem foi posto em CC/BCC (ex.: chefia), sem
+            // rodapé de cancelar subscrição e sem entrar nos contadores.
+            if (ccList.length || bccList.length) {
+                try {
+                    await transporter.sendMail({
+                        from: fromHeader,
+                        replyTo: replyTo || process.env.SMTP_USER,
+                        to: process.env.SMTP_USER,
+                        cc: ccList.length ? ccList : undefined,
+                        bcc: bccList.length ? bccList : undefined,
+                        subject,
+                        html,
+                        attachments: mailAttachments,
+                    });
+                } catch (e) {
+                    console.error("cópia CC/BCC da campanha falhou (non-critical):", e);
+                }
+            }
 
             if (campaignId) {
                 const status = delivered === 0 ? 'falhada' : failed === 0 ? 'enviada' : 'parcial';

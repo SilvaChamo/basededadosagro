@@ -29,17 +29,26 @@ interface MessageComposerProps {
     onCancel?: () => void;
 }
 
+// Campos de topo: h-10, fundo branco, SEM cantos e SEM borda própria —
+// ficam colados uns aos outros, separados só pela linha (divide-y do pai).
+const FIELD = "h-10 rounded-none border-0 bg-white px-3 text-sm";
+
+const parseEmails = (s: string) =>
+    s.split(/[\s,;]+/).map((e) => e.trim().toLowerCase()).filter((e) => e.includes("@"));
+
 export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
     const [subject, setSubject] = useState("");
     const [content, setContent] = useState("");
+    const [cc, setCc] = useState("");
+    const [bcc, setBcc] = useState("");
+    const [showCc, setShowCc] = useState(false);
+    const [showBcc, setShowBcc] = useState(false);
     const [selectedPlans, setSelectedPlans] = useState<string[]>([]);
     const [senderEmail, setSenderEmail] = useState("admin@basededadosagro.com");
     const [attachments, setAttachments] = useState<string[]>([]);
 
     const [isSending, setIsSending] = useState(false);
     const [showTemplates, setShowTemplates] = useState(false);
-    const [testEmail, setTestEmail] = useState("");
-    const [isTesting, setIsTesting] = useState(false);
 
     const handlePlanToggle = (plan: string) => {
         if (selectedPlans.includes(plan)) {
@@ -49,7 +58,7 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
         }
     };
 
-    // Conteúdo + lista de anexos no fim (igual no envio real e no teste).
+    // Conteúdo + lista de anexos no fim.
     const buildHtml = () => {
         let out = content;
         if (attachments.length > 0) {
@@ -63,37 +72,14 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
         return out;
     };
 
-    const handleTest = async () => {
-        if (!testEmail || !subject || !content) {
-            alert("Preenche o assunto, o conteúdo e o email de teste.");
-            return;
-        }
-        setIsTesting(true);
-        try {
-            const res = await fetch('/api/messages/send', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    testEmail,
-                    subject,
-                    html: buildHtml(),
-                    attachments,
-                    replyTo: senderEmail,
-                }),
-            });
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok) throw new Error(data.error || "Falha no envio de teste");
-            alert(`Email de teste enviado para ${testEmail}.`);
-        } catch (e: any) {
-            alert(`Erro: ${e.message}`);
-        } finally {
-            setIsTesting(false);
-        }
-    };
-
     const handleSend = async () => {
-        if (!subject || !content || selectedPlans.length === 0) {
-            alert("Por favor, preencha o assunto, conteúdo e selecione pelo menos um grupo de destinatários.");
+        const ccList = parseEmails(cc);
+        const bccList = parseEmails(bcc);
+        const hasPlans = selectedPlans.length > 0;
+        const hasManual = ccList.length > 0 || bccList.length > 0;
+
+        if (!subject || !content || (!hasPlans && !hasManual)) {
+            alert("Preenche o assunto, o conteúdo e pelo menos um destino (grupos de planos, ou CC/BCC).");
             return;
         }
 
@@ -101,6 +87,29 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
 
         try {
             const finalContent = buildHtml();
+
+            // Modo "webmail": sem planos, só CC/BCC -> um envio único, sem
+            // criar campanha nem registos por destinatário.
+            if (!hasPlans) {
+                const res = await fetch('/api/messages/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        cc: ccList,
+                        bcc: bccList,
+                        subject,
+                        html: finalContent,
+                        attachments,
+                        replyTo: senderEmail,
+                    }),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.error || "Falha no envio");
+                alert(`Email enviado para ${ccList.length + bccList.length} endereço(s) em CC/BCC.`);
+                setSubject(""); setContent(""); setCc(""); setBcc(""); setAttachments([]);
+                onSent?.();
+                return;
+            }
 
             // 1. Create Message Record
             const { data: msgData, error: msgError } = await supabase
@@ -216,6 +225,8 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         to: emailRecipients,
+                        cc: ccList,
+                        bcc: bccList,
                         subject: subject,
                         html: finalContent,
                         attachments: attachments,
@@ -238,6 +249,8 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
             // Reset Form (except sender)
             setSubject("");
             setContent("");
+            setCc("");
+            setBcc("");
             setSelectedPlans([]);
             setAttachments([]);
 
@@ -253,120 +266,157 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
 
     return (
         <div className="flex flex-col lg:flex-row gap-6 pb-20">
-            {/* Coluna principal — origem, assunto e conteúdo */}
-            <div className="flex-1 min-w-0 bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+            {/* Coluna principal — TRÊS contentores separados:
+                (1) campos  ·  (2) botões/ferramentas  ·  (3) compositor */}
+            <div className="flex-1 min-w-0 space-y-4">
 
-                {/* Sender */}
-                <div className="space-y-3">
-                    <label className="text-xs font-bold text-slate-500 uppercase">Email de Origem</label>
+                {/* (1) Contentor dos campos. Remetente e Assunto sempre visíveis;
+                    CC e BCC aparecem/escondem nos toggles "Cc"/"Bcc" do Assunto.
+                    Campos colados (fundo branco), separados só pela linha. */}
+                <div className="bg-white rounded-[10px] shadow-sm border border-slate-200 overflow-hidden divide-y divide-slate-200">
                     <SenderEmailSelector
                         value={senderEmail}
                         onChange={setSenderEmail}
                     />
-                </div>
-
-                {/* Subject */}
-                <div className="space-y-3">
-                    <label className="text-xs font-bold text-slate-500 uppercase">Assunto</label>
-                    <Input
-                        placeholder="Ex: Novidades na Plataforma"
-                        value={subject}
-                        onChange={(e) => setSubject(e.target.value)}
-                        className="text-lg font-semibold"
-                    />
-                </div>
-
-                {/* Content & Attachments Combined */}
-                <div className="space-y-3">
-                    <div className="flex flex-col gap-4">
-                        <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                                {/* Mini Attachment Button */}
-                                <MultiFileUpload
-                                    value={attachments}
-                                    onChange={setAttachments}
-                                    folder="admin-messages"
-                                    layout="minimal"
-                                    showList={false}
-                                />
-                                <div className="w-px h-4 bg-slate-200 mx-2"></div>
-                                {/* Template Picker */}
-                                <button
-                                    onClick={() => setShowTemplates(true)}
-                                    className="text-[10px] text-white px-4 py-2 rounded-full font-bold uppercase tracking-wider flex items-center gap-2 transition-transform hover:scale-105 shadow-md hover:shadow-lg"
-                                    style={{
-                                        background: "linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)",
-                                        backgroundSize: "200% 200%",
-                                        animation: "gradient-move 3s ease infinite"
-                                    }}
-                                >
-                                    <LayoutTemplate className="w-3.5 h-3.5" />
-                                    <span className="drop-shadow-sm">Templates</span>
-                                </button>
-                                <div className="w-px h-4 bg-slate-200 mx-2"></div>
-                                {/* Newsletter Builder Link */}
-                                <a
-                                    href="/admin/mensagens/newsletter"
-                                    className="text-[10px] text-white px-4 py-2 rounded-full font-bold uppercase tracking-wider flex items-center gap-2 transition-transform hover:scale-105 shadow-md hover:shadow-lg"
-                                    style={{
-                                        background: "linear-gradient(90deg, #10b981, #f97316, #a3e635)",
-                                        backgroundSize: "200% 200%",
-                                        animation: "gradient-move 3s ease infinite"
-                                    }}
-                                >
-                                    <span className="drop-shadow-sm">Editor Visual (Newsletter)</span>
-                                    <span className="bg-white/20 px-1.5 py-0.5 rounded text-[9px] backdrop-blur-sm">BETA</span>
-                                </a>
-                            </div>
-                            <label className="text-xs font-bold text-slate-500 uppercase">Conteúdo da Mensagem</label>
-                        </div>
-
-                        {/* Custom Grid Layout for Attachments */}
-                        {attachments.length > 0 && (
-                            <div className="grid grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2">
-                                {attachments.map((url, index) => (
-                                    <div key={index} className="relative group bg-slate-50 border border-slate-200 rounded-lg p-3 flex flex-col gap-2 hover:border-emerald-500 transition-colors">
-                                        <div className="w-full h-24 bg-white rounded border border-slate-100 flex items-center justify-center overflow-hidden">
-                                            {url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                                                <img src={url} alt="thumbnail" className="w-full h-full object-cover" />
-                                            ) : url.match(/\.pdf$/i) ? (
-                                                <FileText className="w-10 h-10 text-red-500" />
-                                            ) : url.match(/\.(zip|rar)$/i) ? (
-                                                <FileArchive className="w-10 h-10 text-yellow-600" />
-                                            ) : (
-                                                <FileIcon className="w-10 h-10 text-slate-500" />
-                                            )}
-                                        </div>
-                                        <div className="flex items-center justify-between gap-2">
-                                            <a href={url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold text-slate-600 truncate hover:text-blue-600 hover:underline flex-1">
-                                                {url.split('/').pop()}
-                                            </a>
-                                            <button
-                                                onClick={() => setAttachments(attachments.filter((a: any) => a !== url))}
-                                                className="text-slate-400 hover:text-red-500 transition-colors"
-                                                title="Remover anexo"
-                                            >
-                                                <X className="w-3.5 h-3.5" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        <RichTextEditor
-                            value={content}
-                            onChange={setContent}
-                            placeholder="Escreva sua mensagem aqui..."
-                            className="min-h-[300px]"
+                    {showCc && (
+                        <Input
+                            placeholder="CC (separar por vírgulas)"
+                            value={cc}
+                            onChange={(e) => setCc(e.target.value)}
+                            className={FIELD}
                         />
+                    )}
+                    {showBcc && (
+                        <Input
+                            placeholder="BCC (separar por vírgulas)"
+                            value={bcc}
+                            onChange={(e) => setBcc(e.target.value)}
+                            className={FIELD}
+                        />
+                    )}
+                    <div className="relative bg-white">
+                        <Input
+                            placeholder="Assunto"
+                            value={subject}
+                            onChange={(e) => setSubject(e.target.value)}
+                            className={FIELD + " pr-[92px]"}
+                        />
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                            <button
+                                type="button"
+                                onClick={() => setShowCc((v) => !v)}
+                                className={`text-[11px] font-bold uppercase px-1.5 py-0.5 rounded transition-colors ${showCc ? "text-emerald-600 bg-emerald-50" : "text-slate-400 hover:text-slate-600"}`}
+                            >
+                                Cc
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowBcc((v) => !v)}
+                                className={`text-[11px] font-bold uppercase px-1.5 py-0.5 rounded transition-colors ${showBcc ? "text-emerald-600 bg-emerald-50" : "text-slate-400 hover:text-slate-600"}`}
+                            >
+                                Bcc
+                            </button>
+                        </div>
                     </div>
+                </div>
+
+                {/* (2) Contentor dos botões / ferramentas — flush ao contentor,
+                    sem padding lateral nem superior. O "Enviar" vive nesta linha,
+                    encostado à direita. */}
+                <div className="bg-white rounded-[10px] shadow-sm border border-slate-100 overflow-hidden">
+                    <div className="flex flex-wrap items-center gap-2 w-full">
+                        <MultiFileUpload
+                            value={attachments}
+                            onChange={setAttachments}
+                            folder="admin-messages"
+                            layout="minimal"
+                            showList={false}
+                            className="!space-y-0"
+                        />
+                        <div className="w-px h-4 bg-slate-200"></div>
+                        <button
+                            onClick={() => setShowTemplates(true)}
+                            className="text-[10px] text-white px-4 py-2 rounded-full font-bold uppercase tracking-wider flex items-center gap-2 transition-transform hover:scale-105 shadow-md hover:shadow-lg"
+                            style={{
+                                background: "linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)",
+                                backgroundSize: "200% 200%",
+                                animation: "gradient-move 3s ease infinite"
+                            }}
+                        >
+                            <LayoutTemplate className="w-3.5 h-3.5" />
+                            <span className="drop-shadow-sm">Templates</span>
+                        </button>
+                        <div className="w-px h-4 bg-slate-200"></div>
+                        <a
+                            href="/admin/mensagens/newsletter"
+                            className="text-[10px] text-white px-4 py-2 rounded-full font-bold uppercase tracking-wider flex items-center gap-2 transition-transform hover:scale-105 shadow-md hover:shadow-lg"
+                            style={{
+                                background: "linear-gradient(90deg, #10b981, #f97316, #a3e635)",
+                                backgroundSize: "200% 200%",
+                                animation: "gradient-move 3s ease infinite"
+                            }}
+                        >
+                            <span className="drop-shadow-sm">Editor Visual (Newsletter)</span>
+                            <span className="bg-white/20 px-1.5 py-0.5 rounded text-[9px] backdrop-blur-sm">BETA</span>
+                        </a>
+                        <Button
+                            onClick={handleSend}
+                            disabled={isSending}
+                            className="ml-auto py-[10px] px-6 rounded-[5px] bg-emerald-600 hover:bg-[#f97316] text-white font-bold uppercase tracking-wider text-[11px] shadow-sm transition-all"
+                        >
+                            <Send className="w-4 h-4 mr-2" />
+                            {isSending ? "A enviar..." : "Enviar"}
+                        </Button>
+                    </div>
+                </div>
+
+                {/* (3) Contentor do compositor — sozinho */}
+                <div className="bg-white rounded-[10px] shadow-sm border border-slate-100 p-3 space-y-3">
+                    {attachments.length > 0 && (
+                        <div className="grid grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2">
+                            {attachments.map((url, index) => (
+                                <div key={index} className="relative group bg-slate-50 border border-slate-200 rounded-lg p-3 flex flex-col gap-2 hover:border-emerald-500 transition-colors">
+                                    <div className="w-full h-24 bg-white rounded border border-slate-100 flex items-center justify-center overflow-hidden">
+                                        {url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                                            <img src={url} alt="thumbnail" className="w-full h-full object-cover" />
+                                        ) : url.match(/\.pdf$/i) ? (
+                                            <FileText className="w-10 h-10 text-red-500" />
+                                        ) : url.match(/\.(zip|rar)$/i) ? (
+                                            <FileArchive className="w-10 h-10 text-yellow-600" />
+                                        ) : (
+                                            <FileIcon className="w-10 h-10 text-slate-500" />
+                                        )}
+                                    </div>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <a href={url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold text-slate-600 truncate hover:text-blue-600 hover:underline flex-1">
+                                            {url.split('/').pop()}
+                                        </a>
+                                        <button
+                                            onClick={() => setAttachments(attachments.filter((a: any) => a !== url))}
+                                            className="text-slate-400 hover:text-red-500 transition-colors"
+                                            title="Remover anexo"
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    <RichTextEditor
+                        value={content}
+                        onChange={setContent}
+                        placeholder="Escreva sua mensagem aqui..."
+                        className="min-h-[500px]"
+                    />
                 </div>
             </div>
 
-            {/* Barra lateral direita — destinatários (planos) e envio */}
-            <aside className="w-full lg:w-[320px] lg:shrink-0 lg:sticky lg:top-4 self-start space-y-4">
-                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+            {/* Barra lateral direita — destinatários (planos) e envio.
+                Largura dinâmica: mais estreita em ecrãs médios, cresce nos grandes. */}
+            <aside className="w-full lg:w-[280px] xl:w-[320px] lg:shrink-0 lg:sticky lg:top-4 self-start space-y-4">
+                <div className="bg-white p-5 rounded-[10px] shadow-sm border border-slate-100 space-y-4">
                     <div className="flex justify-between items-center">
                         <label className="text-xs font-bold text-slate-500 uppercase">Destinatários (Planos)</label>
                         <div className="flex gap-1">
@@ -405,41 +455,9 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
 
                     <p className="text-[11px] text-slate-400 font-medium">
                         {selectedPlans.length === 0
-                            ? "Nenhum grupo selecionado"
+                            ? "Sem grupos — usa CC/BCC para um envio simples"
                             : `${selectedPlans.length} grupo(s) selecionado(s)`}
                     </p>
-
-                    {/* Teste — envia só para 1 endereço, não cria campanha */}
-                    <div className="pt-1 border-t border-slate-100">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Enviar teste para</label>
-                        <div className="flex gap-2 mt-1.5">
-                            <input
-                                type="email"
-                                value={testEmail}
-                                onChange={(e) => setTestEmail(e.target.value)}
-                                placeholder="teu@email.com"
-                                className="flex-1 min-w-0 h-9 rounded-[7px] border border-slate-200 bg-white px-3 text-sm outline-none focus:border-emerald-500"
-                            />
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handleTest}
-                                disabled={isTesting || !testEmail}
-                                className="h-9 rounded-[7px] text-xs font-bold shrink-0"
-                            >
-                                {isTesting ? "..." : "Testar"}
-                            </Button>
-                        </div>
-                    </div>
-
-                    <Button
-                        onClick={handleSend}
-                        disabled={isSending}
-                        className="w-full bg-emerald-600 hover:bg-[#f97316] text-white h-12 rounded-lg font-bold uppercase tracking-wider shadow-lg shadow-emerald-500/20 transition-all"
-                    >
-                        <Send className="w-4 h-4 mr-2" />
-                        {isSending ? "A criar campanha..." : "Enviar Mensagem"}
-                    </Button>
 
                     {onCancel && (
                         <button
