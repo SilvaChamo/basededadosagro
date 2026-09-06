@@ -20,6 +20,12 @@ import Script from "next/script";
 // O Client ID não é segredo — aparece sempre no browser.
 const GOOGLE_CLIENT_ID = "461209971814-tmtcfn4sniit1bpcmdssk5do70nod02i.apps.googleusercontent.com";
 
+// Login por telemóvel (OTP/SMS) e Facebook estão desligados até haver
+// gateway de SMS em produção e uma app Facebook aprovada. O código
+// permanece; basta pôr a true para reactivar.
+const PHONE_OTP_LOGIN_ENABLED = false;
+const FACEBOOK_LOGIN_ENABLED = false;
+
 interface AuthFormProps {
     searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
     initialMode?: "login" | "register"
@@ -184,11 +190,18 @@ export function AuthForm(props: AuthFormProps) {
                     generateCaptcha();
                     throw new Error("Resposta da soma incorreta. Tente novamente.");
                 }
-                const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
-                    redirectTo: `${window.location.origin}/auth/reset-password`,
+                // NÃO usar supabase.auth.resetPasswordForEmail: o link nativo
+                // passa pelo redirect do GoTrue partilhado e cai no SITE_URL
+                // do visualdesign. Esta rota gera o token e envia um link no
+                // nosso domínio (-> /auth/reset-password?token_hash=...).
+                const res = await fetch("/api/auth/forgot-password", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: formData.email }),
                 });
-                if (error) throw error;
-                setStatus({ type: 'success', message: 'Link de redefinição enviado para o seu e-mail!' });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.error || "Não foi possível enviar o email. Tente novamente.");
+                setStatus({ type: 'success', message: 'Se existir uma conta com esse email, enviámos um link de redefinição.' });
                 return;
             }
 
@@ -497,7 +510,7 @@ export function AuthForm(props: AuthFormProps) {
                         </form>
                     ) : (
                         <>
-                    {isLogin && (
+                    {isLogin && PHONE_OTP_LOGIN_ENABLED && (
                         <div className="grid grid-cols-2 gap-2 mb-6 p-1 bg-slate-100 rounded-lg">
                             <button
                                 type="button"
@@ -729,16 +742,18 @@ export function AuthForm(props: AuthFormProps) {
                                         />
                                     </div>
 
-                                    <button
-                                        onClick={(e) => { e.preventDefault(); handleSocialLogin('facebook'); }}
-                                        disabled={loading}
-                                        className="flex items-center justify-center gap-2 h-10 w-10 shrink-0 rounded-agro-btn border border-slate-200 bg-white text-slate-700 font-bold text-[10px] hover:border-[#1877F2] hover:bg-[#1877F2]/5 transition-all shadow-sm uppercase tracking-tight"
-                                        title="Entrar com Facebook"
-                                    >
-                                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#1877F2">
-                                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.791-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                                        </svg>
-                                    </button>
+                                    {FACEBOOK_LOGIN_ENABLED && (
+                                        <button
+                                            onClick={(e) => { e.preventDefault(); handleSocialLogin('facebook'); }}
+                                            disabled={loading}
+                                            className="flex items-center justify-center gap-2 h-10 w-10 shrink-0 rounded-agro-btn border border-slate-200 bg-white text-slate-700 font-bold text-[10px] hover:border-[#1877F2] hover:bg-[#1877F2]/5 transition-all shadow-sm uppercase tracking-tight"
+                                            title="Entrar com Facebook"
+                                        >
+                                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#1877F2">
+                                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.791-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                                            </svg>
+                                        </button>
+                                    )}
                                 </>
                             )}
                         </div>
