@@ -47,7 +47,6 @@ import {
     Layers,
     BookOpen,
     Scale,
-    UserPlus,
     Coins,
 } from "lucide-react";
 
@@ -493,7 +492,7 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                         {/* GROUP: INTERAÇÕES */}
                         <div className="flex flex-col gap-0.5">
                             {!isCollapsed && (
-                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/estatisticas', '/admin/indicadores', '/admin/mensagens', '/admin/contactos']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
+                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/estatisticas', '/admin/indicadores', '/admin/mensagens']) && !isActive('/admin/mensagens/subscritores') ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
                                     <button
                                         onClick={() => handleGroupClick('interactions', '/admin/estatisticas')}
                                         className="flex items-center gap-2.5 flex-1 min-w-0 pl-6 pr-2 py-1.5 text-[15px] font-semibold text-left transition-all duration-300 ease-out hover:translate-x-1.5 hover:text-orange-500"
@@ -518,15 +517,13 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                                     <LinkItem href="/admin/indicadores" icon={Target} label="Indicadores" isSub />
 
                                     {/* Mensagem Sub-items — exact: sem isto, qualquer subpágina
-                                        (newsletter/subscritores/campanhas) faz "startsWith('/admin/mensagens')"
+                                        (newsletter/campanhas) faz "startsWith('/admin/mensagens')"
                                         bater certo e acender Nova Mensagem também. "Email" foi removido
-                                        por duplicar exactamente este mesmo destino (mesma página, sem abas). */}
+                                        por duplicar exactamente este mesmo destino (mesma página, sem abas).
+                                        Subscritores e Contactos passaram para o menu "Contas". */}
                                     <LinkItem href="/admin/mensagens" icon={MailPlus} label="Nova Mensagem" isSub exact />
                                     <LinkItem href="/admin/mensagens/newsletter" icon={Newspaper} label="Newsletter" isSub exact />
-                                    <LinkItem href="/admin/mensagens/subscritores" icon={Users} label="Subscritores" isSub exact />
                                     <LinkItem href="/admin/mensagens/campanhas" icon={BarChart3} label="Campanhas" isSub exact />
-
-                                    <LinkItem href="/admin/contactos" icon={Contact} label="Contactos" isSub />
                                 </div>
                             )}
                         </div>
@@ -567,33 +564,35 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
 
                         <div className={`my-2 border-b border-slate-100 ${isCollapsed ? "mx-2" : "mx-6"}`}></div>
 
-                        {/* GROUP: UTILIZADORES (fora de Opções — submenu ao estilo do
-                            menu "Utilizadores" do WordPress: lista + adicionar novo) */}
+                        {/* GROUP: CONTAS (separadores: Utilizadores da plataforma +
+                            Subscritores da newsletter + Contactos — cada um aponta
+                            para a sua página existente) */}
                         <div className="flex flex-col gap-0.5">
                             {!isCollapsed && (
-                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/utilizadores']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
+                                <div className={`flex items-center transition-all ${isGroupActive(['/admin/utilizadores', '/admin/mensagens/subscritores', '/admin/contactos']) ? 'text-orange-600 bg-orange-50' : 'text-slate-500'}`}>
                                     <button
-                                        onClick={() => handleGroupClick('utilizadores', '/admin/utilizadores')}
+                                        onClick={() => handleGroupClick('contas', '/admin/utilizadores')}
                                         className="flex items-center gap-2.5 flex-1 min-w-0 pl-6 pr-2 py-1.5 text-[15px] font-semibold text-left transition-all duration-300 ease-out hover:translate-x-1.5 hover:text-orange-500"
                                     >
                                         <Users className="w-6 h-6 shrink-0" />
-                                        <span>Utilizadores</span>
+                                        <span>Contas</span>
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => toggleSubmenuOnly('utilizadores')}
+                                        onClick={() => toggleSubmenuOnly('contas')}
                                         className="pl-2 pr-6 py-1.5 hover:text-orange-500 transition-colors"
-                                        title={openSubmenus.includes('utilizadores') ? "Colapsar" : "Expandir"}
+                                        title={openSubmenus.includes('contas') ? "Colapsar" : "Expandir"}
                                     >
-                                        <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('utilizadores') ? 'rotate-90' : ''}`} />
+                                        <ChevronRight className={`w-4 h-4 transition-transform ${openSubmenus.includes('contas') ? 'rotate-90' : ''}`} />
                                     </button>
                                 </div>
                             )}
-                            {openSubmenus.includes('utilizadores') && (
+                            {openSubmenus.includes('contas') && (
                                 <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
                                     {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-2 w-[1.5px] bg-slate-100" />}
-                                    <LinkItem href="/admin/utilizadores" icon={Users} label="Todos os Utilizadores" isSub exact />
-                                    <LinkItem href="/admin/utilizadores/novo" icon={UserPlus} label="Adicionar Novo" isSub />
+                                    <LinkItem href="/admin/utilizadores" icon={Users} label="Utilizadores" isSub exact />
+                                    <LinkItem href="/admin/mensagens/subscritores" icon={Users} label="Subscritores" isSub exact />
+                                    <LinkItem href="/admin/contactos" icon={Contact} label="Contactos" isSub />
                                 </div>
                             )}
                         </div>
