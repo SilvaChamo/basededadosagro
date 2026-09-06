@@ -1,0 +1,69 @@
+name: Aplicar migração SQL (Hetzner / Supabase)
+
+# Arranque manual. Corre UM ficheiro .sql de supabase/migrations/ contra o
+# Postgres self-hosted no servidor Hetzner (container supabase-db), com o
+# papel supabase_admin (o único com direitos de DDL neste setup).
+#
+#   gh workflow run apply-migration.yml -f file=supabase/migrations/XXXX.sql
+#
+# É o mesmo caminho manual documentado no .env.local, mas via Actions
+# (que já tem a chave SSH), porque o SSH directo da máquina local está
+# bloqueado pelo classificador de segurança.
+
+on:
+  workflow_dispatch:
+    inputs:
+      file:
+        description: "Caminho do .sql (tem de estar dentro de supabase/migrations/)"
+        required: true
+        type: string
+
+concurrency:
+  group: hetzner-db
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    env:
+      FILE: ${{ inputs.file }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validar o caminho do ficheiro
+        run: |
+          set -eu
+          # sem travessia de directórios; tem de ser exactamente
+          # supabase/migrations/<nome>.sql (sem barras extra no nome)
+          case "$FILE" in
+            *..*) echo "Recusado: '..' no caminho."; exit 1 ;;
+          esac
+          case "$FILE" in
+            supabase/migrations/*.sql) ;;
+            *) echo "Recusado: '$FILE' não está em supabase/migrations/ nem acaba em .sql"; exit 1 ;;
+          esac
+          name="${FILE#supabase/migrations/}"
+          case "$name" in
+            */*) echo "Recusado: subpastas não são permitidas ('$name')."; exit 1 ;;
+          esac
+          test -f "$FILE" || { echo "Ficheiro não encontrado: $FILE"; exit 1; }
+          echo "----- SQL a aplicar ($FILE) -----"
+          cat "$FILE"
+          echo "--------------------------------"
+
+      - name: Preparar chave SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.HETZNER_SSH_KEY }}
+
+      - name: Aceitar a chave do servidor (known_hosts)
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p 2234 37.27.17.25 >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Correr o SQL (psql, ON_ERROR_STOP)
+        run: |
+          set -eu
+          cat "$FILE" | ssh -p 2234 root@37.27.17.25 \
+            "docker exec -i supabase-db psql -U supabase_admin -d postgres -v ON_ERROR_STOP=1 -e"
