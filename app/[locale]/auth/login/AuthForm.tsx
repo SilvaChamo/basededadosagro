@@ -20,11 +20,13 @@ import Script from "next/script";
 // O Client ID não é segredo — aparece sempre no browser.
 const GOOGLE_CLIENT_ID = "461209971814-tmtcfn4sniit1bpcmdssk5do70nod02i.apps.googleusercontent.com";
 
-// Login por telemóvel (OTP/SMS) e Facebook estão desligados até haver
-// gateway de SMS em produção e uma app Facebook aprovada. O código
-// permanece; basta pôr a true para reactivar.
+// Login por telemóvel (OTP/SMS) continua desligado até haver gateway de SMS
+// em produção. O botão de Facebook foi REPOSTO a pedido do administrador
+// (2026-09-06). Para o fluxo OAuth funcionar é preciso o provider Facebook
+// activo no Supabase + app Meta aprovada; sem isso o botão aparece mas o
+// clique devolve erro do Supabase.
 const PHONE_OTP_LOGIN_ENABLED = false;
-const FACEBOOK_LOGIN_ENABLED = false;
+const FACEBOOK_LOGIN_ENABLED = true;
 
 interface AuthFormProps {
     searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
