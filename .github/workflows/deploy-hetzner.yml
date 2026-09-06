@@ -44,10 +44,39 @@ jobs:
             --exclude '*.bak-*' \
             ./ root@37.27.17.25:/opt/basededadosagro-site/
 
+      # O `next build` desta app não cabe na RAM do servidor sozinho — sem
+      # isto o build era morto pelo OOM a meio (a sessão SSH caía com
+      # "Broken pipe", exit 255). Cria 4G de swap uma única vez.
+      - name: Garantir swap no servidor (evita OOM no next build)
+        run: |
+          ssh -p 2234 root@37.27.17.25 '
+            if ! swapon --show | grep -q "/swapfile"; then
+              fallocate -l 4G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=4096
+              chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+              grep -q "/swapfile" /etc/fstab || echo "/swapfile none swap sw 0 0" >> /etc/fstab
+            fi
+            free -m
+          '
+
+      # Guarda o .next anterior antes de reconstruir: se o build falhar,
+      # repõe-se o build antigo para o pm2 continuar a arrancar (antes,
+      # um `rm -rf .next` + build falhado deixava produção sem arranque).
       - name: Instalar, construir e reiniciar no servidor
         run: |
-          ssh -p 2234 root@37.27.17.25 \
-            "cd /opt/basededadosagro-site && npm install && rm -rf .next && npm run build && pm2 restart basededadosagro-site && pm2 save"
+          ssh -p 2234 root@37.27.17.25 '
+            set -e
+            cd /opt/basededadosagro-site
+            npm install
+            rm -rf .next.bak; mv .next .next.bak 2>/dev/null || true
+            if npm run build; then
+              rm -rf .next.bak
+              pm2 restart basededadosagro-site && pm2 save
+            else
+              echo "BUILD FALHOU — a repor .next anterior"
+              rm -rf .next; mv .next.bak .next 2>/dev/null || true
+              exit 1
+            fi
+          '
 
       # Sem isto, o Cloudflare continua a servir a página/HTML antigos em
       # cache (até 1h de s-maxage) mesmo depois do deploy correr sem
