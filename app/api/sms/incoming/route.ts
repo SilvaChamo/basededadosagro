@@ -43,11 +43,22 @@ export async function POST(request: Request) {
             created_at: d.timestamp ? new Date(d.timestamp).toISOString() : new Date().toISOString(),
         };
 
-        // upsert por provider_id evita duplicar se o httpSMS reenviar o webhook.
-        const { error } = await admin
-            .from("sms_messages")
-            .upsert(row, { onConflict: "provider_id", ignoreDuplicates: true });
-        if (error) console.error("sms/incoming: falha ao gravar", error.message);
+        // Dedup manual por provider_id (o índice único é parcial, não serve
+        // como alvo de ON CONFLICT no PostgREST).
+        if (row.provider_id) {
+            const { data: existing } = await admin
+                .from("sms_messages")
+                .select("id")
+                .eq("provider_id", row.provider_id)
+                .limit(1)
+                .maybeSingle();
+            if (existing) return NextResponse.json({ ok: true, duplicate: true });
+        }
+
+        const { error } = await admin.from("sms_messages").insert(row);
+        if (error && error.code !== "23505") {
+            console.error("sms/incoming: falha ao gravar", error.message);
+        }
 
         return NextResponse.json({ ok: true });
     } catch (err) {
