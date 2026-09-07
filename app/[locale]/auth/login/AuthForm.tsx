@@ -24,17 +24,16 @@ const GOOGLE_CLIENT_ID = "461209971814-tmtcfn4sniit1bpcmdssk5do70nod02i.apps.goo
 // /api/auth/otp/request e /api/auth/otp/verify (código gerado por nós e
 // enviado pelo telemóvel via httpSMS), NÃO o OTP nativo do Supabase. É um
 // método ADICIONAL — email/senha, Google e Facebook ficam intactos.
-//
-// Fica FALSE em produção até o servidor Hetzner ter as vars HTTPSMS_API_KEY,
-// HTTPSMS_FROM e SMS_DRY_RUN=false (ver .env.local). Com estas três postas no
-// servidor e este flag a true + redeploy, o separador "Telefone (SMS)" passa
-// a aparecer e a funcionar. Assim não mostramos um login que ainda não envia.
+// Passo 1: campo do número -> "Enviar Código". Passo 2 (showOtpInput):
+// campo do código -> "Confirmar Código" -> sessão.
+// Ligado em produção a 2026-09-07 (servidor Hetzner já tem HTTPSMS_API_KEY,
+// HTTPSMS_FROM e SMS_DRY_RUN=false).
 //
 // O botão de Facebook foi REPOSTO a pedido do administrador (2026-09-06).
 // Para o fluxo OAuth funcionar é preciso o provider Facebook activo no
 // Supabase + app Meta aprovada; sem isso o botão aparece mas o clique
 // devolve erro do Supabase.
-const PHONE_OTP_LOGIN_ENABLED = false;
+const PHONE_OTP_LOGIN_ENABLED = true;
 const FACEBOOK_LOGIN_ENABLED = true;
 
 interface AuthFormProps {

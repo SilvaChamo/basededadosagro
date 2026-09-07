@@ -87,7 +87,7 @@ export default async function Home({
   const articles = articlesResult?.data || [];
 
   return (
-    <main className="min-h-screen bg-transparent">
+    <main className="min-h-screen bg-slate-50">
       <HomeHeaderSection stats={stats} />
       <CategoriesShowcase companies={companies} />
       <CommunityBanner />

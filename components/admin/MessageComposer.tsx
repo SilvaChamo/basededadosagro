@@ -320,10 +320,9 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
                     </div>
                 </div>
 
-                {/* (2) Contentor dos botões / ferramentas — flush ao contentor,
-                    sem padding lateral nem superior. O "Enviar" vive nesta linha,
-                    encostado à direita. */}
-                <div className="bg-white rounded-[10px] shadow-sm border border-slate-100 overflow-hidden">
+                {/* (2) Linha dos botões / ferramentas — sem fundo nem cartão, só
+                    a linha de acções. O "Enviar" vive nesta linha, à direita. */}
+                <div>
                     <div className="flex flex-wrap items-center gap-2 w-full">
                         <MultiFileUpload
                             value={attachments}
@@ -333,10 +332,10 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
                             showList={false}
                             className="!space-y-0"
                         />
-                        <div className="w-px h-4 bg-slate-200"></div>
+                        <div className="hidden sm:block w-px h-4 bg-slate-200"></div>
                         <button
                             onClick={() => setShowTemplates(true)}
-                            className="text-[10px] text-white px-4 py-2 rounded-full font-bold uppercase tracking-wider flex items-center gap-2 transition-transform hover:scale-105 shadow-md hover:shadow-lg"
+                            className="text-[10px] text-white px-4 py-2 rounded-full font-bold uppercase tracking-wider flex items-center gap-2 whitespace-nowrap transition-transform hover:scale-105 shadow-md hover:shadow-lg"
                             style={{
                                 background: "linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)",
                                 backgroundSize: "200% 200%",
@@ -346,10 +345,10 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
                             <LayoutTemplate className="w-3.5 h-3.5" />
                             <span className="drop-shadow-sm">Templates</span>
                         </button>
-                        <div className="w-px h-4 bg-slate-200"></div>
+                        <div className="hidden sm:block w-px h-4 bg-slate-200"></div>
                         <a
                             href="/admin/mensagens/newsletter"
-                            className="text-[10px] text-white px-4 py-2 rounded-full font-bold uppercase tracking-wider flex items-center gap-2 transition-transform hover:scale-105 shadow-md hover:shadow-lg"
+                            className="text-[10px] text-white px-4 py-2 rounded-full font-bold uppercase tracking-wider flex items-center gap-2 whitespace-nowrap transition-transform hover:scale-105 shadow-md hover:shadow-lg"
                             style={{
                                 background: "linear-gradient(90deg, #10b981, #f97316, #a3e635)",
                                 backgroundSize: "200% 200%",
@@ -362,7 +361,7 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
                         <Button
                             onClick={handleSend}
                             disabled={isSending}
-                            className="ml-auto py-[10px] px-6 rounded-[5px] bg-emerald-600 hover:bg-[#f97316] text-white font-bold uppercase tracking-wider text-[11px] shadow-sm transition-all"
+                            className="w-full sm:w-auto sm:ml-auto justify-center py-[10px] px-6 rounded-[5px] bg-emerald-600 hover:bg-[#f97316] text-white font-bold uppercase tracking-wider text-[11px] shadow-sm transition-all"
                         >
                             <Send className="w-4 h-4 mr-2" />
                             {isSending ? "A enviar..." : "Enviar"}
@@ -373,7 +372,7 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
                 {/* (3) Contentor do compositor — sozinho */}
                 <div className="bg-white rounded-[10px] shadow-sm border border-slate-100 p-3 space-y-3">
                     {attachments.length > 0 && (
-                        <div className="grid grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 animate-in fade-in slide-in-from-top-2">
                             {attachments.map((url, index) => (
                                 <div key={index} className="relative group bg-slate-50 border border-slate-200 rounded-lg p-3 flex flex-col gap-2 hover:border-emerald-500 transition-colors">
                                     <div className="w-full h-24 bg-white rounded border border-slate-100 flex items-center justify-center overflow-hidden">
