@@ -112,9 +112,11 @@ interface RichTextEditorProps {
     galleryScope?: string;
     /** Notícia associada (opcional) — liga as imagens carregadas ao artigo na galeria. */
     articleId?: string;
+    /** Barra de ferramentas numa só linha com scroll horizontal (em vez de partir em duas linhas). */
+    toolbarNoWrap?: boolean;
 }
 
-export function RichTextEditor({ value, onChange, placeholder, className, style, lineHeight, onLineHeightChange, paragraphSpacing, onParagraphSpacingChange, galleryScope, articleId }: RichTextEditorProps) {
+export function RichTextEditor({ value, onChange, placeholder, className, style, lineHeight, onLineHeightChange, paragraphSpacing, onParagraphSpacingChange, galleryScope, articleId, toolbarNoWrap }: RichTextEditorProps) {
     const editorRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [activeStyles, setActiveStyles] = useState({
@@ -559,7 +561,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, style,
             className={cn("flex flex-col bg-white overflow-hidden transition-all relative", className)}
         >
             {/* Toolbar */}
-            <div className="flex items-center gap-1 px-2 py-1 border-b border-slate-200 bg-slate-50 flex-wrap">
+            <div className={cn("flex items-center gap-1 px-2 py-1 border-b border-slate-200 bg-slate-50", toolbarNoWrap ? "flex-nowrap overflow-x-auto" : "flex-wrap")}>
                 <ToolbarButton onClick={() => execCommand("bold")} icon={<span className="font-black text-lg leading-none font-serif">B</span>} title="Bold" isActive={activeStyles.bold} />
                 <ToolbarButton onClick={() => execCommand("italic")} icon={<Italic className="w-4 h-4" />} title="Italic" isActive={activeStyles.italic} />
 

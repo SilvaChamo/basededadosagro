@@ -327,13 +327,13 @@ export default function AdminSmsPage() {
                         </div>
                     ) : (
                         <div className="space-y-1.5">
-                            <textarea placeholder="Um número por linha (ex: +258 84 000 0000)" value={numbers} onChange={(e) => setNumbers(e.target.value)} rows={4} className="w-full rounded-[8px] border border-slate-200 bg-white p-3 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" />
+                            <textarea placeholder="Um número por linha (ex: +258 84 000 0000)" value={numbers} onChange={(e) => setNumbers(e.target.value)} rows={4} className="w-full rounded-[8px] border border-slate-200 bg-white p-3 text-[15px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" />
                             <p className="text-[11px] text-slate-400">Sem indicativo assume-se +258 (Moçambique).</p>
                         </div>
                     )}
 
                     <div className="space-y-1.5">
-                        <textarea placeholder="Escreva a mensagem..." value={message} onChange={(e) => setMessage(e.target.value)} maxLength={700} className="w-full min-h-[400px] resize-y rounded-[8px] border border-slate-200 bg-white p-3 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" />
+                        <textarea placeholder="Escreva a mensagem..." value={message} onChange={(e) => setMessage(e.target.value)} maxLength={700} className="w-full min-h-[400px] resize-y rounded-[8px] border border-slate-200 bg-white p-3 text-[15px] leading-relaxed text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" />
                         <div className="flex justify-between text-[11px] text-slate-400">
                             <span>{message.length} caracteres</span>
                             <span>{segments} SMS{segments === 1 ? "" : "s"} por destinatário</span>

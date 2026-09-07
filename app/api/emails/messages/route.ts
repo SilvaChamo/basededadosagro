@@ -42,6 +42,8 @@ export async function GET(request: Request) {
     } else {
         query = query.is("deleted_at", null);
         query = query.eq("direction", tab === "entrada" ? "inbound" : "outbound");
+        // Entrada não mostra os arquivados.
+        if (tab === "entrada") query = query.is("archived_at", null);
     }
 
     const { data, error } = await query;

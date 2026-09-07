@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { createAdminClient } from "@/utils/supabase/admin";
 
 // Webhook do httpSMS. Trata:
@@ -7,9 +8,14 @@ import { createAdminClient } from "@/utils/supabase/admin";
 //  - message.phone.delivered -> "delivered"
 //  - message.send.failed     -> "failed" (+ motivo em detail)
 //  - message.send.expired    -> "expired"
-// Protegido por ?secret=... na URL (= HTTPSMS_WEBHOOK_SECRET). Configurar em
-// httpsms.com -> Settings -> Webhooks com:
-//   https://basededadosagro.com/api/sms/incoming?secret=<HTTPSMS_WEBHOOK_SECRET>
+//
+// Autenticação (por ordem de preferência):
+//  1. HMAC nativo do httpSMS: cabeçalho X-Event-Signature = HMAC-SHA256 do
+//     corpo cru com HTTPSMS_WEBHOOK_SIGNING_KEY.
+//  2. Cabeçalho X-Webhook-Secret = HTTPSMS_WEBHOOK_SECRET (preferível ao URL).
+//  3. Legado: ?secret=<HTTPSMS_WEBHOOK_SECRET> no URL — mantido para não
+//     partir o webhook já configurado; migrar para (1) ou (2) no httpsms.com
+//     (Webhooks -> custom headers / signing key) e tirar o ?secret= do URL.
 
 const OUTBOUND_STATUS: Record<string, string> = {
     "message.phone.sent": "sent",
@@ -18,9 +24,36 @@ const OUTBOUND_STATUS: Record<string, string> = {
     "message.send.expired": "expired",
 };
 
+// Comparação em tempo constante (compara digests, sem fugas de comprimento).
+function safeEqual(a: string, b: string): boolean {
+    const ha = crypto.createHash("sha256").update(a).digest();
+    const hb = crypto.createHash("sha256").update(b).digest();
+    return crypto.timingSafeEqual(ha, hb);
+}
+
+function webhookAuthorised(request: Request, rawBody: string): boolean {
+    const signingKey = process.env.HTTPSMS_WEBHOOK_SIGNING_KEY;
+    const sig = request.headers.get("x-event-signature");
+    if (signingKey && sig) {
+        const expected = crypto.createHmac("sha256", signingKey).update(rawBody).digest("hex");
+        return safeEqual(sig.trim(), expected);
+    }
+
+    const secret = process.env.HTTPSMS_WEBHOOK_SECRET;
+    if (!secret) return false;
+
+    const headerSecret = request.headers.get("x-webhook-secret");
+    if (headerSecret) return safeEqual(headerSecret, secret);
+
+    const qs = new URL(request.url).searchParams.get("secret");
+    if (qs) return safeEqual(qs, secret);
+
+    return false;
+}
+
 export async function POST(request: Request) {
-    const url = new URL(request.url);
-    if (!process.env.HTTPSMS_WEBHOOK_SECRET || url.searchParams.get("secret") !== process.env.HTTPSMS_WEBHOOK_SECRET) {
+    const rawBody = await request.text();
+    if (!webhookAuthorised(request, rawBody)) {
         return NextResponse.json({ error: "não autorizado" }, { status: 401 });
     }
 
@@ -32,9 +65,13 @@ export async function POST(request: Request) {
     }
 
     try {
-        const body = await request.json().catch(() => ({}));
-        const type = body?.type;
-        const d = body?.data || {};
+        let parsed: Record<string, unknown> = {};
+        try { parsed = rawBody ? JSON.parse(rawBody) : {}; } catch { parsed = {}; }
+        const type = typeof parsed.type === "string" ? parsed.type : "";
+        const d = (parsed.data ?? {}) as Record<string, unknown> & {
+            content?: unknown; contact?: unknown; owner?: unknown; message_id?: unknown;
+            id?: unknown; timestamp?: unknown; error_message?: unknown;
+        };
 
         // --- SMS recebido ---
         if (type === "message.phone.received") {
@@ -58,7 +95,7 @@ export async function POST(request: Request) {
                 content: String(d.content),
                 status: "received",
                 provider_id: providerId,
-                created_at: d.timestamp ? new Date(d.timestamp).toISOString() : new Date().toISOString(),
+                created_at: d.timestamp ? new Date(d.timestamp as string).toISOString() : new Date().toISOString(),
             });
             if (error && error.code !== "23505") console.error("sms/incoming received:", error.message);
             return NextResponse.json({ ok: true });
@@ -92,7 +129,7 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-    const url = new URL(request.url);
-    const ok = url.searchParams.get("secret") === process.env.HTTPSMS_WEBHOOK_SECRET;
+    // Verificação do webhook (sem corpo). Aceita cabeçalho ou ?secret= legado.
+    const ok = webhookAuthorised(request, "");
     return NextResponse.json({ ok }, { status: ok ? 200 : 401 });
 }

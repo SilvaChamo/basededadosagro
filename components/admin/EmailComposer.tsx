@@ -4,11 +4,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RichTextEditor } from "@/components/RichTextEditor";
-import { Send, FileText, FileArchive, File as FileIcon, X, LayoutTemplate, Loader2 } from "lucide-react";
+import { Send, FileText, FileArchive, File as FileIcon, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MultiFileUpload } from "@/components/admin/MultiFileUpload";
 import { SenderEmailSelector } from "@/components/admin/SenderEmailSelector";
-import { EmailTemplates } from "@/components/admin/EmailTemplates";
 
 // Compositor de e-mail INDIVIDUAL (Painel -> Interações -> E-mails). Envia
 // um-a-um com Para / Assunto / CC / BCC, sem criar campanha. As campanhas
@@ -18,12 +17,17 @@ const FIELD = "h-10 rounded-none border-0 bg-white px-3 text-sm";
 
 interface EmailComposerProps {
     onSent?: () => void;
+    onCancel?: () => void;
+    initialTo?: string;
+    initialSubject?: string;
+    initialContent?: string;
+    submitLabel?: string;
 }
 
-export function EmailComposer({ onSent }: EmailComposerProps) {
-    const [to, setTo] = useState("");
-    const [subject, setSubject] = useState("");
-    const [content, setContent] = useState("");
+export function EmailComposer({ onSent, onCancel, initialTo = "", initialSubject = "", initialContent = "", submitLabel = "Enviar" }: EmailComposerProps) {
+    const [to, setTo] = useState(initialTo);
+    const [subject, setSubject] = useState(initialSubject);
+    const [content, setContent] = useState(initialContent);
     const [cc, setCc] = useState("");
     const [bcc, setBcc] = useState("");
     const [showCc, setShowCc] = useState(false);
@@ -31,7 +35,9 @@ export function EmailComposer({ onSent }: EmailComposerProps) {
     const [senderEmail, setSenderEmail] = useState("admin@basededadosagro.com");
     const [attachments, setAttachments] = useState<string[]>([]);
     const [isSending, setIsSending] = useState(false);
-    const [showTemplates, setShowTemplates] = useState(false);
+    // O RichTextEditor só lê o value uma vez (ao montar); mudar a key força
+    // um remonte para limpar o corpo depois de enviar.
+    const [editorKey, setEditorKey] = useState(0);
 
     const buildHtml = () => {
         let out = content;
@@ -72,6 +78,7 @@ export function EmailComposer({ onSent }: EmailComposerProps) {
             toast.success("E-mail enviado.");
             setTo(""); setSubject(""); setContent(""); setCc(""); setBcc("");
             setAttachments([]); setShowCc(false); setShowBcc(false);
+            setEditorKey((k) => k + 1);
             onSent?.();
         } catch (e) {
             toast.error(e instanceof Error ? e.message : "Falha no envio.");
@@ -111,29 +118,31 @@ export function EmailComposer({ onSent }: EmailComposerProps) {
                     showList={false}
                     className="!space-y-0"
                 />
-                <div className="hidden sm:block w-px h-4 bg-slate-200" />
-                <button
-                    onClick={() => setShowTemplates(true)}
-                    className="text-[10px] text-white px-4 py-2 rounded-[8px] font-bold uppercase tracking-wider flex items-center gap-2 whitespace-nowrap transition-transform hover:scale-105 shadow-md"
-                    style={{ background: "linear-gradient(90deg,#6366f1,#8b5cf6,#a78bfa)", backgroundSize: "200% 200%", animation: "gradient-move 3s ease infinite" }}
-                >
-                    <LayoutTemplate className="w-3.5 h-3.5" />
-                    <span className="drop-shadow-sm">Templates</span>
-                </button>
-                <Button
-                    onClick={handleSend}
-                    disabled={isSending}
-                    className="w-full sm:w-auto sm:ml-auto justify-center py-[10px] px-6 rounded-[8px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-wider text-[11px]"
-                >
-                    {isSending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
-                    {isSending ? "A enviar..." : "Enviar"}
-                </Button>
+                <div className="w-full sm:w-auto sm:ml-auto flex items-center gap-2">
+                    {onCancel && (
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            className="px-4 py-[10px] rounded-[4px] text-[11px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                        >
+                            Cancelar
+                        </button>
+                    )}
+                    <Button
+                        onClick={handleSend}
+                        disabled={isSending}
+                        className="flex-1 sm:flex-none justify-center py-[10px] px-6 rounded-[4px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-wider text-[11px]"
+                    >
+                        {isSending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+                        {isSending ? "A enviar..." : submitLabel}
+                    </Button>
+                </div>
             </div>
 
-            {/* Compositor */}
-            <div className="bg-white rounded-[8px] shadow-sm border border-slate-100 p-3 space-y-3">
+            {/* Compositor — barra de ferramentas encostada às bordas (sem padding). */}
+            <div className="bg-white rounded-[8px] shadow-sm border border-slate-100 overflow-hidden">
                 {attachments.length > 0 && (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 p-3 border-b border-slate-100">
                         {attachments.map((url, index) => (
                             <div key={index} className="relative group bg-slate-50 border border-slate-200 rounded-[8px] p-3 flex flex-col gap-2 hover:border-emerald-500 transition-colors">
                                 <div className="w-full h-24 bg-white rounded border border-slate-100 flex items-center justify-center overflow-hidden">
@@ -161,15 +170,8 @@ export function EmailComposer({ onSent }: EmailComposerProps) {
                     </div>
                 )}
 
-                <RichTextEditor value={content} onChange={setContent} placeholder="Escreva a mensagem aqui..." className="min-h-[400px]" />
+                <RichTextEditor key={editorKey} value={content} onChange={setContent} placeholder="Escreva a mensagem aqui..." className="min-h-[400px]" toolbarNoWrap />
             </div>
-
-            {showTemplates && (
-                <EmailTemplates
-                    onSelect={(html) => { setContent(html); setShowTemplates(false); }}
-                    onClose={() => setShowTemplates(false)}
-                />
-            )}
         </div>
     );
 }
