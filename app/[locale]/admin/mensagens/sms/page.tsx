@@ -34,7 +34,9 @@ interface Subscriber {
 
 type MsgTab = "recebidas" | "enviadas" | "eliminadas";
 const SEGMENT = 160;
-const PLAN_OPTIONS = ["Todos", "Gratuito", "Básico", "Premium", "Business Vendedor", "Parceiro"];
+// Planos + grupos. Os últimos dois puxam de outras tabelas (source).
+const AUDIENCE_OPTIONS = ["Todos", "Gratuito", "Básico", "Premium", "Business Vendedor", "Parceiro", "Profissionais", "Contactos"];
+const SOURCE_BY_OPTION: Record<string, string> = { Profissionais: "profissionais", Contactos: "contactos" };
 
 function timeAgo(iso: string) {
     const diff = Date.now() - new Date(iso).getTime();
@@ -71,38 +73,35 @@ export default function AdminSmsPage() {
     const [subsLoading, setSubsLoading] = useState(false);
     const [picked, setPicked] = useState<Set<string>>(new Set());
 
+    const source = SOURCE_BY_OPTION[plan]; // "profissionais" | "contactos" | undefined (=planos)
+
     const loadSubs = useCallback(async () => {
         setSubsLoading(true);
         try {
             const qs = new URLSearchParams();
             if (province) qs.set("province", province);
             if (district) qs.set("district", district);
+            if (source) qs.set("source", source);
             const r = await fetch(`/api/sms/subscribers?${qs}`).then((x) => x.json());
             setSubs(r.subscribers || []);
             setPicked(new Set());
         } catch {
-            toast.error("Não foi possível carregar os inscritos.");
+            toast.error("Não foi possível carregar a lista.");
         } finally {
             setSubsLoading(false);
         }
-    }, [province, district]);
+    }, [province, district, source]);
 
     useEffect(() => {
         if (audience === "subscribers") loadSubs();
     }, [audience, loadSubs]);
 
     const filteredSubs = useMemo(() => {
-        if (plan === "Todos") return subs;
+        // Grupos (Profissionais/Contactos) já vêm filtrados do servidor.
+        if (source || plan === "Todos") return subs;
         return subs.filter((s) => normalizePlanName(s.plan) === plan);
-    }, [subs, plan]);
+    }, [subs, plan, source]);
 
-    const allShownPicked = filteredSubs.length > 0 && filteredSubs.every((s) => picked.has(s.id));
-    const toggleAllShown = () => {
-        const next = new Set(picked);
-        if (allShownPicked) filteredSubs.forEach((s) => next.delete(s.id));
-        else filteredSubs.forEach((s) => next.add(s.id));
-        setPicked(next);
-    };
     const togglePick = (id: string) => {
         const next = new Set(picked);
         next.has(id) ? next.delete(id) : next.add(id);
@@ -277,7 +276,7 @@ export default function AdminSmsPage() {
                                     onChange={(e) => setPlan(e.target.value)}
                                     className="h-9 rounded-md border border-slate-200 bg-white px-2 text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
                                 >
-                                    {PLAN_OPTIONS.map((p) => (
+                                    {AUDIENCE_OPTIONS.map((p) => (
                                         <option key={p} value={p}>{p === "Todos" ? "Todos os planos" : p}</option>
                                     ))}
                                 </select>
@@ -285,14 +284,10 @@ export default function AdminSmsPage() {
                                 <Input placeholder="Distrito" value={district} onChange={(e) => setDistrict(e.target.value)} className="h-9 text-[13px]" />
                             </div>
                             <div className="border border-slate-200 rounded-lg divide-y divide-slate-100 max-h-64 overflow-y-auto">
-                                <label className="flex items-center gap-2 px-3 py-2 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500 sticky top-0">
-                                    <input type="checkbox" checked={allShownPicked} onChange={toggleAllShown} className="accent-emerald-600" />
-                                    Selecionar todos ({filteredSubs.length})
-                                </label>
                                 {subsLoading ? (
                                     <div className="py-8 flex justify-center"><Loader2 className="w-4 h-4 animate-spin text-slate-300" /></div>
                                 ) : filteredSubs.length === 0 ? (
-                                    <p className="py-8 text-center text-[12px] text-slate-400">Nenhum inscrito com estes filtros.</p>
+                                    <p className="py-8 text-center text-[12px] text-slate-400">Ninguém com estes filtros.</p>
                                 ) : (
                                     filteredSubs.map((s) => (
                                         <label key={s.id} className="flex items-center gap-2 px-3 py-2 text-[12px] cursor-pointer hover:bg-slate-50">
@@ -306,7 +301,7 @@ export default function AdminSmsPage() {
                             <p className="text-[11px] text-slate-400">
                                 {picked.size > 0
                                     ? `Vai só para os ${picked.size} selecionados.`
-                                    : `Sem seleção → vai para os ${filteredSubs.length} inscritos deste filtro.`}
+                                    : `Sem seleção → vai para os ${filteredSubs.length} deste filtro.`}
                             </p>
                         </div>
                     ) : (
@@ -399,45 +394,40 @@ export default function AdminSmsPage() {
                 </div>
             </div>
 
-            {/* ===== Popup: histórico de conversa ===== */}
-            {threadOpen && (
-                <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4" onClick={closeThread}>
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-                            <div className="min-w-0">
-                                <p className="text-sm font-black text-slate-800 truncate">{thread?.name || thread?.phone || "Conversa"}</p>
-                                {thread?.name && <p className="text-[11px] text-slate-400">{thread.phone}</p>}
+            {/* ===== Popup: SMS recebidas deste contacto ===== */}
+            {threadOpen && (() => {
+                const recebidas = (thread?.messages || []).filter((t) => t.direction === "inbound");
+                return (
+                    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4" onClick={closeThread}>
+                        <div className="bg-white rounded-xl shadow-2xl w-full max-w-xl h-[70vh] max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                                <div className="min-w-0">
+                                    <p className="text-base font-black text-slate-800 truncate">{thread?.name || thread?.phone || "Contacto"}</p>
+                                    <p className="text-[12px] text-slate-400">{thread?.name ? thread.phone : "SMS recebidas"}</p>
+                                </div>
+                                <button onClick={closeThread} className="text-slate-400 hover:text-slate-700 shrink-0"><X className="w-5 h-5" /></button>
                             </div>
-                            <button onClick={closeThread} className="text-slate-400 hover:text-slate-700 shrink-0"><X className="w-5 h-5" /></button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50">
-                            {threadLoading ? (
-                                <div className="py-10 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-slate-300" /></div>
-                            ) : (thread?.messages || []).length === 0 ? (
-                                <p className="text-center text-[12px] text-slate-400 py-10">Sem mensagens.</p>
-                            ) : (
-                                thread!.messages.map((t) => {
-                                    const mine = t.direction === "outbound";
-                                    const tm = STATUS_META[t.status];
-                                    return (
-                                        <div key={t.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-                                            <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-[13px] whitespace-pre-wrap break-words ${mine ? "bg-emerald-600 text-white rounded-br-sm" : "bg-white border border-slate-200 text-slate-800 rounded-bl-sm"} ${t.deleted_at ? "opacity-50" : ""}`}>
-                                                {t.content}
-                                                <div className={`mt-1 text-[10px] ${mine ? "text-emerald-100" : "text-slate-400"}`}>
-                                                    {new Date(t.created_at).toLocaleString("pt-PT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                                                    {mine && tm ? ` · ${tm.label}` : ""}
-                                                    {t.deleted_at ? " · eliminada" : ""}
-                                                </div>
-                                                {t.detail && <div className={`text-[10px] mt-0.5 ${mine ? "text-red-100" : "text-red-500"}`}>{t.detail}</div>}
-                                            </div>
+                            <div className="flex-1 overflow-y-auto p-5 space-y-3 bg-slate-50">
+                                {threadLoading ? (
+                                    <div className="py-12 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-slate-300" /></div>
+                                ) : recebidas.length === 0 ? (
+                                    <p className="text-center text-[13px] text-slate-400 py-12">Este contacto ainda não enviou nenhuma SMS.</p>
+                                ) : (
+                                    recebidas.map((t) => (
+                                        <div key={t.id} className={`bg-white border border-slate-200 rounded-lg px-4 py-3 ${t.deleted_at ? "opacity-50" : ""}`}>
+                                            <p className="text-[14px] text-slate-800 whitespace-pre-wrap break-words">{t.content}</p>
+                                            <p className="mt-1.5 text-[11px] text-slate-400">
+                                                {new Date(t.created_at).toLocaleString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                                                {t.deleted_at ? " · eliminada" : ""}
+                                            </p>
                                         </div>
-                                    );
-                                })
-                            )}
+                                    ))
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                );
+            })()}
         </div>
     );
 }
