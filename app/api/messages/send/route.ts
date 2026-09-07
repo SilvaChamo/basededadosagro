@@ -4,6 +4,7 @@ import nodemailer from 'nodemailer';
 import { createClient } from '@supabase/supabase-js';
 import { createClient as createSessionClient } from '@/utils/supabase/server';
 import { isAdminRole } from '@/lib/roles';
+import { mailFromAddress, mailFromHeader } from '@/lib/email/mailer';
 
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -85,7 +86,8 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Failed to connect to SMTP server' }, { status: 500 });
         }
 
-        const fromHeader = `"${process.env.SMTP_USER_FROM_NAME || 'Base Agro Data'}" <${process.env.SMTP_USER}>`;
+        const fromHeader = mailFromHeader();
+        const selfCopyTo = mailFromAddress();
         const mailAttachments = Array.isArray(attachments)
             ? attachments.map((url: string) => ({ path: url }))
             : [];
@@ -101,8 +103,8 @@ export async function POST(req: Request) {
             try {
                 await transporter.sendMail({
                     from: fromHeader,
-                    replyTo: replyTo || process.env.SMTP_USER,
-                    to: process.env.SMTP_USER,
+                    replyTo: replyTo || selfCopyTo,
+                    to: selfCopyTo,
                     cc: ccList.length ? ccList : undefined,
                     bcc: bccList.length ? bccList : undefined,
                     subject,
@@ -137,7 +139,7 @@ export async function POST(req: Request) {
                 .insert({
                     subject,
                     content: html,
-                    sender_email: replyTo || process.env.SMTP_USER,
+                    sender_email: replyTo || selfCopyTo,
                     target_audiences: targetAudiences || [],
                     recipient_count: recipients.length,
                     status: 'enviando',
@@ -171,7 +173,7 @@ export async function POST(req: Request) {
                 try {
                     const info = await transporter.sendMail({
                         from: fromHeader,
-                        replyTo: replyTo || process.env.SMTP_USER,
+                        replyTo: replyTo || selfCopyTo,
                         to: email,
                         subject,
                         html: html + unsubscribeFooter(email),
@@ -201,8 +203,8 @@ export async function POST(req: Request) {
                 try {
                     await transporter.sendMail({
                         from: fromHeader,
-                        replyTo: replyTo || process.env.SMTP_USER,
-                        to: process.env.SMTP_USER,
+                        replyTo: replyTo || selfCopyTo,
+                        to: selfCopyTo,
                         cc: ccList.length ? ccList : undefined,
                         bcc: bccList.length ? bccList : undefined,
                         subject,

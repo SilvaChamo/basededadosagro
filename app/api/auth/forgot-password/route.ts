@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
 import { createAdminClient } from "@/utils/supabase/admin";
+import { createMailTransport, mailFromHeader } from "@/lib/email/mailer";
 
 // Recuperação de senha SEM depender do redirect do GoTrue partilhado.
 //
@@ -46,16 +46,11 @@ export async function POST(request: Request) {
             data.properties.hashed_token,
         )}&type=recovery`;
 
-        const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: Number(process.env.SMTP_PORT) || 465,
-            secure: Number(process.env.SMTP_PORT) === 465,
-            auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-        });
+        const transporter = createMailTransport();
 
         try {
             await transporter.sendMail({
-                from: `"Base Agro Data" <${process.env.SMTP_USER}>`,
+                from: mailFromHeader(),
                 to: email,
                 subject: "Recuperação de senha — Base Agro Data",
                 text:

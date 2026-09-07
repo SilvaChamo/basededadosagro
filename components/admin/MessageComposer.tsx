@@ -8,7 +8,6 @@ import { RichTextEditor } from "@/components/RichTextEditor";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Send, FileText, FileArchive, File as FileIcon, X, LayoutTemplate } from "lucide-react";
 import { MultiFileUpload } from "@/components/admin/MultiFileUpload";
-import { SenderEmailSelector } from "@/components/admin/SenderEmailSelector";
 import { EmailTemplates } from "@/components/admin/EmailTemplates";
 
 const PLANS = [
@@ -33,18 +32,14 @@ interface MessageComposerProps {
 // ficam colados uns aos outros, separados só pela linha (divide-y do pai).
 const FIELD = "h-10 rounded-none border-0 bg-white px-3 text-sm";
 
-const parseEmails = (s: string) =>
-    s.split(/[\s,;]+/).map((e) => e.trim().toLowerCase()).filter((e) => e.includes("@"));
+// Remetente fixo das campanhas (o envio individual com Remetente/CC/BCC
+// passou para Painel -> Interações -> E-mails).
+const CAMPAIGN_SENDER = "admin@basededadosagro.com";
 
 export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
     const [subject, setSubject] = useState("");
     const [content, setContent] = useState("");
-    const [cc, setCc] = useState("");
-    const [bcc, setBcc] = useState("");
-    const [showCc, setShowCc] = useState(false);
-    const [showBcc, setShowBcc] = useState(false);
     const [selectedPlans, setSelectedPlans] = useState<string[]>([]);
-    const [senderEmail, setSenderEmail] = useState("admin@basededadosagro.com");
     const [attachments, setAttachments] = useState<string[]>([]);
 
     const [isSending, setIsSending] = useState(false);
@@ -73,13 +68,8 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
     };
 
     const handleSend = async () => {
-        const ccList = parseEmails(cc);
-        const bccList = parseEmails(bcc);
-        const hasPlans = selectedPlans.length > 0;
-        const hasManual = ccList.length > 0 || bccList.length > 0;
-
-        if (!subject || !content || (!hasPlans && !hasManual)) {
-            alert("Preenche o assunto, o conteúdo e pelo menos um destino (grupos de planos, ou CC/BCC).");
+        if (!subject || !content || selectedPlans.length === 0) {
+            alert("Preenche o assunto, o conteúdo e escolhe pelo menos um grupo de planos. (Para enviar a um endereço específico, usa o separador E-mails.)");
             return;
         }
 
@@ -88,36 +78,13 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
         try {
             const finalContent = buildHtml();
 
-            // Modo "webmail": sem planos, só CC/BCC -> um envio único, sem
-            // criar campanha nem registos por destinatário.
-            if (!hasPlans) {
-                const res = await fetch('/api/messages/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        cc: ccList,
-                        bcc: bccList,
-                        subject,
-                        html: finalContent,
-                        attachments,
-                        replyTo: senderEmail,
-                    }),
-                });
-                const data = await res.json().catch(() => ({}));
-                if (!res.ok) throw new Error(data.error || "Falha no envio");
-                alert(`Email enviado para ${ccList.length + bccList.length} endereço(s) em CC/BCC.`);
-                setSubject(""); setContent(""); setCc(""); setBcc(""); setAttachments([]);
-                onSent?.();
-                return;
-            }
-
             // 1. Create Message Record
             const { data: msgData, error: msgError } = await supabase
                 .from('messages')
                 .insert({
                     subject,
                     content: finalContent,
-                    sender_email: senderEmail,
+                    sender_email: CAMPAIGN_SENDER,
                     target_roles: selectedPlans
                 })
                 .select()
@@ -225,12 +192,10 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         to: emailRecipients,
-                        cc: ccList,
-                        bcc: bccList,
                         subject: subject,
                         html: finalContent,
                         attachments: attachments,
-                        replyTo: senderEmail,
+                        replyTo: CAMPAIGN_SENDER,
                         targetAudiences: selectedPlans
                     })
                 });
@@ -246,11 +211,9 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
                 alert(`Mensagem salva. Notificações criadas para ${registeredUsers.length} usuários (Sem emails válidos para envio).`);
             }
 
-            // Reset Form (except sender)
+            // Reset Form
             setSubject("");
             setContent("");
-            setCc("");
-            setBcc("");
             setSelectedPlans([]);
             setAttachments([]);
 
@@ -270,54 +233,15 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
                 (1) campos  ·  (2) botões/ferramentas  ·  (3) compositor */}
             <div className="flex-1 min-w-0 space-y-4">
 
-                {/* (1) Contentor dos campos. Remetente e Assunto sempre visíveis;
-                    CC e BCC aparecem/escondem nos toggles "Cc"/"Bcc" do Assunto.
-                    Campos colados (fundo branco), separados só pela linha. */}
-                <div className="bg-white rounded-[10px] shadow-sm border border-slate-200 overflow-hidden divide-y divide-slate-200">
-                    <SenderEmailSelector
-                        value={senderEmail}
-                        onChange={setSenderEmail}
+                {/* (1) Assunto da campanha. O envio individual (Remetente / CC /
+                    BCC / Para) mudou-se para Painel -> Interações -> E-mails. */}
+                <div className="bg-white rounded-[10px] shadow-sm border border-slate-200 overflow-hidden">
+                    <Input
+                        placeholder="Assunto"
+                        value={subject}
+                        onChange={(e) => setSubject(e.target.value)}
+                        className={FIELD}
                     />
-                    {showCc && (
-                        <Input
-                            placeholder="CC (separar por vírgulas)"
-                            value={cc}
-                            onChange={(e) => setCc(e.target.value)}
-                            className={FIELD}
-                        />
-                    )}
-                    {showBcc && (
-                        <Input
-                            placeholder="BCC (separar por vírgulas)"
-                            value={bcc}
-                            onChange={(e) => setBcc(e.target.value)}
-                            className={FIELD}
-                        />
-                    )}
-                    <div className="relative bg-white">
-                        <Input
-                            placeholder="Assunto"
-                            value={subject}
-                            onChange={(e) => setSubject(e.target.value)}
-                            className={FIELD + " pr-[92px]"}
-                        />
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                            <button
-                                type="button"
-                                onClick={() => setShowCc((v) => !v)}
-                                className={`text-[11px] font-bold uppercase px-1.5 py-0.5 rounded transition-colors ${showCc ? "text-emerald-600 bg-emerald-50" : "text-slate-400 hover:text-slate-600"}`}
-                            >
-                                Cc
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowBcc((v) => !v)}
-                                className={`text-[11px] font-bold uppercase px-1.5 py-0.5 rounded transition-colors ${showBcc ? "text-emerald-600 bg-emerald-50" : "text-slate-400 hover:text-slate-600"}`}
-                            >
-                                Bcc
-                            </button>
-                        </div>
-                    </div>
                 </div>
 
                 {/* (2) Linha dos botões / ferramentas — sem fundo nem cartão, só
@@ -454,7 +378,7 @@ export function MessageComposer({ onSent, onCancel }: MessageComposerProps) {
 
                     <p className="text-[11px] text-slate-400 font-medium">
                         {selectedPlans.length === 0
-                            ? "Sem grupos — usa CC/BCC para um envio simples"
+                            ? "Escolhe pelo menos um grupo. Para um endereço específico, usa o separador E-mails."
                             : `${selectedPlans.length} grupo(s) selecionado(s)`}
                     </p>
 

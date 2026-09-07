@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { MessageSquare, Send, Loader2, RefreshCw, Trash2, RotateCcw, X } from "lucide-react";
 import { toast } from "sonner";
 import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import { useAdminTopBar } from "@/components/admin/AdminTopBar";
 import { LogoutButton } from "@/components/LogoutButton";
 import { normalizePlanName } from "@/lib/plan-fields";
+import { PROVINCES } from "@/lib/constants";
 
 interface SmsRow {
     id: string;
@@ -37,6 +37,8 @@ const SEGMENT = 160;
 // Planos + grupos. Os últimos dois puxam de outras tabelas (source).
 const AUDIENCE_OPTIONS = ["Todos", "Gratuito", "Básico", "Premium", "Business Vendedor", "Parceiro", "Profissionais", "Contactos"];
 const SOURCE_BY_OPTION: Record<string, string> = { Profissionais: "profissionais", Contactos: "contactos" };
+// Checkbox redondo, transparente sem selecção; só o estado activo tem cor.
+const CHECKBOX = "appearance-none h-4 w-4 shrink-0 rounded-full border border-slate-300 bg-transparent cursor-pointer transition-colors checked:border-emerald-600 checked:bg-emerald-600 checked:shadow-[inset_0_0_0_3px_#fff] disabled:opacity-40";
 
 function timeAgo(iso: string) {
     const diff = Date.now() - new Date(iso).getTime();
@@ -65,13 +67,11 @@ export default function AdminSmsPage() {
     const [message, setMessage] = useState("");
     const [numbers, setNumbers] = useState("");
     const [province, setProvince] = useState("");
-    const [district, setDistrict] = useState("");
     const [plan, setPlan] = useState("Todos");
     const [sending, setSending] = useState(false);
 
     const [subs, setSubs] = useState<Subscriber[]>([]);
     const [subsLoading, setSubsLoading] = useState(false);
-    const [picked, setPicked] = useState<Set<string>>(new Set());
 
     const source = SOURCE_BY_OPTION[plan]; // "profissionais" | "contactos" | undefined (=planos)
 
@@ -80,17 +80,15 @@ export default function AdminSmsPage() {
         try {
             const qs = new URLSearchParams();
             if (province) qs.set("province", province);
-            if (district) qs.set("district", district);
             if (source) qs.set("source", source);
             const r = await fetch(`/api/sms/subscribers?${qs}`).then((x) => x.json());
             setSubs(r.subscribers || []);
-            setPicked(new Set());
         } catch {
             toast.error("Não foi possível carregar a lista.");
         } finally {
             setSubsLoading(false);
         }
-    }, [province, district, source]);
+    }, [province, source]);
 
     useEffect(() => {
         if (audience === "subscribers") loadSubs();
@@ -102,12 +100,6 @@ export default function AdminSmsPage() {
         return subs.filter((s) => normalizePlanName(s.plan) === plan);
     }, [subs, plan, source]);
 
-    const togglePick = (id: string) => {
-        const next = new Set(picked);
-        next.has(id) ? next.delete(id) : next.add(id);
-        setPicked(next);
-    };
-
     const segments = message.length === 0 ? 0 : Math.ceil(message.length / SEGMENT);
 
     const send = async () => {
@@ -117,12 +109,14 @@ export default function AdminSmsPage() {
             let payload: Record<string, unknown>;
             if (audience === "manual") {
                 payload = { message: message.trim(), mode: "manual", numbers };
-            } else if (picked.size > 0) {
-                const phones = subs.filter((s) => picked.has(s.id)).map((s) => s.phone);
-                payload = { message: message.trim(), mode: "selected", phones };
             } else {
-                // sem seleção: envia para todos os visíveis do filtro (plano incl.)
-                const phones = filteredSubs.map((s) => s.phone);
+                // Destinatários = filtro acima (plano/grupo + província), sem escolha individual.
+                const phones = filteredSubs.map((s) => s.phone).filter(Boolean);
+                if (phones.length === 0) {
+                    toast.error("Nenhum contacto neste filtro.");
+                    setSending(false);
+                    return;
+                }
                 payload = { message: message.trim(), mode: "selected", phones };
             }
             const res = await fetch("/api/sms/send", {
@@ -139,7 +133,6 @@ export default function AdminSmsPage() {
             );
             setMessage("");
             if (audience === "manual") setNumbers("");
-            setPicked(new Set());
             setTab("enviadas");
             loadMsgs(true);
         } catch (e) {
@@ -294,56 +287,53 @@ export default function AdminSmsPage() {
                         <h2 className="text-sm font-black uppercase tracking-wider">Compor SMS</h2>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-lg">
-                        <button type="button" onClick={() => setAudience("subscribers")} className={`text-[11px] font-bold uppercase tracking-wide py-2 rounded-md transition-all ${audience === "subscribers" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>Inscritos</button>
-                        <button type="button" onClick={() => setAudience("manual")} className={`text-[11px] font-bold uppercase tracking-wide py-2 rounded-md transition-all ${audience === "manual" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>Números manuais</button>
+                    <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-[8px]">
+                        <button type="button" onClick={() => setAudience("subscribers")} className={`text-[11px] font-bold uppercase tracking-wide py-2 rounded-[8px] transition-all ${audience === "subscribers" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>Inscritos</button>
+                        <button type="button" onClick={() => setAudience("manual")} className={`text-[11px] font-bold uppercase tracking-wide py-2 rounded-[8px] transition-all ${audience === "manual" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>Números manuais</button>
                     </div>
 
                     {audience === "subscribers" ? (
                         <div className="space-y-2">
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-2 gap-2">
                                 <select
                                     value={plan}
                                     onChange={(e) => setPlan(e.target.value)}
-                                    className="h-9 rounded-md border border-slate-200 bg-white px-2 text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                                    className="h-9 rounded-[8px] border border-slate-200 bg-white px-2 text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
                                 >
                                     {AUDIENCE_OPTIONS.map((p) => (
-                                        <option key={p} value={p}>{p === "Todos" ? "Todos os planos" : p}</option>
+                                        <option key={p} value={p}>{p === "Todos" ? "Todos os contactos" : p}</option>
                                     ))}
                                 </select>
-                                <Input placeholder="Província" value={province} onChange={(e) => setProvince(e.target.value)} className="h-9 text-[13px]" />
-                                <Input placeholder="Distrito" value={district} onChange={(e) => setDistrict(e.target.value)} className="h-9 text-[13px]" />
+                                <select
+                                    value={province}
+                                    onChange={(e) => setProvince(e.target.value)}
+                                    className="h-9 rounded-[8px] border border-slate-200 bg-white px-2 text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                                >
+                                    <option value="">Todas as províncias</option>
+                                    {PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
+                                </select>
                             </div>
-                            <div className="border border-slate-200 rounded-lg divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                            <div className="rounded-[8px] border border-slate-200 bg-slate-50 px-3 py-2.5 text-[12px] text-slate-600 flex items-center gap-2">
                                 {subsLoading ? (
-                                    <div className="py-8 flex justify-center"><Loader2 className="w-4 h-4 animate-spin text-slate-300" /></div>
-                                ) : filteredSubs.length === 0 ? (
-                                    <p className="py-8 text-center text-[12px] text-slate-400">Ninguém com estes filtros.</p>
+                                    <><Loader2 className="w-3.5 h-3.5 animate-spin text-slate-300" /> A calcular…</>
                                 ) : (
-                                    filteredSubs.map((s) => (
-                                        <label key={s.id} className="flex items-center gap-2 px-3 py-2 text-[12px] cursor-pointer hover:bg-slate-50">
-                                            <input type="checkbox" checked={picked.has(s.id)} onChange={() => togglePick(s.id)} className="accent-emerald-600" />
-                                            <span className="font-medium text-slate-700 truncate flex-1">{s.name}</span>
-                                            <span className="text-slate-400 shrink-0">{s.phone}</span>
-                                        </label>
-                                    ))
+                                    <>
+                                        <span className="font-black text-slate-800">{filteredSubs.length}</span>
+                                        contacto(s) vão receber a mensagem
+                                        {filteredSubs.length > 300 && <span className="text-amber-600 font-semibold">· máx. 300 por envio</span>}
+                                    </>
                                 )}
                             </div>
-                            <p className="text-[11px] text-slate-400">
-                                {picked.size > 0
-                                    ? `Vai só para os ${picked.size} selecionados.`
-                                    : `Sem seleção → vai para os ${filteredSubs.length} deste filtro.`}
-                            </p>
                         </div>
                     ) : (
                         <div className="space-y-1.5">
-                            <textarea placeholder="Um número por linha (ex: +258 84 000 0000)" value={numbers} onChange={(e) => setNumbers(e.target.value)} rows={4} className="w-full rounded-lg border border-slate-200 bg-white p-3 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" />
+                            <textarea placeholder="Um número por linha (ex: +258 84 000 0000)" value={numbers} onChange={(e) => setNumbers(e.target.value)} rows={4} className="w-full rounded-[8px] border border-slate-200 bg-white p-3 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" />
                             <p className="text-[11px] text-slate-400">Sem indicativo assume-se +258 (Moçambique).</p>
                         </div>
                     )}
 
                     <div className="space-y-1.5">
-                        <textarea placeholder="Escreva a mensagem..." value={message} onChange={(e) => setMessage(e.target.value)} rows={5} maxLength={700} className="w-full rounded-lg border border-slate-200 bg-white p-3 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" />
+                        <textarea placeholder="Escreva a mensagem..." value={message} onChange={(e) => setMessage(e.target.value)} maxLength={700} className="w-full min-h-[400px] resize-y rounded-[8px] border border-slate-200 bg-white p-3 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" />
                         <div className="flex justify-between text-[11px] text-slate-400">
                             <span>{message.length} caracteres</span>
                             <span>{segments} SMS{segments === 1 ? "" : "s"} por destinatário</span>
@@ -351,7 +341,7 @@ export default function AdminSmsPage() {
                     </div>
 
                     <div className="flex">
-                        <Button onClick={send} disabled={sending} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-[11px] font-black uppercase tracking-wider h-10 px-8">
+                        <Button onClick={send} disabled={sending} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-[11px] font-black uppercase tracking-wider h-10 px-8 rounded-[8px]">
                             {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                             {sending ? "A enviar..." : "Enviar"}
                         </Button>
@@ -389,7 +379,7 @@ export default function AdminSmsPage() {
                         )}
                         {sel.size > 0 && <span className="text-slate-400">{sel.size} selecionada(s)</span>}
                         <div className="flex-1" />
-                        <input type="checkbox" checked={allMsgsSel} onChange={toggleAllMsgs} disabled={msgs.length === 0} className="accent-emerald-600" title="Selecionar tudo" />
+                        <input type="checkbox" checked={allMsgsSel} onChange={toggleAllMsgs} disabled={msgs.length === 0} className={CHECKBOX} title="Selecionar tudo" />
                     </div>
 
                     {msgsLoading ? (
@@ -416,7 +406,7 @@ export default function AdminSmsPage() {
                                             </div>
                                             <div className={`truncate text-[12px] mt-0.5 ${unread ? "font-semibold text-slate-700" : "text-slate-400"}`}>{m.content}</div>
                                         </button>
-                                        <input type="checkbox" checked={sel.has(m.id)} onChange={() => toggleMsg(m.id)} className="accent-emerald-600 shrink-0 mt-1" />
+                                        <input type="checkbox" checked={sel.has(m.id)} onChange={() => toggleMsg(m.id)} className={`${CHECKBOX} mt-1`} />
                                     </li>
                                 );
                             })}

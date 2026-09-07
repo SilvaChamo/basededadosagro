@@ -11,6 +11,11 @@ function last9(phone: string) {
     return String(phone || "").replace(/\D/g, "").slice(-9);
 }
 
+// Número de telemóvel moçambicano válido: 9 dígitos, 8 + prefixo 2-7.
+function isValidMobile(phone: string) {
+    return /^8[2-7]\d{7}$/.test(last9(phone));
+}
+
 async function requireAdmin() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -67,10 +72,14 @@ export async function GET(request: Request) {
         if (t.length === 9 && p.full_name) nameByTail.set(t, p.full_name as string);
     }
 
-    const messages = (data || []).map((m: Record<string, unknown>) => ({
-        ...m,
-        name: nameByTail.get(last9(m.phone as string)) || null,
-    }));
+    // Só mostra o que está na lista de contactos ou tem número válido;
+    // esconde shortcodes / números inválidos (operadora, promoções, etc.).
+    const messages = (data || [])
+        .map((m: Record<string, unknown>) => ({
+            ...m,
+            name: nameByTail.get(last9(m.phone as string)) || null,
+        }))
+        .filter((m: Record<string, unknown>) => m.name !== null || isValidMobile(m.phone as string));
 
     return NextResponse.json({ messages });
 }
