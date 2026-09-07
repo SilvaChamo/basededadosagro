@@ -5,7 +5,7 @@
 // SMS_DRY_RUN !== "false" (o valor por defeito) NUNCA envia: escreve o texto
 // no log e devolve status "sent_mock". Passar SMS_DRY_RUN=false para ligar.
 
-type SmsResult = { phone: string; status: string };
+type SmsResult = { phone: string; status: string; from?: string };
 
 const SMS_DRY_RUN = process.env.SMS_DRY_RUN !== "false";
 
@@ -44,12 +44,12 @@ export async function sendSMS(phone: string, text: string): Promise<SmsResult> {
 
     if (SMS_DRY_RUN) {
         console.log(`[SMS dry-run · httpsms${from ? ` · de ${from}` : ""}] Para ${phone}: ${text}`);
-        return { phone, status: "sent_mock" };
+        return { phone, status: "sent_mock", from };
     }
 
     if (!HTTPSMS_API_KEY || !from) {
         console.error("[SMS] httpSMS sem HTTPSMS_API_KEY / HTTPSMS_FROM");
-        return { phone, status: "failed" };
+        return { phone, status: "failed", from };
     }
 
     try {
@@ -67,11 +67,11 @@ export async function sendSMS(phone: string, text: string): Promise<SmsResult> {
         });
         if (!res.ok) {
             console.error(`[SMS] httpSMS respondeu ${res.status} para ${phone}:`, await res.text());
-            return { phone, status: "failed" };
+            return { phone, status: "failed", from };
         }
-        return { phone, status: "sent" };
+        return { phone, status: "sent", from };
     } catch (err) {
         console.error(`[SMS] erro httpSMS para ${phone}:`, err);
-        return { phone, status: "failed" };
+        return { phone, status: "failed", from };
     }
 }

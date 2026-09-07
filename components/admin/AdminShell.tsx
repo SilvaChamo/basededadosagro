@@ -521,6 +521,7 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                                         Subscritores e Contactos passaram para o menu "Contas". */}
                                     <LinkItem href="/admin/mensagens/newsletter" icon={Newspaper} label="Newsletter" isSub exact />
                                     <LinkItem href="/admin/mensagens/campanhas" icon={BarChart3} label="Campanhas" isSub exact />
+                                    <LinkItem href="/admin/mensagens/sms" icon={MessageSquare} label="Enviar SMS" isSub exact />
                                 </div>
                             )}
                         </div>
