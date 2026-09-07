@@ -1,18 +1,26 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/utils/supabase/admin";
 
-// Webhook do httpSMS: chamado quando o telemóvel recebe um SMS
-// (evento "message.phone.received"). Protegido por ?secret=... na URL, que
-// tem de bater com HTTPSMS_WEBHOOK_SECRET. Configurar em httpsms.com ->
-// Settings -> Webhooks com a URL:
+// Webhook do httpSMS. Trata:
+//  - message.phone.received  -> grava um SMS recebido (inbound)
+//  - message.phone.sent      -> a linha outbound passa a "sent"
+//  - message.phone.delivered -> "delivered"
+//  - message.send.failed     -> "failed" (+ motivo em detail)
+//  - message.send.expired    -> "expired"
+// Protegido por ?secret=... na URL (= HTTPSMS_WEBHOOK_SECRET). Configurar em
+// httpsms.com -> Settings -> Webhooks com:
 //   https://basededadosagro.com/api/sms/incoming?secret=<HTTPSMS_WEBHOOK_SECRET>
+
+const OUTBOUND_STATUS: Record<string, string> = {
+    "message.phone.sent": "sent",
+    "message.phone.delivered": "delivered",
+    "message.send.failed": "failed",
+    "message.send.expired": "expired",
+};
 
 export async function POST(request: Request) {
     const url = new URL(request.url);
-    const secret = url.searchParams.get("secret");
-    const expected = process.env.HTTPSMS_WEBHOOK_SECRET;
-
-    if (!expected || secret !== expected) {
+    if (!process.env.HTTPSMS_WEBHOOK_SECRET || url.searchParams.get("secret") !== process.env.HTTPSMS_WEBHOOK_SECRET) {
         return NextResponse.json({ error: "não autorizado" }, { status: 401 });
     }
 
@@ -28,39 +36,54 @@ export async function POST(request: Request) {
         const type = body?.type;
         const d = body?.data || {};
 
-        // Só nos interessa mensagem recebida. Outros eventos: 200 e ignora.
-        if (type !== "message.phone.received" || !d.content || !d.contact) {
-            return NextResponse.json({ ok: true, ignored: true });
+        // --- SMS recebido ---
+        if (type === "message.phone.received") {
+            if (!d.content || !d.contact) return NextResponse.json({ ok: true, ignored: true });
+
+            const providerId = d.message_id ? String(d.message_id) : null;
+            if (providerId) {
+                const { data: existing } = await admin
+                    .from("sms_messages")
+                    .select("id")
+                    .eq("provider_id", providerId)
+                    .limit(1)
+                    .maybeSingle();
+                if (existing) return NextResponse.json({ ok: true, duplicate: true });
+            }
+
+            const { error } = await admin.from("sms_messages").insert({
+                direction: "inbound",
+                phone: String(d.contact),
+                from_phone: d.owner ? String(d.owner) : null,
+                content: String(d.content),
+                status: "received",
+                provider_id: providerId,
+                created_at: d.timestamp ? new Date(d.timestamp).toISOString() : new Date().toISOString(),
+            });
+            if (error && error.code !== "23505") console.error("sms/incoming received:", error.message);
+            return NextResponse.json({ ok: true });
         }
 
-        const row = {
-            direction: "inbound",
-            phone: String(d.contact),
-            from_phone: d.owner ? String(d.owner) : null,
-            content: String(d.content),
-            status: "received",
-            provider_id: d.message_id ? String(d.message_id) : null,
-            created_at: d.timestamp ? new Date(d.timestamp).toISOString() : new Date().toISOString(),
-        };
+        // --- estado de um SMS enviado ---
+        const newStatus = OUTBOUND_STATUS[type];
+        if (newStatus) {
+            // id em data.id (sent/delivered/failed) ou data.message_id (expired)
+            const providerId = d.id || d.message_id;
+            if (!providerId) return NextResponse.json({ ok: true, ignored: true });
 
-        // Dedup manual por provider_id (o índice único é parcial, não serve
-        // como alvo de ON CONFLICT no PostgREST).
-        if (row.provider_id) {
-            const { data: existing } = await admin
+            const patch: Record<string, unknown> = { status: newStatus };
+            if (newStatus === "failed" && d.error_message) patch.detail = String(d.error_message);
+
+            const { error } = await admin
                 .from("sms_messages")
-                .select("id")
-                .eq("provider_id", row.provider_id)
-                .limit(1)
-                .maybeSingle();
-            if (existing) return NextResponse.json({ ok: true, duplicate: true });
+                .update(patch)
+                .eq("provider_id", String(providerId))
+                .eq("direction", "outbound");
+            if (error) console.error("sms/incoming status:", error.message);
+            return NextResponse.json({ ok: true });
         }
 
-        const { error } = await admin.from("sms_messages").insert(row);
-        if (error && error.code !== "23505") {
-            console.error("sms/incoming: falha ao gravar", error.message);
-        }
-
-        return NextResponse.json({ ok: true });
+        return NextResponse.json({ ok: true, ignored: true });
     } catch (err) {
         console.error("sms/incoming error:", err);
         // 200 mesmo em erro, para o httpSMS não entrar em loop de retentativas.
@@ -68,7 +91,6 @@ export async function POST(request: Request) {
     }
 }
 
-// Alguns painéis fazem um GET de verificação ao guardar o webhook.
 export async function GET(request: Request) {
     const url = new URL(request.url);
     const ok = url.searchParams.get("secret") === process.env.HTTPSMS_WEBHOOK_SECRET;

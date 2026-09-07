@@ -1,12 +1,15 @@
 // Ponto único de envio de SMS para toda a app. Usa o httpSMS: telemóvel(es)
 // Android como gateway (custo = SIM já pago).
 // HTTPSMS_FROM: um ou vários números separados por vírgula. O 1º é o
-// PRINCIPAL — é sempre o usado; os seguintes são reserva e só entram se o
-// envio pelo anterior falhar.
+// PRINCIPAL — é sempre o usado; os seguintes são reserva e só entram se a
+// API do httpSMS rejeitar o envio pelo anterior.
+// Nota: um "sent" aqui = a API aceitou e passou ao telemóvel. A entrega
+// real (ou falha no telemóvel) chega depois pelos webhooks e actualiza a
+// linha em basededados.sms_messages.
 // SMS_DRY_RUN !== "false" (o valor por defeito) NUNCA envia: escreve o texto
-// no log e devolve status "sent_mock". Passar SMS_DRY_RUN=false para ligar.
+// no log e devolve status "sent_mock".
 
-type SmsResult = { phone: string; status: string; from?: string };
+type SmsResult = { phone: string; status: string; from?: string; providerId?: string };
 
 const SMS_DRY_RUN = process.env.SMS_DRY_RUN !== "false";
 
@@ -31,7 +34,7 @@ export function smsIsDryRun() {
     return SMS_DRY_RUN;
 }
 
-async function tryOne(from: string, phone: string, text: string): Promise<boolean> {
+async function tryOne(from: string, phone: string, text: string): Promise<{ ok: boolean; id?: string }> {
     try {
         const res = await fetch(`${HTTPSMS_BASE_URL}/v1/messages/send`, {
             method: "POST",
@@ -43,12 +46,13 @@ async function tryOne(from: string, phone: string, text: string): Promise<boolea
         });
         if (!res.ok) {
             console.error(`[SMS] httpSMS ${res.status} (de ${from}) para ${phone}:`, await res.text());
-            return false;
+            return { ok: false };
         }
-        return true;
+        const body = await res.json().catch(() => null);
+        return { ok: true, id: body?.data?.id };
     } catch (err) {
         console.error(`[SMS] erro httpSMS (de ${from}) para ${phone}:`, err);
-        return false;
+        return { ok: false };
     }
 }
 
@@ -64,13 +68,12 @@ export async function sendSMS(phone: string, text: string): Promise<SmsResult> {
         return { phone, status: "failed" };
     }
 
-    // Principal primeiro; passa à reserva seguinte só se este falhar.
+    // Principal primeiro; passa à reserva seguinte só se este for rejeitado.
     let lastFrom: string | undefined;
     for (const from of HTTPSMS_FROM_LIST) {
         lastFrom = from;
-        if (await tryOne(from, phone, text)) {
-            return { phone, status: "sent", from };
-        }
+        const r = await tryOne(from, phone, text);
+        if (r.ok) return { phone, status: "sent", from, providerId: r.id };
     }
     return { phone, status: "failed", from: lastFrom };
 }

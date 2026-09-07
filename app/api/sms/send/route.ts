@@ -49,7 +49,8 @@ export async function POST(request: Request) {
     try {
         const body = await request.json();
         const message = String(body.message || "").trim();
-        const mode = body.mode === "manual" ? "manual" : "subscribers";
+        const mode: "manual" | "subscribers" | "selected" =
+            body.mode === "manual" ? "manual" : body.mode === "selected" ? "selected" : "subscribers";
 
         if (!message) {
             return NextResponse.json({ error: "Escreva a mensagem." }, { status: 400 });
@@ -61,10 +62,12 @@ export async function POST(request: Request) {
         // 1. Resolver a lista de números.
         let phones: string[] = [];
 
-        if (mode === "manual") {
+        if (mode === "manual" || mode === "selected") {
             const raw: string[] = Array.isArray(body.numbers)
                 ? body.numbers
-                : String(body.numbers || "").split(/[\s,;\n]+/);
+                : Array.isArray(body.phones)
+                    ? body.phones
+                    : String(body.numbers || "").split(/[\s,;\n]+/);
             phones = raw.map(normalizePhone).filter((p): p is string => !!p);
         } else {
             let query = admin
@@ -110,7 +113,9 @@ export async function POST(request: Request) {
                 phone,
                 from_phone: r.from ?? null,
                 content: message,
-                status: r.status,
+                // "sent" da API = aceite; a entrega/falha real vem por webhook.
+                status: r.status === "sent" ? "pending" : r.status,
+                provider_id: r.providerId ?? null,
                 sent_by: user.id,
             });
             if (phones.length > 1) await sleep(SEND_SPACING_MS);

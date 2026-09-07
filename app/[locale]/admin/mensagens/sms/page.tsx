@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MessageSquare, Send, Inbox, RefreshCw, Loader2, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { MessageSquare, Send, Loader2, RefreshCw, Trash2, RotateCcw, Search } from "lucide-react";
 import { toast } from "sonner";
 import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import { useAdminTopBar } from "@/components/admin/AdminTopBar";
@@ -16,8 +16,19 @@ interface SmsRow {
     from_phone: string | null;
     content: string;
     status: string;
+    detail: string | null;
     created_at: string;
 }
+interface Subscriber {
+    id: string;
+    name: string;
+    phone: string;
+    province: string;
+    district: string;
+}
+
+type MsgTab = "recebidas" | "enviadas" | "eliminadas";
+const SEGMENT = 160;
 
 function timeAgo(iso: string) {
     const diff = Date.now() - new Date(iso).getTime();
@@ -29,76 +40,103 @@ function timeAgo(iso: string) {
     return new Date(iso).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" });
 }
 
-const SEGMENT = 160;
+const STATUS_META: Record<string, { label: string; cls: string }> = {
+    pending: { label: "pendente", cls: "bg-amber-50 text-amber-700" },
+    sent: { label: "enviado", cls: "bg-blue-50 text-blue-700" },
+    delivered: { label: "entregue", cls: "bg-emerald-50 text-emerald-700" },
+    failed: { label: "falhou", cls: "bg-red-50 text-red-700" },
+    expired: { label: "expirou", cls: "bg-slate-100 text-slate-500" },
+    sent_mock: { label: "teste", cls: "bg-slate-100 text-slate-500" },
+    received: { label: "recebida", cls: "bg-emerald-50 text-emerald-700" },
+};
 
 export default function AdminSmsPage() {
     useAdminTopBar("");
 
-    const [mode, setMode] = useState<"subscribers" | "manual">("subscribers");
+    // ---- Compor ----
+    const [audience, setAudience] = useState<"subscribers" | "manual">("subscribers");
     const [message, setMessage] = useState("");
+    const [numbers, setNumbers] = useState("");
     const [province, setProvince] = useState("");
     const [district, setDistrict] = useState("");
-    const [numbers, setNumbers] = useState("");
     const [sending, setSending] = useState(false);
-    const [lastResult, setLastResult] = useState<{ total: number; sent: number; failed: number; dryRun: boolean } | null>(null);
 
-    const [inbound, setInbound] = useState<SmsRow[]>([]);
-    const [outbound, setOutbound] = useState<SmsRow[]>([]);
-    const [loadingMsgs, setLoadingMsgs] = useState(true);
+    const [subs, setSubs] = useState<Subscriber[]>([]);
+    const [subsLoading, setSubsLoading] = useState(false);
+    const [subSearch, setSubSearch] = useState("");
+    const [picked, setPicked] = useState<Set<string>>(new Set());
 
-    const load = useCallback(async (silent = false) => {
-        if (!silent) setLoadingMsgs(true);
+    const loadSubs = useCallback(async () => {
+        setSubsLoading(true);
         try {
-            const [inRes, outRes] = await Promise.all([
-                fetch("/api/sms/messages?direction=inbound&limit=50").then((r) => r.json()),
-                fetch("/api/sms/messages?direction=outbound&limit=30").then((r) => r.json()),
-            ]);
-            setInbound(inRes.messages || []);
-            setOutbound(outRes.messages || []);
+            const qs = new URLSearchParams();
+            if (province) qs.set("province", province);
+            if (district) qs.set("district", district);
+            const r = await fetch(`/api/sms/subscribers?${qs}`).then((x) => x.json());
+            setSubs(r.subscribers || []);
+            setPicked(new Set());
         } catch {
-            /* silencioso */
+            toast.error("Não foi possível carregar os inscritos.");
         } finally {
-            setLoadingMsgs(false);
+            setSubsLoading(false);
         }
-    }, []);
+    }, [province, district]);
 
     useEffect(() => {
-        load();
-        const id = setInterval(() => load(true), 20000);
-        return () => clearInterval(id);
-    }, [load]);
+        if (audience === "subscribers") loadSubs();
+    }, [audience, loadSubs]);
+
+    const filteredSubs = useMemo(() => {
+        const q = subSearch.trim().toLowerCase();
+        if (!q) return subs;
+        return subs.filter((s) => s.name.toLowerCase().includes(q) || (s.phone || "").includes(q));
+    }, [subs, subSearch]);
+
+    const allShownPicked = filteredSubs.length > 0 && filteredSubs.every((s) => picked.has(s.id));
+    const toggleAllShown = () => {
+        const next = new Set(picked);
+        if (allShownPicked) filteredSubs.forEach((s) => next.delete(s.id));
+        else filteredSubs.forEach((s) => next.add(s.id));
+        setPicked(next);
+    };
+    const togglePick = (id: string) => {
+        const next = new Set(picked);
+        next.has(id) ? next.delete(id) : next.add(id);
+        setPicked(next);
+    };
+
+    const segments = message.length === 0 ? 0 : Math.ceil(message.length / SEGMENT);
 
     const send = async () => {
-        if (!message.trim()) {
-            toast.error("Escreva a mensagem.");
-            return;
-        }
+        if (!message.trim()) return toast.error("Escreva a mensagem.");
         setSending(true);
-        setLastResult(null);
         try {
+            let payload: Record<string, unknown>;
+            if (audience === "manual") {
+                payload = { message: message.trim(), mode: "manual", numbers };
+            } else if (picked.size > 0) {
+                const phones = subs.filter((s) => picked.has(s.id)).map((s) => s.phone);
+                payload = { message: message.trim(), mode: "selected", phones };
+            } else {
+                payload = { message: message.trim(), mode: "subscribers", province, district };
+            }
             const res = await fetch("/api/sms/send", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    message: message.trim(),
-                    mode,
-                    province: mode === "subscribers" ? province : undefined,
-                    district: mode === "subscribers" ? district : undefined,
-                    numbers: mode === "manual" ? numbers : undefined,
-                }),
+                body: JSON.stringify(payload),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Falha no envio.");
-
-            setLastResult(data);
             toast.success(
                 data.dryRun
                     ? `Modo de teste: ${data.total} SMS simulados (ver log do servidor).`
-                    : `${data.sent} enviados${data.failed ? `, ${data.failed} falharam` : ""}.`,
+                    : `${data.sent} aceites pela plataforma${data.failed ? `, ${data.failed} rejeitados` : ""}. O estado real aparece nas Enviadas.`,
             );
-            if (mode === "manual") setNumbers("");
             setMessage("");
-            load(true);
+            if (audience === "manual") setNumbers("");
+            setPicked(new Set());
+            setTab("enviadas");
+            loadMsgs(true);
         } catch (e) {
             toast.error(e instanceof Error ? e.message : "Falha no envio.");
         } finally {
@@ -106,7 +144,66 @@ export default function AdminSmsPage() {
         }
     };
 
-    const segments = message.length === 0 ? 0 : Math.ceil(message.length / SEGMENT);
+    // ---- Mensagens (Recebidas / Enviadas / Eliminadas) ----
+    const [tab, setTab] = useState<MsgTab>("enviadas");
+    const [msgs, setMsgs] = useState<SmsRow[]>([]);
+    const [msgsLoading, setMsgsLoading] = useState(true);
+    const [sel, setSel] = useState<Set<string>>(new Set());
+
+    const loadMsgs = useCallback(async (silent = false) => {
+        if (!silent) setMsgsLoading(true);
+        try {
+            const r = await fetch(`/api/sms/messages?tab=${tab}&limit=100`).then((x) => x.json());
+            setMsgs(r.messages || []);
+            setSel(new Set());
+        } catch {
+            /* silencioso */
+        } finally {
+            setMsgsLoading(false);
+        }
+    }, [tab]);
+
+    useEffect(() => {
+        loadMsgs();
+        const id = setInterval(() => loadMsgs(true), 20000);
+        return () => clearInterval(id);
+    }, [loadMsgs]);
+
+    const allMsgsSel = msgs.length > 0 && msgs.every((m) => sel.has(m.id));
+    const toggleAllMsgs = () => setSel(allMsgsSel ? new Set() : new Set(msgs.map((m) => m.id)));
+    const toggleMsg = (id: string) => {
+        const next = new Set(sel);
+        next.has(id) ? next.delete(id) : next.add(id);
+        setSel(next);
+    };
+
+    const applyDelete = async (mode: "soft" | "hard" | "restore") => {
+        if (sel.size === 0) return;
+        const verb = mode === "soft" ? "eliminar" : mode === "hard" ? "eliminar definitivamente" : "restaurar";
+        if (mode !== "restore" && !confirm(`Tens a certeza que queres ${verb} ${sel.size} mensagem(ns)?`)) return;
+        try {
+            const res = await fetch("/api/sms/messages/delete", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ids: [...sel], mode }),
+            });
+            if (!res.ok) throw new Error((await res.json()).error || "Falhou.");
+            toast.success(`${sel.size} mensagem(ns): ${verb}.`);
+            loadMsgs(true);
+        } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Falhou.");
+        }
+    };
+
+    const TAB_BTN = (t: MsgTab, label: string) => (
+        <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide rounded-md transition-all ${tab === t ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+        >
+            {label}
+        </button>
+    );
 
     return (
         <div className="w-full max-w-full space-y-8">
@@ -123,142 +220,140 @@ export default function AdminSmsPage() {
             </AdminListToolbar>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* ---- Compor ---- */}
+                {/* ================= ESQUERDA — compor ================= */}
                 <div className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm space-y-4">
                     <div className="flex items-center gap-2 text-slate-800">
                         <MessageSquare className="w-5 h-5 text-emerald-600" />
                         <h2 className="text-sm font-black uppercase tracking-wider">Compor SMS</h2>
                     </div>
 
-                    {/* destinatários */}
                     <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-lg">
-                        <button
-                            type="button"
-                            onClick={() => setMode("subscribers")}
-                            className={`text-[11px] font-bold uppercase tracking-wide py-2 rounded-md transition-all ${mode === "subscribers" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-                        >
-                            Inscritos
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setMode("manual")}
-                            className={`text-[11px] font-bold uppercase tracking-wide py-2 rounded-md transition-all ${mode === "manual" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-                        >
-                            Números manuais
-                        </button>
+                        <button type="button" onClick={() => setAudience("subscribers")} className={`text-[11px] font-bold uppercase tracking-wide py-2 rounded-md transition-all ${audience === "subscribers" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>Inscritos</button>
+                        <button type="button" onClick={() => setAudience("manual")} className={`text-[11px] font-bold uppercase tracking-wide py-2 rounded-md transition-all ${audience === "manual" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>Números manuais</button>
                     </div>
 
-                    {mode === "subscribers" ? (
+                    {audience === "subscribers" ? (
                         <div className="space-y-2">
-                            <p className="text-[11px] text-slate-400">
-                                Vai para quem activou alertas SMS no perfil. Filtros opcionais:
-                            </p>
                             <div className="grid grid-cols-2 gap-2">
-                                <Input placeholder="Província (opcional)" value={province} onChange={(e) => setProvince(e.target.value)} className="h-9 text-[13px]" />
-                                <Input placeholder="Distrito (opcional)" value={district} onChange={(e) => setDistrict(e.target.value)} className="h-9 text-[13px]" />
+                                <Input placeholder="Província (filtro)" value={province} onChange={(e) => setProvince(e.target.value)} className="h-9 text-[13px]" />
+                                <Input placeholder="Distrito (filtro)" value={district} onChange={(e) => setDistrict(e.target.value)} className="h-9 text-[13px]" />
                             </div>
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                                <Input placeholder="Procurar nome ou número..." value={subSearch} onChange={(e) => setSubSearch(e.target.value)} className="h-9 pl-9 text-[13px]" />
+                            </div>
+                            <div className="border border-slate-200 rounded-lg divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                                <label className="flex items-center gap-2 px-3 py-2 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500 sticky top-0">
+                                    <input type="checkbox" checked={allShownPicked} onChange={toggleAllShown} className="accent-emerald-600" />
+                                    Selecionar todos ({filteredSubs.length})
+                                </label>
+                                {subsLoading ? (
+                                    <div className="py-8 flex justify-center"><Loader2 className="w-4 h-4 animate-spin text-slate-300" /></div>
+                                ) : filteredSubs.length === 0 ? (
+                                    <p className="py-8 text-center text-[12px] text-slate-400">Nenhum inscrito com estes filtros.</p>
+                                ) : (
+                                    filteredSubs.map((s) => (
+                                        <label key={s.id} className="flex items-center gap-2 px-3 py-2 text-[12px] cursor-pointer hover:bg-slate-50">
+                                            <input type="checkbox" checked={picked.has(s.id)} onChange={() => togglePick(s.id)} className="accent-emerald-600" />
+                                            <span className="font-medium text-slate-700 truncate flex-1">{s.name}</span>
+                                            <span className="text-slate-400 shrink-0">{s.phone}</span>
+                                            {s.province && <span className="text-slate-300 shrink-0 hidden sm:inline">{s.province}</span>}
+                                        </label>
+                                    ))
+                                )}
+                            </div>
+                            <p className="text-[11px] text-slate-400">
+                                {picked.size > 0
+                                    ? `Vai só para os ${picked.size} selecionados.`
+                                    : `Sem seleção → vai para todos os inscritos do filtro (${subs.length}).`}
+                            </p>
                         </div>
                     ) : (
                         <div className="space-y-1.5">
-                            <textarea
-                                placeholder="Um número por linha (ex: +258 84 000 0000)"
-                                value={numbers}
-                                onChange={(e) => setNumbers(e.target.value)}
-                                rows={4}
-                                className="w-full rounded-lg border border-slate-200 bg-white p-3 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-                            />
+                            <textarea placeholder="Um número por linha (ex: +258 84 000 0000)" value={numbers} onChange={(e) => setNumbers(e.target.value)} rows={4} className="w-full rounded-lg border border-slate-200 bg-white p-3 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" />
                             <p className="text-[11px] text-slate-400">Sem indicativo assume-se +258 (Moçambique).</p>
                         </div>
                     )}
 
-                    {/* mensagem */}
                     <div className="space-y-1.5">
-                        <textarea
-                            placeholder="Escreva a mensagem..."
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            rows={5}
-                            maxLength={700}
-                            className="w-full rounded-lg border border-slate-200 bg-white p-3 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-                        />
+                        <textarea placeholder="Escreva a mensagem..." value={message} onChange={(e) => setMessage(e.target.value)} rows={5} maxLength={700} className="w-full rounded-lg border border-slate-200 bg-white p-3 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" />
                         <div className="flex justify-between text-[11px] text-slate-400">
                             <span>{message.length} caracteres</span>
                             <span>{segments} SMS{segments === 1 ? "" : "s"} por destinatário</span>
                         </div>
                     </div>
 
-                    <Button
-                        onClick={send}
-                        disabled={sending}
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-[11px] font-black uppercase tracking-wider h-10"
-                    >
-                        {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                        {sending ? "A enviar..." : "Enviar"}
-                    </Button>
-
-                    {lastResult && (
-                        <div className="text-[12px] text-slate-600 bg-slate-50 border border-slate-100 rounded-lg p-3">
-                            {lastResult.dryRun && <span className="font-bold text-orange-600">Modo de teste — </span>}
-                            {lastResult.total} destinatário(s): <b className="text-emerald-700">{lastResult.sent}</b> enviados
-                            {lastResult.failed > 0 && <>, <b className="text-red-600">{lastResult.failed}</b> falharam</>}.
-                        </div>
-                    )}
-
-                    {/* últimos envios */}
-                    {outbound.length > 0 && (
-                        <div className="pt-2 border-t border-slate-100">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Últimos envios</p>
-                            <ul className="space-y-1.5 max-h-48 overflow-y-auto">
-                                {outbound.map((m) => (
-                                    <li key={m.id} className="flex items-start gap-2 text-[12px]">
-                                        <ArrowUpRight className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${m.status === "failed" ? "text-red-500" : "text-emerald-500"}`} />
-                                        <span className="text-slate-500 shrink-0 w-24 truncate">{m.phone}</span>
-                                        <span className="text-slate-700 flex-1 truncate">{m.content}</span>
-                                        <span className="text-slate-300 shrink-0">{timeAgo(m.created_at)}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
+                    <div className="flex">
+                        <Button onClick={send} disabled={sending} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-[11px] font-black uppercase tracking-wider h-10 px-8">
+                            {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                            {sending ? "A enviar..." : "Enviar"}
+                        </Button>
+                    </div>
                 </div>
 
-                {/* ---- Recebidas ---- */}
-                <div className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-slate-800">
-                            <Inbox className="w-5 h-5 text-emerald-600" />
-                            <h2 className="text-sm font-black uppercase tracking-wider">SMS recebidas</h2>
+                {/* ================= DIREITA — mensagens ================= */}
+                <div className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
+                            {TAB_BTN("recebidas", "Recebidas")}
+                            {TAB_BTN("enviadas", "Enviadas")}
+                            {TAB_BTN("eliminadas", "Eliminadas")}
                         </div>
-                        <button
-                            onClick={() => load()}
-                            className="text-slate-400 hover:text-emerald-600 transition-colors"
-                            title="Actualizar"
-                        >
+                        <button onClick={() => loadMsgs()} className="text-slate-400 hover:text-emerald-600 transition-colors" title="Actualizar">
                             <RefreshCw className="w-4 h-4" />
                         </button>
                     </div>
 
-                    {loadingMsgs ? (
+                    {/* barra de gestão */}
+                    <div className="flex items-center gap-3 text-[12px]">
+                        <label className="flex items-center gap-1.5 text-slate-500">
+                            <input type="checkbox" checked={allMsgsSel} onChange={toggleAllMsgs} className="accent-emerald-600" disabled={msgs.length === 0} />
+                            {sel.size > 0 ? `${sel.size} selecionada(s)` : "Selecionar tudo"}
+                        </label>
+                        <div className="flex-1" />
+                        {tab === "eliminadas" ? (
+                            <>
+                                <button onClick={() => applyDelete("restore")} disabled={sel.size === 0} className="flex items-center gap-1 text-emerald-600 disabled:text-slate-300 font-bold">
+                                    <RotateCcw className="w-3.5 h-3.5" /> Restaurar
+                                </button>
+                                <button onClick={() => applyDelete("hard")} disabled={sel.size === 0} className="flex items-center gap-1 text-red-600 disabled:text-slate-300 font-bold">
+                                    <Trash2 className="w-3.5 h-3.5" /> Eliminar definitivamente
+                                </button>
+                            </>
+                        ) : (
+                            <button onClick={() => applyDelete("soft")} disabled={sel.size === 0} className="flex items-center gap-1 text-red-600 disabled:text-slate-300 font-bold">
+                                <Trash2 className="w-3.5 h-3.5" /> Eliminar
+                            </button>
+                        )}
+                    </div>
+
+                    {msgsLoading ? (
                         <div className="py-12 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-slate-300" /></div>
-                    ) : inbound.length === 0 ? (
+                    ) : msgs.length === 0 ? (
                         <div className="py-12 text-center text-[12px] text-slate-400">
-                            Ainda sem SMS recebidas.<br />
-                            (É preciso configurar o webhook no httpSMS — ver instruções abaixo.)
+                            {tab === "recebidas" ? "Sem SMS recebidas." : tab === "eliminadas" ? "Nada eliminado." : "Sem SMS enviadas."}
                         </div>
                     ) : (
-                        <ul className="space-y-2 max-h-[520px] overflow-y-auto">
-                            {inbound.map((m) => (
-                                <li key={m.id} className="border border-slate-100 rounded-lg p-3">
-                                    <div className="flex items-center justify-between mb-1">
-                                        <span className="flex items-center gap-1.5 text-[12px] font-bold text-slate-700">
-                                            <ArrowDownLeft className="w-3.5 h-3.5 text-emerald-500" />
-                                            {m.phone}
-                                        </span>
-                                        <span className="text-[11px] text-slate-300">{timeAgo(m.created_at)}</span>
-                                    </div>
-                                    <p className="text-[13px] text-slate-800 whitespace-pre-wrap break-words">{m.content}</p>
-                                </li>
-                            ))}
+                        <ul className="space-y-2 max-h-[560px] overflow-y-auto">
+                            {msgs.map((m) => {
+                                const meta = STATUS_META[m.status] || { label: m.status, cls: "bg-slate-100 text-slate-500" };
+                                return (
+                                    <li key={m.id} className="flex gap-2 border border-slate-100 rounded-lg p-3">
+                                        <input type="checkbox" checked={sel.has(m.id)} onChange={() => toggleMsg(m.id)} className="mt-0.5 accent-emerald-600" />
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center justify-between gap-2 mb-1">
+                                                <span className="text-[12px] font-bold text-slate-700 truncate">{m.phone}</span>
+                                                <span className="flex items-center gap-2 shrink-0">
+                                                    <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${meta.cls}`}>{meta.label}</span>
+                                                    <span className="text-[11px] text-slate-300">{timeAgo(m.created_at)}</span>
+                                                </span>
+                                            </div>
+                                            <p className="text-[13px] text-slate-800 whitespace-pre-wrap break-words">{m.content}</p>
+                                            {m.detail && <p className="text-[11px] text-red-500 mt-1">{m.detail}</p>}
+                                        </div>
+                                    </li>
+                                );
+                            })}
                         </ul>
                     )}
                 </div>
