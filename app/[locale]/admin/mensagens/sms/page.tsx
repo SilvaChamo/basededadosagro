@@ -159,6 +159,8 @@ export default function AdminSmsPage() {
     const [threadOpen, setThreadOpen] = useState(false);
     const [threadLoading, setThreadLoading] = useState(false);
     const [thread, setThread] = useState<{ name: string | null; phone: string; messages: SmsRow[] } | null>(null);
+    const [reply, setReply] = useState("");
+    const [replying, setReplying] = useState(false);
 
     const loadMsgs = useCallback(async (silent = false) => {
         if (!silent) setMsgsLoading(true);
@@ -187,14 +189,11 @@ export default function AdminSmsPage() {
         setSel(next);
     };
 
-    const openThread = async (m: SmsRow) => {
-        setThreadOpen(true);
-        setThread(null);
-        setThreadLoading(true);
-        try {
-            const r = await fetch(`/api/sms/thread?phone=${encodeURIComponent(m.phone)}`).then((x) => x.json());
-            if (r.error) throw new Error(r.error);
-            setThread(r);
+    const fetchThread = async (phone: string, markRead = true) => {
+        const r = await fetch(`/api/sms/thread?phone=${encodeURIComponent(phone)}`).then((x) => x.json());
+        if (r.error) throw new Error(r.error);
+        setThread(r);
+        if (markRead) {
             const unread = (r.messages || []).filter((x: SmsRow) => x.direction === "inbound" && !x.read_at).map((x: SmsRow) => x.id);
             if (unread.length) {
                 fetch("/api/sms/messages/read", {
@@ -204,6 +203,16 @@ export default function AdminSmsPage() {
                 }).catch(() => {});
                 setMsgs((cur) => cur.map((x) => (unread.includes(x.id) ? { ...x, read_at: new Date().toISOString() } : x)));
             }
+        }
+    };
+
+    const openThread = async (m: SmsRow) => {
+        setThreadOpen(true);
+        setThread(null);
+        setReply("");
+        setThreadLoading(true);
+        try {
+            await fetchThread(m.phone);
         } catch (e) {
             toast.error(e instanceof Error ? e.message : "Não foi possível abrir a conversa.");
             setThreadOpen(false);
@@ -211,7 +220,29 @@ export default function AdminSmsPage() {
             setThreadLoading(false);
         }
     };
-    const closeThread = () => { setThreadOpen(false); setThread(null); };
+    const closeThread = () => { setThreadOpen(false); setThread(null); setReply(""); };
+
+    const sendReply = async () => {
+        if (!reply.trim() || !thread) return;
+        setReplying(true);
+        try {
+            const res = await fetch("/api/sms/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: reply.trim(), mode: "manual", numbers: thread.phone }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Falha no envio.");
+            toast.success(data.dryRun ? "Modo de teste (ver log do servidor)." : "Resposta enviada.");
+            setReply("");
+            await fetchThread(thread.phone, false);
+            loadMsgs(true);
+        } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Falha no envio.");
+        } finally {
+            setReplying(false);
+        }
+    };
 
     const applyDelete = async (mode: "soft" | "hard" | "restore") => {
         if (sel.size === 0) return;
@@ -394,40 +425,68 @@ export default function AdminSmsPage() {
                 </div>
             </div>
 
-            {/* ===== Popup: SMS recebidas deste contacto ===== */}
-            {threadOpen && (() => {
-                const recebidas = (thread?.messages || []).filter((t) => t.direction === "inbound");
-                return (
-                    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4" onClick={closeThread}>
-                        <div className="bg-white rounded-xl shadow-2xl w-full max-w-xl h-[70vh] max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-                                <div className="min-w-0">
-                                    <p className="text-base font-black text-slate-800 truncate">{thread?.name || thread?.phone || "Contacto"}</p>
-                                    <p className="text-[12px] text-slate-400">{thread?.name ? thread.phone : "SMS recebidas"}</p>
-                                </div>
-                                <button onClick={closeThread} className="text-slate-400 hover:text-slate-700 shrink-0"><X className="w-5 h-5" /></button>
+            {/* ===== Popup: conversa com o contacto (ver + responder) ===== */}
+            {threadOpen && (
+                <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4" onClick={closeThread}>
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-xl h-[75vh] max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                            <div className="min-w-0">
+                                <p className="text-base font-black text-slate-800 truncate">{thread?.name || thread?.phone || "Contacto"}</p>
+                                <p className="text-[12px] text-slate-400">{thread?.name ? thread.phone : "Conversa"}</p>
                             </div>
-                            <div className="flex-1 overflow-y-auto p-5 space-y-3 bg-slate-50">
-                                {threadLoading ? (
-                                    <div className="py-12 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-slate-300" /></div>
-                                ) : recebidas.length === 0 ? (
-                                    <p className="text-center text-[13px] text-slate-400 py-12">Este contacto ainda não enviou nenhuma SMS.</p>
-                                ) : (
-                                    recebidas.map((t) => (
-                                        <div key={t.id} className={`bg-white border border-slate-200 rounded-lg px-4 py-3 ${t.deleted_at ? "opacity-50" : ""}`}>
-                                            <p className="text-[14px] text-slate-800 whitespace-pre-wrap break-words">{t.content}</p>
-                                            <p className="mt-1.5 text-[11px] text-slate-400">
-                                                {new Date(t.created_at).toLocaleString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                                                {t.deleted_at ? " · eliminada" : ""}
-                                            </p>
+                            <button onClick={closeThread} className="text-slate-400 hover:text-slate-700 shrink-0"><X className="w-5 h-5" /></button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-5 space-y-2 bg-slate-50">
+                            {threadLoading ? (
+                                <div className="py-12 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-slate-300" /></div>
+                            ) : (thread?.messages || []).length === 0 ? (
+                                <p className="text-center text-[13px] text-slate-400 py-12">Sem mensagens ainda. Escreve abaixo para começar.</p>
+                            ) : (
+                                thread!.messages.map((t) => {
+                                    const mine = t.direction === "outbound";
+                                    const tm = STATUS_META[t.status];
+                                    return (
+                                        <div key={t.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                                            <div className={`max-w-[78%] rounded-2xl px-3.5 py-2 text-[13px] whitespace-pre-wrap break-words shadow-sm ${mine ? "bg-emerald-600 text-white rounded-br-sm" : "bg-white border border-slate-200 text-slate-800 rounded-bl-sm"} ${t.deleted_at ? "opacity-50" : ""}`}>
+                                                {t.content}
+                                                <div className={`mt-1 text-[10px] ${mine ? "text-emerald-100" : "text-slate-400"}`}>
+                                                    {new Date(t.created_at).toLocaleString("pt-PT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                                                    {mine && tm ? ` · ${tm.label}` : ""}
+                                                    {t.deleted_at ? " · eliminada" : ""}
+                                                </div>
+                                                {t.detail && <div className={`text-[10px] mt-0.5 ${mine ? "text-red-100" : "text-red-500"}`}>{t.detail}</div>}
+                                            </div>
                                         </div>
-                                    ))
-                                )}
-                            </div>
+                                    );
+                                })
+                            )}
+                        </div>
+
+                        {/* responder à mesma pessoa */}
+                        <div className="border-t border-slate-100 p-3 flex items-end gap-2">
+                            <textarea
+                                placeholder={`Responder a ${thread?.name || thread?.phone || ""}...`}
+                                value={reply}
+                                onChange={(e) => setReply(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendReply(); }
+                                }}
+                                rows={1}
+                                maxLength={700}
+                                className="flex-1 resize-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 max-h-28"
+                            />
+                            <Button
+                                onClick={sendReply}
+                                disabled={replying || !reply.trim()}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white h-10 px-4 shrink-0"
+                            >
+                                {replying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                            </Button>
                         </div>
                     </div>
-                );
-            })()}
+                </div>
+            )}
         </div>
     );
 }
