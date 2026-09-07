@@ -29,7 +29,7 @@ export async function GET(request: Request) {
 
     let query = admin
         .from("profiles")
-        .select("id, full_name, phone, province, district")
+        .select("id, full_name, phone, province, district, plan")
         .eq("sms_notifications", true)
         .not("phone", "is", null)
         .order("full_name", { ascending: true })
@@ -45,12 +45,13 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-        subscribers: (data || []).map((s: { id: string; full_name: string | null; phone: string | null; province: string | null; district: string | null }) => ({
+        subscribers: (data || []).map((s: { id: string; full_name: string | null; phone: string | null; province: string | null; district: string | null; plan: string | null }) => ({
             id: s.id,
             name: s.full_name || "(sem nome)",
             phone: s.phone,
             province: s.province || "",
             district: s.district || "",
+            plan: s.plan || "",
         })),
     });
 }

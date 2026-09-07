@@ -3,11 +3,12 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MessageSquare, Send, Loader2, RefreshCw, Trash2, RotateCcw, Search } from "lucide-react";
+import { MessageSquare, Send, Loader2, RefreshCw, Trash2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import { useAdminTopBar } from "@/components/admin/AdminTopBar";
 import { LogoutButton } from "@/components/LogoutButton";
+import { normalizePlanName } from "@/lib/plan-fields";
 
 interface SmsRow {
     id: string;
@@ -17,7 +18,9 @@ interface SmsRow {
     content: string;
     status: string;
     detail: string | null;
+    read_at: string | null;
     created_at: string;
+    name: string | null;
 }
 interface Subscriber {
     id: string;
@@ -25,18 +28,20 @@ interface Subscriber {
     phone: string;
     province: string;
     district: string;
+    plan: string;
 }
 
 type MsgTab = "recebidas" | "enviadas" | "eliminadas";
 const SEGMENT = 160;
+const PLAN_OPTIONS = ["Todos", "Gratuito", "Básico", "Premium", "Business Vendedor", "Parceiro"];
 
 function timeAgo(iso: string) {
     const diff = Date.now() - new Date(iso).getTime();
     const m = Math.floor(diff / 60000);
     if (m < 1) return "agora";
-    if (m < 60) return `há ${m} min`;
+    if (m < 60) return `${m} min`;
     const h = Math.floor(m / 60);
-    if (h < 24) return `há ${h} h`;
+    if (h < 24) return `${h} h`;
     return new Date(iso).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" });
 }
 
@@ -47,7 +52,6 @@ const STATUS_META: Record<string, { label: string; cls: string }> = {
     failed: { label: "falhou", cls: "bg-red-50 text-red-700" },
     expired: { label: "expirou", cls: "bg-slate-100 text-slate-500" },
     sent_mock: { label: "teste", cls: "bg-slate-100 text-slate-500" },
-    received: { label: "recebida", cls: "bg-emerald-50 text-emerald-700" },
 };
 
 export default function AdminSmsPage() {
@@ -59,11 +63,11 @@ export default function AdminSmsPage() {
     const [numbers, setNumbers] = useState("");
     const [province, setProvince] = useState("");
     const [district, setDistrict] = useState("");
+    const [plan, setPlan] = useState("Todos");
     const [sending, setSending] = useState(false);
 
     const [subs, setSubs] = useState<Subscriber[]>([]);
     const [subsLoading, setSubsLoading] = useState(false);
-    const [subSearch, setSubSearch] = useState("");
     const [picked, setPicked] = useState<Set<string>>(new Set());
 
     const loadSubs = useCallback(async () => {
@@ -87,10 +91,9 @@ export default function AdminSmsPage() {
     }, [audience, loadSubs]);
 
     const filteredSubs = useMemo(() => {
-        const q = subSearch.trim().toLowerCase();
-        if (!q) return subs;
-        return subs.filter((s) => s.name.toLowerCase().includes(q) || (s.phone || "").includes(q));
-    }, [subs, subSearch]);
+        if (plan === "Todos") return subs;
+        return subs.filter((s) => normalizePlanName(s.plan) === plan);
+    }, [subs, plan]);
 
     const allShownPicked = filteredSubs.length > 0 && filteredSubs.every((s) => picked.has(s.id));
     const toggleAllShown = () => {
@@ -118,7 +121,9 @@ export default function AdminSmsPage() {
                 const phones = subs.filter((s) => picked.has(s.id)).map((s) => s.phone);
                 payload = { message: message.trim(), mode: "selected", phones };
             } else {
-                payload = { message: message.trim(), mode: "subscribers", province, district };
+                // sem seleção: envia para todos os visíveis do filtro (plano incl.)
+                const phones = filteredSubs.map((s) => s.phone);
+                payload = { message: message.trim(), mode: "selected", phones };
             }
             const res = await fetch("/api/sms/send", {
                 method: "POST",
@@ -130,7 +135,7 @@ export default function AdminSmsPage() {
             toast.success(
                 data.dryRun
                     ? `Modo de teste: ${data.total} SMS simulados (ver log do servidor).`
-                    : `${data.sent} aceites pela plataforma${data.failed ? `, ${data.failed} rejeitados` : ""}. O estado real aparece nas Enviadas.`,
+                    : `${data.sent} aceites${data.failed ? `, ${data.failed} rejeitados` : ""}. Estado real nas Enviadas.`,
             );
             setMessage("");
             if (audience === "manual") setNumbers("");
@@ -144,16 +149,17 @@ export default function AdminSmsPage() {
         }
     };
 
-    // ---- Mensagens (Recebidas / Enviadas / Eliminadas) ----
+    // ---- Mensagens ----
     const [tab, setTab] = useState<MsgTab>("enviadas");
     const [msgs, setMsgs] = useState<SmsRow[]>([]);
     const [msgsLoading, setMsgsLoading] = useState(true);
     const [sel, setSel] = useState<Set<string>>(new Set());
+    const [expanded, setExpanded] = useState<string | null>(null);
 
     const loadMsgs = useCallback(async (silent = false) => {
         if (!silent) setMsgsLoading(true);
         try {
-            const r = await fetch(`/api/sms/messages?tab=${tab}&limit=100`).then((x) => x.json());
+            const r = await fetch(`/api/sms/messages?tab=${tab}&limit=150`).then((x) => x.json());
             setMsgs(r.messages || []);
             setSel(new Set());
         } catch {
@@ -175,6 +181,18 @@ export default function AdminSmsPage() {
         const next = new Set(sel);
         next.has(id) ? next.delete(id) : next.add(id);
         setSel(next);
+    };
+
+    const openRow = (m: SmsRow) => {
+        setExpanded((cur) => (cur === m.id ? null : m.id));
+        if (m.direction === "inbound" && !m.read_at) {
+            fetch("/api/sms/messages/read", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ids: [m.id] }),
+            }).catch(() => {});
+            setMsgs((cur) => cur.map((x) => (x.id === m.id ? { ...x, read_at: new Date().toISOString() } : x)));
+        }
     };
 
     const applyDelete = async (mode: "soft" | "hard" | "restore") => {
@@ -234,13 +252,18 @@ export default function AdminSmsPage() {
 
                     {audience === "subscribers" ? (
                         <div className="space-y-2">
-                            <div className="grid grid-cols-2 gap-2">
-                                <Input placeholder="Província (filtro)" value={province} onChange={(e) => setProvince(e.target.value)} className="h-9 text-[13px]" />
-                                <Input placeholder="Distrito (filtro)" value={district} onChange={(e) => setDistrict(e.target.value)} className="h-9 text-[13px]" />
-                            </div>
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                                <Input placeholder="Procurar nome ou número..." value={subSearch} onChange={(e) => setSubSearch(e.target.value)} className="h-9 pl-9 text-[13px]" />
+                            <div className="grid grid-cols-3 gap-2">
+                                <select
+                                    value={plan}
+                                    onChange={(e) => setPlan(e.target.value)}
+                                    className="h-9 rounded-md border border-slate-200 bg-white px-2 text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                                >
+                                    {PLAN_OPTIONS.map((p) => (
+                                        <option key={p} value={p}>{p === "Todos" ? "Todos os planos" : p}</option>
+                                    ))}
+                                </select>
+                                <Input placeholder="Província" value={province} onChange={(e) => setProvince(e.target.value)} className="h-9 text-[13px]" />
+                                <Input placeholder="Distrito" value={district} onChange={(e) => setDistrict(e.target.value)} className="h-9 text-[13px]" />
                             </div>
                             <div className="border border-slate-200 rounded-lg divide-y divide-slate-100 max-h-64 overflow-y-auto">
                                 <label className="flex items-center gap-2 px-3 py-2 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500 sticky top-0">
@@ -257,7 +280,6 @@ export default function AdminSmsPage() {
                                             <input type="checkbox" checked={picked.has(s.id)} onChange={() => togglePick(s.id)} className="accent-emerald-600" />
                                             <span className="font-medium text-slate-700 truncate flex-1">{s.name}</span>
                                             <span className="text-slate-400 shrink-0">{s.phone}</span>
-                                            {s.province && <span className="text-slate-300 shrink-0 hidden sm:inline">{s.province}</span>}
                                         </label>
                                     ))
                                 )}
@@ -265,7 +287,7 @@ export default function AdminSmsPage() {
                             <p className="text-[11px] text-slate-400">
                                 {picked.size > 0
                                     ? `Vai só para os ${picked.size} selecionados.`
-                                    : `Sem seleção → vai para todos os inscritos do filtro (${subs.length}).`}
+                                    : `Sem seleção → vai para os ${filteredSubs.length} inscritos deste filtro.`}
                             </p>
                         </div>
                     ) : (
@@ -304,13 +326,8 @@ export default function AdminSmsPage() {
                         </button>
                     </div>
 
-                    {/* barra de gestão */}
+                    {/* barra de gestão: botões primeiro, checkbox (só o checkbox) no fim */}
                     <div className="flex items-center gap-3 text-[12px]">
-                        <label className="flex items-center gap-1.5 text-slate-500">
-                            <input type="checkbox" checked={allMsgsSel} onChange={toggleAllMsgs} className="accent-emerald-600" disabled={msgs.length === 0} />
-                            {sel.size > 0 ? `${sel.size} selecionada(s)` : "Selecionar tudo"}
-                        </label>
-                        <div className="flex-1" />
                         {tab === "eliminadas" ? (
                             <>
                                 <button onClick={() => applyDelete("restore")} disabled={sel.size === 0} className="flex items-center gap-1 text-emerald-600 disabled:text-slate-300 font-bold">
@@ -325,6 +342,9 @@ export default function AdminSmsPage() {
                                 <Trash2 className="w-3.5 h-3.5" /> Eliminar
                             </button>
                         )}
+                        {sel.size > 0 && <span className="text-slate-400">{sel.size} selecionada(s)</span>}
+                        <div className="flex-1" />
+                        <input type="checkbox" checked={allMsgsSel} onChange={toggleAllMsgs} disabled={msgs.length === 0} className="accent-emerald-600" title="Selecionar tudo" />
                     </div>
 
                     {msgsLoading ? (
@@ -334,23 +354,33 @@ export default function AdminSmsPage() {
                             {tab === "recebidas" ? "Sem SMS recebidas." : tab === "eliminadas" ? "Nada eliminado." : "Sem SMS enviadas."}
                         </div>
                     ) : (
-                        <ul className="space-y-2 max-h-[560px] overflow-y-auto">
+                        <ul className="divide-y divide-slate-100 max-h-[560px] overflow-y-auto">
                             {msgs.map((m) => {
-                                const meta = STATUS_META[m.status] || { label: m.status, cls: "bg-slate-100 text-slate-500" };
+                                const meta = STATUS_META[m.status];
+                                const unread = m.direction === "inbound" && !m.read_at;
+                                const who = m.name || m.phone;
                                 return (
-                                    <li key={m.id} className="flex gap-2 border border-slate-100 rounded-lg p-3">
-                                        <input type="checkbox" checked={sel.has(m.id)} onChange={() => toggleMsg(m.id)} className="mt-0.5 accent-emerald-600" />
-                                        <div className="min-w-0 flex-1">
-                                            <div className="flex items-center justify-between gap-2 mb-1">
-                                                <span className="text-[12px] font-bold text-slate-700 truncate">{m.phone}</span>
-                                                <span className="flex items-center gap-2 shrink-0">
-                                                    <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${meta.cls}`}>{meta.label}</span>
-                                                    <span className="text-[11px] text-slate-300">{timeAgo(m.created_at)}</span>
-                                                </span>
-                                            </div>
-                                            <p className="text-[13px] text-slate-800 whitespace-pre-wrap break-words">{m.content}</p>
-                                            {m.detail && <p className="text-[11px] text-red-500 mt-1">{m.detail}</p>}
+                                    <li key={m.id}>
+                                        <div className="flex items-center gap-2 py-2">
+                                            <button
+                                                onClick={() => openRow(m)}
+                                                className="flex items-center gap-2 min-w-0 flex-1 text-left"
+                                            >
+                                                <span className={`shrink-0 w-32 truncate text-[13px] ${unread ? "font-bold text-slate-900" : "font-normal text-slate-600"}`}>{who}</span>
+                                                <span className={`flex-1 truncate text-[13px] ${unread ? "font-bold text-slate-800" : "font-normal text-slate-500"}`}>{m.content}</span>
+                                            </button>
+                                            {meta && (
+                                                <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded shrink-0 ${meta.cls}`}>{meta.label}</span>
+                                            )}
+                                            <span className="text-[11px] text-slate-300 shrink-0 w-12 text-right">{timeAgo(m.created_at)}</span>
+                                            <input type="checkbox" checked={sel.has(m.id)} onChange={() => toggleMsg(m.id)} className="accent-emerald-600 shrink-0" />
                                         </div>
+                                        {expanded === m.id && (
+                                            <div className="pb-2 pl-1 pr-8 text-[13px] text-slate-700 whitespace-pre-wrap break-words">
+                                                {m.content}
+                                                {m.detail && <div className="text-[11px] text-red-500 mt-1">{m.detail}</div>}
+                                            </div>
+                                        )}
                                     </li>
                                 );
                             })}

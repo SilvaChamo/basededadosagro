@@ -5,6 +5,11 @@ import { isAdminRole } from "@/lib/roles";
 
 // Lista os SMS registados para o painel. Só admin.
 // ?tab = recebidas | enviadas | eliminadas   (default: enviadas)
+// Cada linha traz o nome do contacto (se o número existir em profiles).
+
+function last9(phone: string) {
+    return String(phone || "").replace(/\D/g, "").slice(-9);
+}
 
 async function requireAdmin() {
     const supabase = await createClient();
@@ -28,11 +33,11 @@ export async function GET(request: Request) {
 
     const url = new URL(request.url);
     const tab = url.searchParams.get("tab") || "enviadas";
-    const limit = Math.min(Number(url.searchParams.get("limit")) || 60, 200);
+    const limit = Math.min(Number(url.searchParams.get("limit")) || 100, 300);
 
     let query = admin
         .from("sms_messages")
-        .select("id, direction, phone, from_phone, content, status, detail, created_at")
+        .select("id, direction, phone, from_phone, content, status, detail, read_at, created_at")
         .order("created_at", { ascending: false })
         .limit(limit);
 
@@ -41,7 +46,7 @@ export async function GET(request: Request) {
     } else {
         query = query.is("deleted_at", null);
         if (tab === "recebidas") query = query.eq("direction", "inbound");
-        else query = query.eq("direction", "outbound"); // enviadas
+        else query = query.eq("direction", "outbound");
     }
 
     const { data, error } = await query;
@@ -49,5 +54,23 @@ export async function GET(request: Request) {
         console.error("sms/messages error:", error);
         return NextResponse.json({ error: "Não foi possível carregar." }, { status: 500 });
     }
-    return NextResponse.json({ messages: data || [] });
+
+    // Nome do contacto: mapa últimos-9-dígitos -> full_name (poucos perfis).
+    const nameByTail = new Map<string, string>();
+    const { data: profs } = await admin
+        .from("profiles")
+        .select("full_name, phone")
+        .not("phone", "is", null)
+        .limit(5000);
+    for (const p of profs || []) {
+        const t = last9(p.phone as string);
+        if (t.length === 9 && p.full_name) nameByTail.set(t, p.full_name as string);
+    }
+
+    const messages = (data || []).map((m: Record<string, unknown>) => ({
+        ...m,
+        name: nameByTail.get(last9(m.phone as string)) || null,
+    }));
+
+    return NextResponse.json({ messages });
 }
