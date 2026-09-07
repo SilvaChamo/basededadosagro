@@ -1,7 +1,8 @@
 // Ponto único de envio de SMS para toda a app. Usa o httpSMS: telemóvel(es)
 // Android como gateway (custo = SIM já pago).
-// HTTPSMS_FROM aceita um ou vários números separados por vírgula; quando são
-// vários, o envio alterna entre eles (round-robin) para repartir a carga.
+// HTTPSMS_FROM: um ou vários números separados por vírgula. O 1º é o
+// PRINCIPAL — é sempre o usado; os seguintes são reserva e só entram se o
+// envio pelo anterior falhar.
 // SMS_DRY_RUN !== "false" (o valor por defeito) NUNCA envia: escreve o texto
 // no log e devolve status "sent_mock". Passar SMS_DRY_RUN=false para ligar.
 
@@ -19,59 +20,57 @@ function toE164(phone: string) {
     return `+${t.replace(/^00/, "")}`;
 }
 
+// 1º = principal, resto = reserva pela ordem em que aparecem.
 const HTTPSMS_FROM_LIST = (process.env.HTTPSMS_FROM || "")
     .split(",")
     .map((n) => n.trim())
     .filter(Boolean)
     .map(toE164);
 
-// Round-robin entre os números configurados. Estado ao nível do módulo —
-// suficiente com o processo único do PM2 em produção.
-let fromCursor = 0;
-function nextFrom(): string | undefined {
-    if (HTTPSMS_FROM_LIST.length === 0) return undefined;
-    const pick = HTTPSMS_FROM_LIST[fromCursor % HTTPSMS_FROM_LIST.length];
-    fromCursor = (fromCursor + 1) % HTTPSMS_FROM_LIST.length;
-    return pick;
-}
-
 export function smsIsDryRun() {
     return SMS_DRY_RUN;
 }
 
-export async function sendSMS(phone: string, text: string): Promise<SmsResult> {
-    const from = nextFrom();
-
-    if (SMS_DRY_RUN) {
-        console.log(`[SMS dry-run · httpsms${from ? ` · de ${from}` : ""}] Para ${phone}: ${text}`);
-        return { phone, status: "sent_mock", from };
-    }
-
-    if (!HTTPSMS_API_KEY || !from) {
-        console.error("[SMS] httpSMS sem HTTPSMS_API_KEY / HTTPSMS_FROM");
-        return { phone, status: "failed", from };
-    }
-
+async function tryOne(from: string, phone: string, text: string): Promise<boolean> {
     try {
         const res = await fetch(`${HTTPSMS_BASE_URL}/v1/messages/send`, {
             method: "POST",
             headers: {
-                "x-api-key": HTTPSMS_API_KEY,
+                "x-api-key": HTTPSMS_API_KEY!,
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-                content: text,
-                from,
-                to: toE164(phone),
-            }),
+            body: JSON.stringify({ content: text, from, to: toE164(phone) }),
         });
         if (!res.ok) {
-            console.error(`[SMS] httpSMS respondeu ${res.status} para ${phone}:`, await res.text());
-            return { phone, status: "failed", from };
+            console.error(`[SMS] httpSMS ${res.status} (de ${from}) para ${phone}:`, await res.text());
+            return false;
         }
-        return { phone, status: "sent", from };
+        return true;
     } catch (err) {
-        console.error(`[SMS] erro httpSMS para ${phone}:`, err);
-        return { phone, status: "failed", from };
+        console.error(`[SMS] erro httpSMS (de ${from}) para ${phone}:`, err);
+        return false;
     }
+}
+
+export async function sendSMS(phone: string, text: string): Promise<SmsResult> {
+    if (SMS_DRY_RUN) {
+        const from = HTTPSMS_FROM_LIST[0];
+        console.log(`[SMS dry-run · httpsms${from ? ` · de ${from}` : ""}] Para ${phone}: ${text}`);
+        return { phone, status: "sent_mock", from };
+    }
+
+    if (!HTTPSMS_API_KEY || HTTPSMS_FROM_LIST.length === 0) {
+        console.error("[SMS] httpSMS sem HTTPSMS_API_KEY / HTTPSMS_FROM");
+        return { phone, status: "failed" };
+    }
+
+    // Principal primeiro; passa à reserva seguinte só se este falhar.
+    let lastFrom: string | undefined;
+    for (const from of HTTPSMS_FROM_LIST) {
+        lastFrom = from;
+        if (await tryOne(from, phone, text)) {
+            return { phone, status: "sent", from };
+        }
+    }
+    return { phone, status: "failed", from: lastFrom };
 }
