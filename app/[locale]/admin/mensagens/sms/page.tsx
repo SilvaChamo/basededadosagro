@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MessageSquare, Send, Loader2, RefreshCw, Trash2, RotateCcw } from "lucide-react";
+import { MessageSquare, Send, Loader2, RefreshCw, Trash2, RotateCcw, X } from "lucide-react";
 import { toast } from "sonner";
 import { AdminListToolbar, AdminToolbarTitle } from "@/components/admin/AdminListToolbar";
 import { useAdminTopBar } from "@/components/admin/AdminTopBar";
@@ -19,6 +19,7 @@ interface SmsRow {
     status: string;
     detail: string | null;
     read_at: string | null;
+    deleted_at?: string | null;
     created_at: string;
     name: string | null;
 }
@@ -154,7 +155,11 @@ export default function AdminSmsPage() {
     const [msgs, setMsgs] = useState<SmsRow[]>([]);
     const [msgsLoading, setMsgsLoading] = useState(true);
     const [sel, setSel] = useState<Set<string>>(new Set());
-    const [expanded, setExpanded] = useState<string | null>(null);
+
+    // Popup com o histórico de conversa de um contacto
+    const [threadOpen, setThreadOpen] = useState(false);
+    const [threadLoading, setThreadLoading] = useState(false);
+    const [thread, setThread] = useState<{ name: string | null; phone: string; messages: SmsRow[] } | null>(null);
 
     const loadMsgs = useCallback(async (silent = false) => {
         if (!silent) setMsgsLoading(true);
@@ -183,17 +188,31 @@ export default function AdminSmsPage() {
         setSel(next);
     };
 
-    const openRow = (m: SmsRow) => {
-        setExpanded((cur) => (cur === m.id ? null : m.id));
-        if (m.direction === "inbound" && !m.read_at) {
-            fetch("/api/sms/messages/read", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ids: [m.id] }),
-            }).catch(() => {});
-            setMsgs((cur) => cur.map((x) => (x.id === m.id ? { ...x, read_at: new Date().toISOString() } : x)));
+    const openThread = async (m: SmsRow) => {
+        setThreadOpen(true);
+        setThread(null);
+        setThreadLoading(true);
+        try {
+            const r = await fetch(`/api/sms/thread?phone=${encodeURIComponent(m.phone)}`).then((x) => x.json());
+            if (r.error) throw new Error(r.error);
+            setThread(r);
+            const unread = (r.messages || []).filter((x: SmsRow) => x.direction === "inbound" && !x.read_at).map((x: SmsRow) => x.id);
+            if (unread.length) {
+                fetch("/api/sms/messages/read", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ ids: unread }),
+                }).catch(() => {});
+                setMsgs((cur) => cur.map((x) => (unread.includes(x.id) ? { ...x, read_at: new Date().toISOString() } : x)));
+            }
+        } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Não foi possível abrir a conversa.");
+            setThreadOpen(false);
+        } finally {
+            setThreadLoading(false);
         }
     };
+    const closeThread = () => { setThreadOpen(false); setThread(null); };
 
     const applyDelete = async (mode: "soft" | "hard" | "restore") => {
         if (sel.size === 0) return;
@@ -360,27 +379,18 @@ export default function AdminSmsPage() {
                                 const unread = m.direction === "inbound" && !m.read_at;
                                 const who = m.name || m.phone;
                                 return (
-                                    <li key={m.id}>
-                                        <div className="flex items-center gap-2 py-2">
-                                            <button
-                                                onClick={() => openRow(m)}
-                                                className="flex items-center gap-2 min-w-0 flex-1 text-left"
-                                            >
-                                                <span className={`shrink-0 w-32 truncate text-[13px] ${unread ? "font-bold text-slate-900" : "font-normal text-slate-600"}`}>{who}</span>
-                                                <span className={`flex-1 truncate text-[13px] ${unread ? "font-bold text-slate-800" : "font-normal text-slate-500"}`}>{m.content}</span>
-                                            </button>
-                                            {meta && (
-                                                <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded shrink-0 ${meta.cls}`}>{meta.label}</span>
-                                            )}
-                                            <span className="text-[11px] text-slate-300 shrink-0 w-12 text-right">{timeAgo(m.created_at)}</span>
-                                            <input type="checkbox" checked={sel.has(m.id)} onChange={() => toggleMsg(m.id)} className="accent-emerald-600 shrink-0" />
-                                        </div>
-                                        {expanded === m.id && (
-                                            <div className="pb-2 pl-1 pr-8 text-[13px] text-slate-700 whitespace-pre-wrap break-words">
-                                                {m.content}
-                                                {m.detail && <div className="text-[11px] text-red-500 mt-1">{m.detail}</div>}
+                                    <li key={m.id} className="flex items-start gap-2 py-2.5">
+                                        <button onClick={() => openThread(m)} className="min-w-0 flex-1 text-left">
+                                            <div className="flex items-center gap-2">
+                                                <span className={`truncate text-[13px] ${unread ? "font-bold text-slate-900" : "font-semibold text-slate-700"}`}>{who}</span>
+                                                {meta && (
+                                                    <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded shrink-0 ${meta.cls}`}>{meta.label}</span>
+                                                )}
+                                                <span className="ml-auto text-[11px] text-slate-300 shrink-0">{timeAgo(m.created_at)}</span>
                                             </div>
-                                        )}
+                                            <div className={`truncate text-[12px] mt-0.5 ${unread ? "font-semibold text-slate-700" : "text-slate-400"}`}>{m.content}</div>
+                                        </button>
+                                        <input type="checkbox" checked={sel.has(m.id)} onChange={() => toggleMsg(m.id)} className="accent-emerald-600 shrink-0 mt-1" />
                                     </li>
                                 );
                             })}
@@ -388,6 +398,46 @@ export default function AdminSmsPage() {
                     )}
                 </div>
             </div>
+
+            {/* ===== Popup: histórico de conversa ===== */}
+            {threadOpen && (
+                <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4" onClick={closeThread}>
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                            <div className="min-w-0">
+                                <p className="text-sm font-black text-slate-800 truncate">{thread?.name || thread?.phone || "Conversa"}</p>
+                                {thread?.name && <p className="text-[11px] text-slate-400">{thread.phone}</p>}
+                            </div>
+                            <button onClick={closeThread} className="text-slate-400 hover:text-slate-700 shrink-0"><X className="w-5 h-5" /></button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50">
+                            {threadLoading ? (
+                                <div className="py-10 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-slate-300" /></div>
+                            ) : (thread?.messages || []).length === 0 ? (
+                                <p className="text-center text-[12px] text-slate-400 py-10">Sem mensagens.</p>
+                            ) : (
+                                thread!.messages.map((t) => {
+                                    const mine = t.direction === "outbound";
+                                    const tm = STATUS_META[t.status];
+                                    return (
+                                        <div key={t.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                                            <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-[13px] whitespace-pre-wrap break-words ${mine ? "bg-emerald-600 text-white rounded-br-sm" : "bg-white border border-slate-200 text-slate-800 rounded-bl-sm"} ${t.deleted_at ? "opacity-50" : ""}`}>
+                                                {t.content}
+                                                <div className={`mt-1 text-[10px] ${mine ? "text-emerald-100" : "text-slate-400"}`}>
+                                                    {new Date(t.created_at).toLocaleString("pt-PT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                                                    {mine && tm ? ` · ${tm.label}` : ""}
+                                                    {t.deleted_at ? " · eliminada" : ""}
+                                                </div>
+                                                {t.detail && <div className={`text-[10px] mt-0.5 ${mine ? "text-red-100" : "text-red-500"}`}>{t.detail}</div>}
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
