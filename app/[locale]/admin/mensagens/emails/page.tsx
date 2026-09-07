@@ -48,6 +48,8 @@ function timeAgo(iso: string) {
 }
 
 const stripReplyPrefix = (s: string) => String(s || "").replace(/^\s*((re|fw|fwd)\s*:\s*)+/i, "").trim();
+const escHtml = (s: string) =>
+    String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string));
 
 export default function AdminEmailsPage() {
     useAdminTopBar("");
@@ -179,10 +181,10 @@ export default function AdminEmailsPage() {
         const forwardBody = detail
             ? `<br/><br/><blockquote style="border-left:3px solid #e2e8f0;margin:0;padding-left:12px;color:#475569">` +
               `--- Mensagem reencaminhada ---<br/>` +
-              `De: ${detail.from_address || detail.address}<br/>` +
-              `Data: ${new Date(detail.created_at).toLocaleString("pt-PT")}<br/>` +
-              `Assunto: ${detail.subject}<br/><br/>` +
-              `${detail.html || ""}</blockquote>`
+              `De: ${escHtml(detail.from_address || detail.address)}<br/>` +
+              `Data: ${escHtml(new Date(detail.created_at).toLocaleString("pt-PT"))}<br/>` +
+              `Assunto: ${escHtml(detail.subject)}<br/><br/>` +
+              `${DOMPurify.sanitize(detail.html || "")}</blockquote>`
             : "";
 
         return (
