@@ -37,13 +37,21 @@ function tally(rows: Row[], key: (r: Row) => string) {
     return [...m.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
 }
 
-function BarRow({ label, value, max, pct }: { label: string; value: number; max: number; pct?: number }) {
+function BarRow({ label, value, max, pct, onClick, active }: {
+    label: string; value: number; max: number; pct?: number; onClick?: () => void; active?: boolean;
+}) {
     const w = max > 0 ? Math.max(2, (value / max) * 100) : 0;
     return (
-        <div className="flex items-center gap-3 py-[5px]">
-            <span className="w-36 sm:w-44 shrink-0 text-xs font-medium text-slate-600 truncate" title={label}>{label}</span>
+        <div
+            className={`flex items-center gap-3 py-[5px] px-1.5 -mx-1.5 rounded-[6px] ${onClick ? "cursor-pointer hover:bg-slate-50" : ""} ${active ? "bg-orange-50" : ""}`}
+            onClick={onClick}
+            role={onClick ? "button" : undefined}
+            tabIndex={onClick ? 0 : undefined}
+            onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } } : undefined}
+        >
+            <span className={`w-36 sm:w-44 shrink-0 text-xs truncate ${active ? "font-bold text-slate-800" : "font-medium text-slate-600"}`} title={label}>{label}</span>
             <div className="flex-1 h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: `${w}%`, background: ACCENT }} />
+                <div className="h-full rounded-full" style={{ width: `${w}%`, background: active ? "#ea580c" : ACCENT }} />
             </div>
             <span className="w-16 shrink-0 text-right text-xs font-bold text-slate-700 tabular-nums">
                 {value}{typeof pct === "number" ? <span className="text-slate-400 font-medium"> · {pct.toFixed(0)}%</span> : null}
@@ -391,15 +399,21 @@ export function MaderPanel() {
                     </div>
 
                     {/* Distribuição territorial */}
-                    <Card title="Distribuição territorial" hint="Nº de empresas por província. O tamanho da bolha é proporcional ao total.">
+                    <Card title="Distribuição territorial" hint="Nº de empresas por província. Clique numa província no mapa ou na lista para filtrar.">
                         <div className="grid lg:grid-cols-[1fr_340px] gap-5">
-                            <div className="h-[300px] lg:h-[420px] rounded-[8px] overflow-hidden border border-slate-200">
-                                <MaderMap data={byProvince.map((x) => ({ province: x.name, count: x.count }))} />
+                            <div className="h-[320px] lg:h-[460px] rounded-[8px] overflow-hidden border border-slate-200">
+                                <MaderMap
+                                    data={byProvince.map((x) => ({ province: x.name, count: x.count }))}
+                                    selected={fProv}
+                                    onSelect={setFProv}
+                                />
                             </div>
                             <div className="min-w-0">
                                 {byProvince.map((x) => (
                                     <BarRow key={x.name} label={x.name} value={x.count} max={provMax}
-                                        pct={total ? (x.count / total) * 100 : 0} />
+                                        pct={total ? (x.count / total) * 100 : 0}
+                                        active={fProv === x.name}
+                                        onClick={x.name === UNSET ? undefined : () => setFProv(fProv === x.name ? "" : x.name)} />
                                 ))}
                             </div>
                         </div>

@@ -1,58 +1,103 @@
 "use client";
 
-// Mapa das 11 províncias desenhado em SVG na própria página — sem tiles
-// externos (a CSP do site não permite mapas) e sem dependências. O contorno
-// é aproximado; serve de fundo para as bolhas (raio = nº de empresas).
+import { useEffect, useMemo, useState } from "react";
+
+// Mapa real das províncias (geoBoundaries ADM1), desenhado em SVG a partir
+// do GeoJSON estático em /public/geo. Sem tiles externos (a CSP bloqueia-os).
+// Choropleth pelo nº de empresas; clicar numa província aplica o filtro.
 
 export interface MapDatum {
     province: string;
     count: number;
 }
 
-const CENTROIDS: Record<string, [number, number]> = {
-    "Niassa": [-13.0, 36.4],
-    "Cabo Delgado": [-12.4, 39.3],
-    "Nampula": [-15.2, 39.2],
-    "Zambézia": [-16.7, 37.2],
-    "Tete": [-15.4, 33.0],
-    "Manica": [-19.2, 33.3],
-    "Sofala": [-19.6, 34.7],
-    "Inhambane": [-23.2, 34.8],
-    "Gaza": [-23.6, 32.9],
-    "Maputo Província": [-25.4, 32.4],
-    "Maputo Cidade": [-25.95, 32.55],
-};
+interface Props {
+    data: MapDatum[];
+    selected: string;
+    onSelect: (province: string) => void;
+}
 
-const SHORT: Record<string, string> = {
-    "Cabo Delgado": "C. Delgado",
-    "Maputo Província": "Maputo Prov.",
-    "Maputo Cidade": "Maputo Cid.",
-    "Zambézia": "Zambézia",
-};
+const W = 380;
+const H = 560;
+const PAD = 12;
 
-// Contorno aproximado de Moçambique (lat, lon), sentido horário a partir do
-// extremo NE (foz do Rovuma).
-const OUTLINE: [number, number][] = [
-    [-10.47, 40.42], [-12.0, 40.55], [-13.4, 40.55], [-14.6, 40.75], [-15.6, 40.3],
-    [-16.3, 39.95], [-17.9, 36.9], [-18.9, 36.35], [-19.8, 34.85], [-20.9, 35.2],
-    [-22.0, 35.4], [-23.9, 35.45], [-24.9, 34.0], [-25.1, 33.5], [-25.9, 32.9],
-    [-26.5, 32.9], [-26.86, 32.9], [-26.0, 32.02], [-25.4, 31.98], [-24.4, 31.9],
-    [-22.35, 31.3], [-21.5, 32.4], [-20.0, 32.45], [-19.0, 32.95], [-16.7, 32.7],
-    [-16.2, 31.1], [-15.6, 30.35], [-14.5, 33.6], [-13.5, 34.5], [-12.2, 34.6],
-    [-11.4, 34.55], [-11.0, 35.6], [-10.8, 38.2], [-10.47, 40.42],
-];
-
-const LAT_N = -10.0, LAT_S = -27.1, LON_W = 29.9, LON_E = 41.2;
-const W = 360, H = 520, PAD = 36;
-const px = (lon: number) => PAD + ((lon - LON_W) / (LON_E - LON_W)) * (W - 2 * PAD);
-const py = (lat: number) => PAD + ((LAT_N - lat) / (LAT_N - LAT_S)) * (H - 2 * PAD);
+// O GeoJSON tem 10 formas — "Maputo Cidade" está dentro de "Maputo".
+const SHAPE_TO_PROV: Record<string, string> = { Maputo: "Maputo Província" };
+const canon = (shapeName: string) => SHAPE_TO_PROV[shapeName] || shapeName;
 
 const colorFor = (t: number) =>
-    t <= 0 ? "#e2e8f0" : t < 0.34 ? "#86efac" : t < 0.67 ? "#22c55e" : "#15803d";
+    t <= 0 ? "#eef2f6"
+        : t < 0.25 ? "#cdeadb"
+            : t < 0.5 ? "#8fd3ab"
+                : t < 0.75 ? "#3fae72"
+                    : "#15803d";
 
-export default function MaderMapClient({ data }: { data: MapDatum[] }) {
-    const max = Math.max(1, ...data.map((d) => d.count));
-    const poly = OUTLINE.map(([la, lo]) => `${px(lo).toFixed(1)},${py(la).toFixed(1)}`).join(" ");
+type Ring = number[][];
+const walkBounds = (c: any, b: number[]) => {
+    if (typeof c[0] === "number") {
+        b[0] = Math.min(b[0], c[0]); b[2] = Math.max(b[2], c[0]);
+        b[1] = Math.min(b[1], c[1]); b[3] = Math.max(b[3], c[1]);
+    } else for (const x of c) walkBounds(x, b);
+};
+
+export default function MaderMapClient({ data, selected, onSelect }: Props) {
+    const [fc, setFc] = useState<any>(null);
+    const [failed, setFailed] = useState(false);
+
+    useEffect(() => {
+        let alive = true;
+        fetch("/geo/moz-provincias.geojson")
+            .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+            .then((j) => { if (alive) setFc(j); })
+            .catch(() => { if (alive) setFailed(true); });
+        return () => { alive = false; };
+    }, []);
+
+    const counts = useMemo(() => {
+        const m = new Map<string, number>();
+        for (const d of data) {
+            const key = d.province === "Maputo Cidade" ? "Maputo Província" : d.province;
+            m.set(key, (m.get(key) || 0) + d.count);
+        }
+        return m;
+    }, [data]);
+    const max = Math.max(1, ...Array.from(counts.values()));
+
+    const shapes = useMemo(() => {
+        if (!fc?.features?.length) return null;
+        const b = [Infinity, Infinity, -Infinity, -Infinity];
+        fc.features.forEach((f: any) => walkBounds(f.geometry.coordinates, b));
+        const [minX, minY, maxX, maxY] = b;
+        const s = Math.min((W - 2 * PAD) / (maxX - minX), (H - 2 * PAD) / (maxY - minY));
+        const ox = PAD + ((W - 2 * PAD) - s * (maxX - minX)) / 2;
+        const oy = PAD + ((H - 2 * PAD) - s * (maxY - minY)) / 2;
+        const proj = (lon: number, lat: number): [number, number] =>
+            [ox + (lon - minX) * s, oy + (maxY - lat) * s];
+        const ringPath = (ring: Ring) =>
+            ring.map(([lon, lat], i) => {
+                const [x, y] = proj(lon, lat);
+                return `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`;
+            }).join("") + "Z";
+        const geomPath = (geom: any) => {
+            const polys: Ring[][] = geom.type === "Polygon" ? [geom.coordinates] : geom.coordinates;
+            return polys.map((poly) => poly.map(ringPath).join(" ")).join(" ");
+        };
+        return fc.features.map((f: any) => ({
+            key: f.properties.shapeName as string,
+            name: canon(f.properties.shapeName),
+            d: geomPath(f.geometry),
+        }));
+    }, [fc]);
+
+    if (failed) {
+        return <div className="w-full h-full flex items-center justify-center text-xs font-bold text-slate-400 uppercase tracking-widest">Mapa indisponível</div>;
+    }
+    if (!shapes) {
+        return <div className="w-full h-full flex items-center justify-center text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse">A carregar mapa…</div>;
+    }
+
+    const isSel = (name: string) =>
+        selected === name || (selected === "Maputo Cidade" && name === "Maputo Província");
 
     return (
         <svg
@@ -60,29 +105,25 @@ export default function MaderMapClient({ data }: { data: MapDatum[] }) {
             width="100%"
             height="100%"
             preserveAspectRatio="xMidYMid meet"
-            style={{ display: "block", background: "#f1f5f9" }}
+            style={{ display: "block", background: "#f8fafc" }}
             role="img"
-            aria-label="Mapa de empresas por província"
+            aria-label="Empresas por província"
         >
-            <polygon points={poly} fill="#e6ebf0" stroke="#cbd5e1" strokeWidth={1.2} strokeLinejoin="round" />
-            <text x={W - PAD} y={22} textAnchor="end" fontSize={11} fontWeight={700} fill="#94a3b8">N ↑</text>
-
-            {data.map((d) => {
-                const c = CENTROIDS[d.province];
-                if (!c) return null;
-                const t = d.count / max;
-                const r = 4 + 22 * Math.sqrt(t);
-                const x = px(c[1]) + (d.province === "Maputo Cidade" ? 11 : 0);
-                const y = py(c[0]);
+            {shapes.map((sh: any) => {
+                const n = counts.get(sh.name) || 0;
+                const sel = isSel(sh.name);
                 return (
-                    <g key={d.province}>
-                        <circle cx={x} cy={y} r={r} fill={colorFor(t)} fillOpacity={0.88} stroke="#ffffff" strokeWidth={1.5}>
-                            <title>{`${d.province} — ${d.count} empresa${d.count === 1 ? "" : "s"}`}</title>
-                        </circle>
-                        <text x={x} y={y + r + 9} textAnchor="middle" fontSize={8.5} fontWeight={600} fill="#475569">
-                            {SHORT[d.province] || d.province}
-                        </text>
-                    </g>
+                    <path
+                        key={sh.key}
+                        d={sh.d}
+                        fill={sel ? "#f97316" : colorFor(n / max)}
+                        stroke={sel ? "#c2410c" : "#ffffff"}
+                        strokeWidth={sel ? 1.8 : 0.8}
+                        style={{ cursor: "pointer", transition: "fill .12s ease" }}
+                        onClick={() => onSelect(isSel(sh.name) ? "" : sh.name)}
+                    >
+                        <title>{`${sh.name} — ${n} empresa${n === 1 ? "" : "s"}${n ? "" : " (sem registos)"}`}</title>
+                    </path>
                 );
             })}
         </svg>
