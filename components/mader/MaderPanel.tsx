@@ -205,6 +205,21 @@ export function MaderPanel() {
     const bySector = useMemo(() => tally(filtered, (r) => norm(r.category)).slice(0, 8), [filtered]);
     const bySize = useMemo(() => tally(filtered, (r) => norm(r.size)), [filtered]);
 
+    // Resumo da província seleccionada — mostrado como legenda no canto do mapa
+    const provSummary = useMemo(() => {
+        if (!fProv) return null;
+        const top = (key: (r: Row) => string, n: number) =>
+            tally(filtered, key).filter((x) => x.name !== UNSET).slice(0, n);
+        return {
+            name: fProv,
+            total: filtered.length,
+            lojas: filtered.filter((r) => r.type === "Loja").length,
+            sectors: top((r) => norm(r.category), 3),
+            chains: top((r) => norm(r.value_chain), 3),
+            sizes: tally(filtered, (r) => norm(r.size)).slice(0, 4),
+        };
+    }, [fProv, filtered]);
+
     // Matriz Sector × Província (ignora o filtro de sector nas linhas)
     const matrix = useMemo(() => {
         const base = rows ? rows.filter((r) =>
@@ -401,12 +416,39 @@ export function MaderPanel() {
                     {/* Distribuição territorial */}
                     <Card title="Distribuição territorial" hint="Nº de empresas por província. Clique numa província no mapa ou na lista para filtrar.">
                         <div className="grid lg:grid-cols-[1fr_340px] gap-5">
-                            <div className="h-[320px] lg:h-[460px] rounded-[10px] overflow-hidden border border-slate-200">
+                            <div className="relative h-[320px] lg:h-[460px] rounded-[10px] overflow-hidden border border-slate-200">
                                 <MaderMap
                                     data={byProvince.map((x) => ({ province: x.name, count: x.count }))}
                                     selected={fProv}
                                     onSelect={setFProv}
                                 />
+                                {provSummary && (
+                                    <div className="absolute bottom-2 right-2 z-[1] max-w-[220px] bg-white/95 border border-slate-200 rounded-[8px] shadow-md p-2.5 text-[10px] leading-snug">
+                                        <p className="font-black text-slate-800 uppercase tracking-wide mb-1">{provSummary.name}</p>
+                                        <p className="text-slate-500">
+                                            <span className="font-black text-slate-700">{provSummary.total}</span> empresa{provSummary.total === 1 ? "" : "s"}
+                                            {provSummary.lojas > 0 && <> · {provSummary.lojas} loja{provSummary.lojas === 1 ? "" : "s"}</>}
+                                        </p>
+                                        {provSummary.sectors.length > 0 && (
+                                            <p className="mt-1.5 text-slate-500">
+                                                <span className="font-bold text-slate-600 uppercase tracking-wide block">Sector</span>
+                                                {provSummary.sectors.map((s) => `${s.name} (${s.count})`).join(" · ")}
+                                            </p>
+                                        )}
+                                        {provSummary.chains.length > 0 && (
+                                            <p className="mt-1.5 text-slate-500">
+                                                <span className="font-bold text-slate-600 uppercase tracking-wide block">Cadeia de valor</span>
+                                                {provSummary.chains.map((s) => `${s.name} (${s.count})`).join(" · ")}
+                                            </p>
+                                        )}
+                                        {provSummary.sizes.length > 0 && (
+                                            <p className="mt-1.5 text-slate-500">
+                                                <span className="font-bold text-slate-600 uppercase tracking-wide block">Dimensão</span>
+                                                {provSummary.sizes.map((s) => `${s.name} (${s.count})`).join(" · ")}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                             <div className="min-w-0">
                                 {byProvince.map((x) => (
