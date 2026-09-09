@@ -7,7 +7,7 @@ import { createClient } from "@/utils/supabase/client";
 import {
     Upload,
     Loader2, Save, Crown, Plus, Trash2, Pencil, Lock, ShoppingBag,
-    ShieldCheck, Info
+    ShieldCheck, Info, FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,7 @@ import { getProductLimit } from "@/lib/plan-fields";
 import { Spinner } from "@/components/ui/spinner";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { COMPANY_CATEGORIES } from "@/lib/constants";
-import { VALUE_CHAINS, ESTABLISHMENT_TYPES } from "@/lib/agro-data";
+import { VALUE_CHAINS, ESTABLISHMENT_TYPES, COMPANY_DESIGNATIONS, COMPANY_SIZES } from "@/lib/agro-data";
 import { PaymentItem } from "@/components/PaymentItem";
 import { FormPageHeader } from "@/components/FormPageHeader";
 import Image from "next/image";
@@ -141,6 +141,15 @@ function RegistoEmpresaContent() {
         valueChain: "",
         establishmentType: "",
         description: "",
+        // Campos avançados — só editáveis/visíveis nos planos pagos.
+        mission: "",
+        vision: "",
+        values: "",
+        subCategory: "",
+        designation: "",
+        size: "",
+        secondaryContact: "",
+        portfolioUrl: "",
         tags: "",
         paymentMethod: "",
         paymentPhone: "",
@@ -155,12 +164,18 @@ function RegistoEmpresaContent() {
     const [editingProductIdx, setEditingProductIdx] = useState<number | null>(null);
     const [uploadingProductImage, setUploadingProductImage] = useState(false);
 
+    // Portfólio de serviços — lista de texto simples (igual ao editor do
+    // admin), só disponível nos planos pagos.
+    const [services, setServices] = useState<string[]>([]);
+    const [uploadingPortfolio, setUploadingPortfolio] = useState(false);
+
     // honeypot anti-bot — campo escondido; se vier preenchido, é robô.
     const [honeypot, setHoneypot] = useState("");
 
     const logoInputRef = useRef<HTMLInputElement>(null);
     const bannerInputRef = useRef<HTMLInputElement>(null);
     const productImageInputRef = useRef<HTMLInputElement>(null);
+    const portfolioInputRef = useRef<HTMLInputElement>(null);
     const planCardRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -199,6 +214,14 @@ function RegistoEmpresaContent() {
                     valueChain: company.value_chain || prev.valueChain,
                     establishmentType: company.registration_type || prev.establishmentType,
                     description: company.description || prev.description,
+                    mission: company.mission || prev.mission,
+                    vision: company.vision || prev.vision,
+                    values: company.values || prev.values,
+                    subCategory: company.sub_category || prev.subCategory,
+                    designation: company.type || prev.designation,
+                    size: company.size || prev.size,
+                    secondaryContact: company.secondary_contact || prev.secondaryContact,
+                    portfolioUrl: company.portfolio_url || prev.portfolioUrl,
                     plan: company.plan || prev.plan,
                     website: company.website || prev.website,
                     representative: company.representative_name || prev.representative,
@@ -207,6 +230,7 @@ function RegistoEmpresaContent() {
                     highlightCompany: typeof company.is_featured === 'boolean' ? company.is_featured : prev.highlightCompany,
                 }));
                 if (company.banner_url) setBannerUrl(company.banner_url);
+                if (Array.isArray(company.services)) setServices(company.services);
 
                 // Plano/destaque já activos na conta = já pagos antes — não
                 // voltar a pedir pagamento para a MESMA coisa outra vez. Ao
@@ -330,6 +354,31 @@ function RegistoEmpresaContent() {
         setProducts(prev => prev.filter((_, i) => i !== idx));
     };
 
+    const addService = () => setServices(prev => [...prev, ""]);
+    const updateService = (i: number, v: string) =>
+        setServices(prev => prev.map((s, idx) => (idx === i ? v : s)));
+    const removeService = (i: number) =>
+        setServices(prev => prev.filter((_, idx) => idx !== i));
+
+    // Portfólio em PDF — sem compressão (é PDF, não imagem); mesmo bucket
+    // usado pelo editor do admin.
+    const handlePortfolioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.type !== "application/pdf") { alert("Por favor, suba um ficheiro PDF."); return; }
+        if (file.size > 1024 * 1024) { alert("O ficheiro deve ter menos de 1MB."); return; }
+        setUploadingPortfolio(true);
+        try {
+            const path = `portfolios/${user.id}-${Date.now()}.pdf`;
+            const { error } = await supabase.storage.from('Baseagrodata files').upload(path, file);
+            if (error) throw error;
+            const { data: { publicUrl } } = supabase.storage.from('Baseagrodata files').getPublicUrl(path);
+            setFormData(prev => ({ ...prev, portfolioUrl: publicUrl }));
+        } catch (err: any) {
+            alert(`Erro ao carregar o portfólio${err?.message ? `: ${err.message}` : "."}`);
+        } finally { setUploadingPortfolio(false); }
+    };
+
     const planLower = formData.plan.toLowerCase();
     const planCost = planLower === 'gratuito' || planLower === 'free' ? 0
         : planLower === 'premium' ? 2500
@@ -347,6 +396,12 @@ function RegistoEmpresaContent() {
     const planDue = planCost > 0 && !planPaid;
     const productLimit = getProductLimit(formData.plan);
     const canAddProduct = !planNeedsPayment && products.length < productLimit;
+
+    // Campos avançados do perfil (Website/Representante/NUIT, WhatsApp,
+    // Designação, Dimensão, Área de Actuação, Missão/Visão/Valores,
+    // Portfólio de Serviços) só aparecem para quem escolhe um plano pago —
+    // um registo simples (Gratuito) nunca os vê.
+    const isPaidPlan = ['Premium', 'Business Vendedor', 'Parceiro'].includes(formData.plan);
 
     const handleSubmit = async () => {
         if (honeypot.trim()) return; // honeypot anti-bot: preenchido => ignora submissão
@@ -391,6 +446,15 @@ function RegistoEmpresaContent() {
                 value_chain: formData.valueChain,
                 registration_type: formData.establishmentType,
                 description: formData.description,
+                mission: formData.mission,
+                vision: formData.vision,
+                values: formData.values,
+                sub_category: formData.subCategory,
+                type: formData.designation,
+                size: formData.size,
+                secondary_contact: formData.secondaryContact,
+                portfolio_url: formData.portfolioUrl,
+                services: services.filter(s => s.trim() !== ""),
                 plan: formData.plan,
                 website: formData.website,
                 representative_name: formData.representative,
@@ -560,6 +624,12 @@ function RegistoEmpresaContent() {
                                     placeholder="Actividade Principal *"
                                     className="h-12 border-slate-200 px-4 text-sm font-semibold text-slate-600 bg-white placeholder:text-slate-400"
                                     style={{ borderRadius: '8px' }} />
+                                {isPaidPlan && (
+                                    <Input name="subCategory" value={formData.subCategory} onChange={handleInputChange}
+                                        placeholder="Área de Actuação"
+                                        className="h-12 border-slate-200 px-4 text-sm font-semibold text-slate-600 bg-white placeholder:text-slate-400"
+                                        style={{ borderRadius: '8px' }} />
+                                )}
                                 <div className="grid grid-cols-2 gap-[10px]">
                                     <Select value={formData.sector} onValueChange={v => setFormData(p => ({ ...p, sector: v }))}>
                                         <SelectTrigger className="w-full h-12 border-slate-200 bg-white px-4 font-semibold text-slate-600" style={{ borderRadius: '8px' }}>
@@ -598,15 +668,41 @@ function RegistoEmpresaContent() {
                                         </SelectContent>
                                     </Select>
                                 </div>
+                                {isPaidPlan && (
+                                    <div className="grid grid-cols-2 gap-[10px]">
+                                        <Select value={formData.designation} onValueChange={v => setFormData(p => ({ ...p, designation: v }))}>
+                                            <SelectTrigger className="w-full h-12 border-slate-200 bg-white px-4 font-semibold text-slate-600" style={{ borderRadius: '8px' }}>
+                                                <SelectValue placeholder="Designação" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {COMPANY_DESIGNATIONS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                        <Select value={formData.size} onValueChange={v => setFormData(p => ({ ...p, size: v }))}>
+                                            <SelectTrigger className="w-full h-12 border-slate-200 bg-white px-4 font-semibold text-slate-600" style={{ borderRadius: '8px' }}>
+                                                <SelectValue placeholder="Dimensão" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {COMPANY_SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
                         {/* CONTACT ROW */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-[10px]">
+                        <div className={`grid grid-cols-1 gap-[10px] ${isPaidPlan ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
                             <Input name="contact" value={formData.contact} onChange={handleInputChange}
                                 placeholder="Telefone / Contacto"
                                 className="h-12 border-slate-200 px-4 text-sm font-semibold text-slate-600 bg-white placeholder:text-slate-400"
                                 style={{ borderRadius: '8px' }} />
+                            {isPaidPlan && (
+                                <Input name="secondaryContact" value={formData.secondaryContact} onChange={handleInputChange}
+                                    placeholder="Nº de WhatsApp"
+                                    className="h-12 border-slate-200 px-4 text-sm font-semibold text-slate-600 bg-white placeholder:text-slate-400"
+                                    style={{ borderRadius: '8px' }} />
+                            )}
                             <Input name="email" type="email" value={formData.email} onChange={handleInputChange}
                                 placeholder="E-mail Corporativo"
                                 className="h-12 border-slate-200 px-4 text-sm font-semibold text-slate-600 bg-white placeholder:text-slate-400"
@@ -625,6 +721,24 @@ function RegistoEmpresaContent() {
                                 style={{ borderRadius: '8px' }} />
                         </div>
 
+                        {/* NUIT / WEBSITE / REPRESENTANTE — planos pagos */}
+                        {isPaidPlan && (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
+                                <Input name="nuit" value={formData.nuit} onChange={handleInputChange}
+                                    placeholder="NUIT da Empresa"
+                                    className="h-12 border-slate-200 px-4 text-sm font-semibold text-slate-600 bg-white placeholder:text-slate-400"
+                                    style={{ borderRadius: '8px' }} />
+                                <Input name="website" value={formData.website} onChange={handleInputChange}
+                                    placeholder="Website Oficial"
+                                    className="h-12 border-slate-200 px-4 text-sm font-semibold text-slate-600 bg-white placeholder:text-slate-400"
+                                    style={{ borderRadius: '8px' }} />
+                                <Input name="representative" value={formData.representative} onChange={handleInputChange}
+                                    placeholder="Nome do Representante"
+                                    className="h-12 border-slate-200 px-4 text-sm font-semibold text-slate-600 bg-white placeholder:text-slate-400"
+                                    style={{ borderRadius: '8px' }} />
+                            </div>
+                        )}
+
                         {/* DESCRIPTION */}
                         <div className="bg-white border border-slate-200 rounded-[8px] overflow-hidden">
                             <RichTextEditor
@@ -635,29 +749,83 @@ function RegistoEmpresaContent() {
                             />
                         </div>
 
+                        {/* MISSÃO / VISÃO / VALORES — planos pagos */}
+                        {isPaidPlan && (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
+                                <Textarea name="mission" value={formData.mission} onChange={handleInputChange}
+                                    placeholder="Missão da empresa..."
+                                    className="border-slate-200 bg-white text-sm text-slate-600 min-h-[90px]" style={{ borderRadius: '8px' }} />
+                                <Textarea name="vision" value={formData.vision} onChange={handleInputChange}
+                                    placeholder="Visão da empresa..."
+                                    className="border-slate-200 bg-white text-sm text-slate-600 min-h-[90px]" style={{ borderRadius: '8px' }} />
+                                <Textarea name="values" value={formData.values} onChange={handleInputChange}
+                                    placeholder="Valores da empresa..."
+                                    className="border-slate-200 bg-white text-sm text-slate-600 min-h-[90px]" style={{ borderRadius: '8px' }} />
+                            </div>
+                        )}
+
                         <Input name="tags" value={formData.tags} onChange={handleInputChange}
                             placeholder="Tags / Palavras-chave (ex: Milho, Soja, Adubos...)"
                             className="h-12 border-slate-200 px-4 text-sm font-semibold text-slate-600 bg-white placeholder:text-slate-400"
                             style={{ borderRadius: '8px' }} />
 
-                        {/* PARCEIRO EXTRA FIELDS — só aparece neste plano */}
-                        {formData.plan === 'Parceiro' && (
-                            <div className="bg-emerald-50 border border-emerald-200 p-5 space-y-[10px] animate-in fade-in slide-in-from-top-4" style={{ borderRadius: '8px' }}>
-                                <p className="text-xs font-black text-emerald-800 uppercase tracking-widest">Dados do Parceiro</p>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
-                                    <Input name="website" value={formData.website} onChange={handleInputChange}
-                                        placeholder="Website Oficial"
-                                        className="h-12 border-emerald-200 bg-white px-4 text-sm font-semibold text-slate-600"
-                                        style={{ borderRadius: '8px' }} />
-                                    <Input name="representative" value={formData.representative} onChange={handleInputChange}
-                                        placeholder="Nome do Representante"
-                                        className="h-12 border-emerald-200 bg-white px-4 text-sm font-semibold text-slate-600"
-                                        style={{ borderRadius: '8px' }} />
-                                    <Input name="nuit" value={formData.nuit} onChange={handleInputChange}
-                                        placeholder="NUIT da Empresa"
-                                        className="h-12 border-emerald-200 bg-white px-4 text-sm font-semibold text-slate-600"
-                                        style={{ borderRadius: '8px' }} />
+                        {/* PORTFÓLIO DE SERVIÇOS — planos pagos. Mesmo lugar e
+                            modelo do formulário de referência (admin): secção
+                            própria, logo antes do catálogo de produtos. */}
+                        {isPaidPlan && (
+                            <div className="bg-white border border-slate-200 p-6 space-y-4" style={{ borderRadius: '8px' }}>
+                                <div className="flex justify-between items-center flex-wrap gap-2">
+                                    <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                                        <FileText className="w-4 h-4 text-emerald-600" />
+                                        Portfólio de Serviços
+                                    </h3>
+                                    <div className="flex items-center gap-2">
+                                        <button type="button" onClick={() => portfolioInputRef.current?.click()}
+                                            className="text-[10px] font-black uppercase text-white bg-orange-500 hover:bg-orange-600 px-3 py-1.5 transition-colors flex items-center gap-1"
+                                            style={{ borderRadius: '8px' }}>
+                                            {uploadingPortfolio ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                                            {formData.portfolioUrl ? "Alterar PDF" : "Subir PDF"}
+                                        </button>
+                                        <input ref={portfolioInputRef} type="file" accept=".pdf" className="hidden" onChange={handlePortfolioUpload} />
+                                        <Button type="button" onClick={addService} size="sm"
+                                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                                            style={{ borderRadius: '8px' }}>
+                                            <Plus className="w-4 h-4 mr-1" /> Serviço
+                                        </Button>
+                                    </div>
                                 </div>
+
+                                {formData.portfolioUrl && (
+                                    <div className="flex items-center justify-between bg-slate-50 border border-slate-200 px-3 py-2" style={{ borderRadius: '8px' }}>
+                                        <span className="text-xs font-bold text-slate-600 truncate flex items-center gap-2">
+                                            <FileText className="w-3.5 h-3.5 text-emerald-600" /> PDF do portfólio carregado
+                                        </span>
+                                        <button type="button" onClick={() => setFormData(p => ({ ...p, portfolioUrl: "" }))} className="text-slate-400 hover:text-red-500">
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                )}
+
+                                {services.length === 0 ? (
+                                    <div className="text-center py-8 border-2 border-dashed border-slate-200" style={{ borderRadius: '8px' }}>
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Nenhum serviço adicionado</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                        {services.map((service, index) => (
+                                            <div key={index} className="flex items-center gap-2">
+                                                <Input value={service} onChange={e => updateService(index, e.target.value)}
+                                                    placeholder="Descreva o serviço..."
+                                                    className="h-10 border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 flex-1"
+                                                    style={{ borderRadius: '8px' }} />
+                                                <button type="button" onClick={() => removeService(index)}
+                                                    className="p-2 bg-red-50 text-red-500 hover:bg-red-100 transition-colors" style={{ borderRadius: '8px' }}>
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
 
