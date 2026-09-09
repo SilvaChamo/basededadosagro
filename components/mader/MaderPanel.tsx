@@ -342,7 +342,13 @@ export function MaderPanel() {
                         <div className="pt-3 border-t border-slate-100 flex items-center gap-3">
                             <div className="w-9 h-9 rounded-full bg-emerald-900 border border-emerald-700 flex items-center justify-center overflow-hidden shrink-0">
                                 {account.avatar
-                                    ? <img src={account.avatar} alt="" className="w-full h-full object-cover" />
+                                    ? <img
+                                        src={account.avatar}
+                                        alt=""
+                                        referrerPolicy="no-referrer"
+                                        className="w-full h-full object-cover"
+                                        onError={() => setAccount((a) => ({ ...a, avatar: "" }))}
+                                    />
                                     : <User className="w-4 h-4 text-emerald-400" />}
                             </div>
                             <div className="min-w-0">
