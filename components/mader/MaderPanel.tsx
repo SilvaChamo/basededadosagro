@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import dynamic from "next/dynamic";
 import {
     Building2, Store, Package, Users, User, TrendingUp, Filter, X,
     Download, Printer, Loader2, AlertTriangle,
@@ -9,15 +8,7 @@ import {
 import { createClient } from "@/utils/supabase/client";
 import { getRoleLabel } from "@/lib/roles";
 import { Charts } from "@/components/stats/Charts";
-
-const MaderMap = dynamic(() => import("./MaderMapClient"), {
-    ssr: false,
-    loading: () => (
-        <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-            <Loader2 className="w-6 h-6 text-slate-400 animate-spin" />
-        </div>
-    ),
-});
+import MaderMap from "./MaderMapClient";
 
 const PROVINCES = [
     "Niassa", "Cabo Delgado", "Nampula", "Zambézia", "Tete", "Manica",
