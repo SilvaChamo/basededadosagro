@@ -62,7 +62,7 @@ function BarRow({ label, value, max, pct, onClick, active }: {
 
 function Card({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
     return (
-        <section className="bg-white rounded-[8px] border border-slate-200 shadow-sm p-5 sm:p-6">
+        <section className="bg-white rounded-[10px] border border-slate-200 shadow-sm p-5 sm:p-6">
             <div className="mb-3">
                 <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest leading-tight mb-0">{title}</h2>
                 {hint && <p className="text-[11px] text-slate-400 font-medium mt-0.5">{hint}</p>}
@@ -268,7 +268,7 @@ export function MaderPanel() {
 
     if (err) {
         return (
-            <div className="bg-white rounded-[8px] border border-red-200 p-10 text-center">
+            <div className="bg-white rounded-[10px] border border-red-200 p-10 text-center">
                 <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-3" />
                 <p className="font-bold text-slate-800">Não foi possível carregar os dados</p>
                 <p className="text-sm text-slate-500 mt-1">{err}</p>
@@ -277,7 +277,7 @@ export function MaderPanel() {
     }
     if (!rows) {
         return (
-            <div className="bg-white rounded-[8px] border border-slate-200 p-16 flex flex-col items-center gap-3">
+            <div className="bg-white rounded-[10px] border border-slate-200 p-16 flex flex-col items-center gap-3">
                 <Loader2 className="w-7 h-7 text-slate-400 animate-spin" />
                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest">A carregar indicadores…</p>
             </div>
@@ -299,7 +299,7 @@ export function MaderPanel() {
         <div className="flex flex-col lg:flex-row gap-6">
                 {/* ---- BARRA LATERAL: FILTROS (arranca no topo, como no painel admin) ---- */}
                 <aside className="w-full lg:w-[260px] lg:shrink-0 print:hidden">
-                    <div className="bg-white rounded-[8px] border border-slate-200 shadow-sm p-5 lg:sticky lg:top-[80px] space-y-4">
+                    <div className="bg-white rounded-[10px] border border-slate-200 shadow-sm p-5 lg:sticky lg:top-[80px] space-y-4">
                         <div className="flex items-center gap-2">
                             <Filter className="w-4 h-4 text-slate-400" />
                             <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-0">Filtros</h2>
@@ -389,7 +389,7 @@ export function MaderPanel() {
                     {/* KPIs */}
                     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
                         {kpis.map((k) => (
-                            <div key={k.label} className="bg-white rounded-[8px] border border-slate-200 shadow-sm p-4">
+                            <div key={k.label} className="bg-white rounded-[10px] border border-slate-200 shadow-sm p-4">
                                 <k.icon className="w-4 h-4 text-slate-300 mb-2" />
                                 <p className="text-2xl font-black text-slate-900 tabular-nums leading-none">{k.value.toLocaleString("pt-PT")}</p>
                                 <p className="text-[11px] font-bold text-slate-500 mt-1.5 leading-tight">{k.label}</p>
@@ -401,7 +401,7 @@ export function MaderPanel() {
                     {/* Distribuição territorial */}
                     <Card title="Distribuição territorial" hint="Nº de empresas por província. Clique numa província no mapa ou na lista para filtrar.">
                         <div className="grid lg:grid-cols-[1fr_340px] gap-5">
-                            <div className="h-[320px] lg:h-[460px] rounded-[8px] overflow-hidden border border-slate-200">
+                            <div className="h-[320px] lg:h-[460px] rounded-[10px] overflow-hidden border border-slate-200">
                                 <MaderMap
                                     data={byProvince.map((x) => ({ province: x.name, count: x.count }))}
                                     selected={fProv}
@@ -438,7 +438,7 @@ export function MaderPanel() {
                                 ["Média / mês", monthAvg.toFixed(1)],
                                 ["Mês mais forte", `${monthPeak.name} (${monthPeak.count})`],
                             ].map(([l, v]) => (
-                                <div key={l as string} className="bg-slate-50 rounded-[8px] border border-slate-100 p-3">
+                                <div key={l as string} className="bg-slate-50 rounded-[10px] border border-slate-100 p-3">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{l}</p>
                                     <p className="text-sm font-bold text-slate-800 mt-0.5">{v}</p>
                                 </div>
