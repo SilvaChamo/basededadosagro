@@ -12,6 +12,7 @@ export default function NavFooterToggle({ children }: { children: React.ReactNod
     const isPresentation = pathname?.includes("apresentacao");
     const hide = pathname?.includes("usuario") ||
         pathname?.includes("admin") ||
+        pathname?.includes("mader") ||
         pathname?.includes("login") ||
         pathname?.includes("registar") ||
         isPresentation ||
@@ -26,7 +27,7 @@ export default function NavFooterToggle({ children }: { children: React.ReactNod
                 {children}
             </div>
             {!hide && <Footer />}
-            {!isPresentation && !pathname?.includes("admin") && (
+            {!isPresentation && !pathname?.includes("admin") && !pathname?.includes("mader") && (
                 <>
                     <FloatingChatButton />
                     <GoogleTranslate />
