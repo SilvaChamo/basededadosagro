@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import {
-    Building2, Store, Package, Users, TrendingUp, Filter, X,
+    Building2, Store, Package, Users, User, TrendingUp, Filter, X,
     Download, Printer, Loader2, AlertTriangle,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
@@ -96,7 +96,7 @@ export function MaderPanel() {
     const [productCount, setProductCount] = useState(0);
     const [professionalCount, setProfessionalCount] = useState(0);
     const [err, setErr] = useState<string | null>(null);
-    const [account, setAccount] = useState<{ email: string; roleLabel: string }>({ email: "", roleLabel: "" });
+    const [account, setAccount] = useState<{ email: string; roleLabel: string; name: string; avatar: string }>({ email: "", roleLabel: "", name: "", avatar: "" });
 
     const [fProv, setFProv] = useState("");
     const [fSector, setFSector] = useState("");
@@ -119,8 +119,14 @@ export function MaderPanel() {
 
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
-                    const { data: prof } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-                    setAccount({ email: user.email ?? "", roleLabel: getRoleLabel(prof?.role) });
+                    const { data: prof } = await supabase.from("profiles").select("role, full_name, avatar_url").eq("id", user.id).maybeSingle();
+                    const meta = (user.user_metadata ?? {}) as Record<string, string>;
+                    setAccount({
+                        email: user.email ?? "",
+                        roleLabel: getRoleLabel(prof?.role),
+                        name: prof?.full_name || meta.full_name || meta.name || "",
+                        avatar: prof?.avatar_url || meta.avatar_url || meta.picture || "",
+                    });
                 }
             } catch (e: any) {
                 setErr(e?.message || "Não foi possível carregar os dados.");
@@ -333,12 +339,19 @@ export function MaderPanel() {
                         )}
 
                         {/* dados da conta ligada — no fim da barra lateral */}
-                        <div className="pt-3 border-t border-slate-100">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sessão</p>
-                            <p className="text-xs font-bold text-slate-700 mt-1 break-all">{account.email || "—"}</p>
-                            {account.roleLabel && (
-                                <p className="text-[11px] text-slate-400">{account.roleLabel}</p>
-                            )}
+                        <div className="pt-3 border-t border-slate-100 flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-emerald-900 border border-emerald-700 flex items-center justify-center overflow-hidden shrink-0">
+                                {account.avatar
+                                    ? <img src={account.avatar} alt="" className="w-full h-full object-cover" />
+                                    : <User className="w-4 h-4 text-emerald-400" />}
+                            </div>
+                            <div className="min-w-0">
+                                {account.name && <p className="text-xs font-bold text-slate-700 truncate">{account.name}</p>}
+                                <p className="text-[11px] text-slate-400 truncate">{account.email || "—"}</p>
+                                {account.roleLabel && (
+                                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest truncate">{account.roleLabel}</p>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </aside>
