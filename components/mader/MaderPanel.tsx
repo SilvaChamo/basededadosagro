@@ -7,6 +7,7 @@ import {
     Download, Printer, Loader2, AlertTriangle,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { getRoleLabel } from "@/lib/roles";
 import { Charts } from "@/components/stats/Charts";
 
 const MaderMap = dynamic(() => import("./MaderMapClient"), {
@@ -95,6 +96,7 @@ export function MaderPanel() {
     const [productCount, setProductCount] = useState(0);
     const [professionalCount, setProfessionalCount] = useState(0);
     const [err, setErr] = useState<string | null>(null);
+    const [account, setAccount] = useState<{ email: string; roleLabel: string }>({ email: "", roleLabel: "" });
 
     const [fProv, setFProv] = useState("");
     const [fSector, setFSector] = useState("");
@@ -114,6 +116,12 @@ export function MaderPanel() {
                 setRows((c.data as Row[]).filter((r) => r.is_archived !== true));
                 setProductCount(p.count || 0);
                 setProfessionalCount(pr.count || 0);
+
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { data: prof } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+                    setAccount({ email: user.email ?? "", roleLabel: getRoleLabel(prof?.role) });
+                }
             } catch (e: any) {
                 setErr(e?.message || "Não foi possível carregar os dados.");
             }
@@ -323,6 +331,15 @@ export function MaderPanel() {
                                 ))}
                             </div>
                         )}
+
+                        {/* dados da conta ligada — no fim da barra lateral */}
+                        <div className="pt-3 border-t border-slate-100">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sessão</p>
+                            <p className="text-xs font-bold text-slate-700 mt-1 break-all">{account.email || "—"}</p>
+                            {account.roleLabel && (
+                                <p className="text-[11px] text-slate-400">{account.roleLabel}</p>
+                            )}
+                        </div>
                     </div>
                 </aside>
 

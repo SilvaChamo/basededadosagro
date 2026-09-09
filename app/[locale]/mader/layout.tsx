@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { LogoutButton } from "@/components/LogoutButton";
-import { canAccessMaderPanel, getRoleLabel } from "@/lib/roles";
+import { canAccessMaderPanel } from "@/lib/roles";
 
 // Painel institucional (Ministério da Agricultura). Acesso só-leitura:
 // entram os perfis `observador` e `admin`. Não partilha o layout do /admin
@@ -66,11 +66,7 @@ export default async function MaderLayout({
                             </span>
                         </span>
                     </Link>
-                    <div className="ml-auto flex items-center gap-3">
-                        <span className="hidden md:inline text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                            {getRoleLabel(role)}
-                        </span>
-                        <span className="hidden lg:inline text-xs text-slate-400">{user.email}</span>
+                    <div className="ml-auto">
                         <LogoutButton
                             variant="outline"
                             showIcon
