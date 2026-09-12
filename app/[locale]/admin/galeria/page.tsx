@@ -353,11 +353,10 @@ function MediaGalleryContent() {
             </AdminListToolbar>
 
             {/* Toolbar de filtros — cola-se logo abaixo da AdminListToolbar (80px).
-                bg-slate-50 (igual ao fundo do <main> do painel) cobre também o
-                padding deste contentor — sem isto, as miniaturas a passar por
-                trás ficavam visíveis nesse espaço durante o scroll. */}
-            <div className="sticky top-20 z-10 pt-4 pb-4 bg-slate-50">
-                <div className="flex flex-col md:flex-row items-center justify-between bg-white border border-[#ccd0d4] p-2 gap-2 shadow-sm">
+                O sticky é a própria barra (sem padding à volta com fundo
+                próprio) — assim as miniaturas desaparecem mesmo por trás dela
+                ao fazer scroll, sem nenhum espaço transparente onde apareçam. */}
+            <div className="sticky top-20 z-10 flex flex-col md:flex-row items-center justify-between bg-white border border-[#ccd0d4] p-2 gap-2 shadow-sm mt-4 mb-4">
                     <div className="flex items-center gap-2 flex-wrap">
                         <input
                             type="checkbox"
@@ -417,7 +416,6 @@ function MediaGalleryContent() {
                             </div>
                         </div>
                     </div>
-                </div>
             </div>
 
             {/* Conteúdo */}
