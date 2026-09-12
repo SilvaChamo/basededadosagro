@@ -49,7 +49,6 @@ function MediaGalleryContent() {
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-    const [isBulkMode, setIsBulkMode] = useState(false);
     // Mesmo tratamento de imagens partidas que a galeria do editor de
     // notícias (components/admin/central-noticias/MediaLibrary.tsx) — é a
     // mesma galeria, tem de se comportar da mesma forma nos dois sítios.
@@ -147,7 +146,6 @@ function MediaGalleryContent() {
             setLoading(true);
             await deleteFiles(Array.from(selectedIds));
             setSelectedIds(new Set());
-            setIsBulkMode(false);
             await loadImages();
             toast.success("Itens eliminados com sucesso!");
         } catch (err: any) {
@@ -358,17 +356,16 @@ function MediaGalleryContent() {
             <div className="sticky top-20 z-10 pt-4 pb-4">
                 <div className="flex flex-col md:flex-row items-center justify-between bg-white border border-[#ccd0d4] p-2 gap-2 shadow-sm">
                     <div className="flex items-center gap-2 flex-wrap">
-                        {isBulkMode && (
-                            <input
-                                type="checkbox"
-                                checked={selectedIds.size === paginatedFiles.length && paginatedFiles.length > 0}
-                                onChange={() => {
-                                    if (selectedIds.size === paginatedFiles.length) setSelectedIds(new Set());
-                                    else setSelectedIds(new Set(paginatedFiles.map((f) => f.name)));
-                                }}
-                                className="w-4 h-4 cursor-pointer"
-                            />
-                        )}
+                        <input
+                            type="checkbox"
+                            checked={selectedIds.size === paginatedFiles.length && paginatedFiles.length > 0}
+                            onChange={() => {
+                                if (selectedIds.size === paginatedFiles.length) setSelectedIds(new Set());
+                                else setSelectedIds(new Set(paginatedFiles.map((f) => f.name)));
+                            }}
+                            className="w-4 h-4 cursor-pointer"
+                            title="Selecionar todos nesta página"
+                        />
 
                         <button onClick={() => setViewMode("list")} className={`p-1.5 rounded-md ${viewMode === "list" ? "bg-[#f0f0f1] text-[#2271b1]" : "text-[#50575e] hover:text-[#2271b1]"}`}>
                             <ListIcon className="w-5 h-5" />
@@ -391,16 +388,12 @@ function MediaGalleryContent() {
                             {years.map((year) => <option key={year} value={year.toString()}>{year}</option>)}
                         </select>
 
-                        {!isBulkMode ? (
-                            <button onClick={() => setIsBulkMode(true)} className="ml-2 h-8 px-4 text-sm font-semibold border border-[#ccd0d4] rounded-md bg-white hover:bg-[#f6f7f7] whitespace-nowrap">
-                                Seleção em massa
-                            </button>
-                        ) : (
+                        {selectedIds.size > 0 && (
                             <div className="flex items-center gap-3 ml-2 flex-nowrap">
-                                <span onClick={selectedIds.size > 0 ? deleteSelected : undefined} className={`text-sm whitespace-nowrap ${selectedIds.size > 0 ? "text-[#d63638] cursor-pointer hover:underline" : "text-gray-400 cursor-not-allowed"}`}>
+                                <span onClick={deleteSelected} className="text-sm whitespace-nowrap text-[#d63638] cursor-pointer hover:underline">
                                     Eliminar {selectedIds.size} itens selecionados
                                 </span>
-                                <button onClick={() => { setIsBulkMode(false); setSelectedIds(new Set()); }} className="h-8 px-4 text-sm font-semibold border border-[#ccd0d4] rounded-md bg-white hover:bg-[#f6f7f7] whitespace-nowrap">
+                                <button onClick={() => setSelectedIds(new Set())} className="h-8 px-4 text-sm font-semibold border border-[#ccd0d4] rounded-md bg-white hover:bg-[#f6f7f7] whitespace-nowrap">
                                     Cancelar
                                 </button>
                             </div>
@@ -434,7 +427,7 @@ function MediaGalleryContent() {
                     {paginatedFiles.map((file) => (
                         <div
                             key={file.name}
-                            onClick={() => (isBulkMode ? toggleSelect(file.name) : openDetails(file))}
+                            onClick={() => openDetails(file)}
                             className={`aspect-square relative bg-white border cursor-pointer overflow-hidden group ${selectedIds.has(file.name) ? "ring-[3px] ring-[#2271b1] ring-inset" : "border-[#ccd0d4]"}`}
                         >
                             {brokenIds.has(file.name) ? (
@@ -450,13 +443,14 @@ function MediaGalleryContent() {
                                 />
                             )}
 
-                            {isBulkMode && (
-                                <div className={`absolute top-1 right-1 w-5 h-5 rounded-sm border flex items-center justify-center ${selectedIds.has(file.name) ? "bg-[#2271b1] border-[#2271b1]" : "bg-white border-[#ccd0d4]"}`}>
-                                    {selectedIds.has(file.name) && <Check className="w-3.5 h-3.5 text-white" />}
-                                </div>
-                            )}
-
-                            {!isBulkMode && <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                            <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); toggleSelect(file.name); }}
+                                title="Selecionar"
+                                className={`absolute top-1 right-1 w-5 h-5 rounded-sm border flex items-center justify-center transition-opacity ${selectedIds.has(file.name) ? "bg-[#2271b1] border-[#2271b1] opacity-100" : "bg-white/90 border-[#ccd0d4] opacity-0 group-hover:opacity-100"}`}
+                            >
+                                {selectedIds.has(file.name) && <Check className="w-3.5 h-3.5 text-white" />}
+                            </button>
                         </div>
                     ))}
                 </div>
