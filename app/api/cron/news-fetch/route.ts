@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import nodemailer from 'nodemailer';
+import { createMailTransport, mailFromAddress, mailFromHeader } from '@/lib/email/mailer';
 
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -291,15 +291,10 @@ async function fetchArticleContent(url: string): Promise<ArticleContent> {
 async function sendAlertEmail(count: number) {
     if (!process.env.SMTP_HOST) return;
     try {
-        const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: Number(process.env.SMTP_PORT) || 465,
-            secure: Number(process.env.SMTP_PORT) === 465,
-            auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-        });
+        const transporter = createMailTransport();
         await transporter.sendMail({
-            from: `"Base Agro Data" <${process.env.SMTP_USER}>`,
-            to: process.env.SMTP_USER,
+            from: mailFromHeader(),
+            to: process.env.NEWS_ALERT_TO || mailFromAddress(),
             subject: `${count} nova(s) notícia(s) à espera de revisão`,
             html: `<p>Foram encontradas <strong>${count}</strong> notícia(s) nova(s) sobre agricultura, clima e ambiente.</p>
                    <p>Reveja, edite o texto e publique em:
