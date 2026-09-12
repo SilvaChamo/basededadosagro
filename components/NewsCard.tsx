@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Calendar, ArrowRight, Pencil, Trash2, Link as LinkIcon, RotateCcw, Archive, Check } from 'lucide-react';
+import { Calendar, ArrowRight, Pencil, Trash2, Link as LinkIcon, RotateCcw, Archive, Check, Image as ImageIcon } from 'lucide-react';
 
 // Cores dos badges de categoria: só as cores da marca do site. A categoria
 // principal (primeira selecionada) mantém sempre o laranja de destaque; as
@@ -91,74 +91,70 @@ export function NewsCard({
 
     const displayCategories = categories && categories.length > 0 ? categories : [category || "Artigo"];
 
+    // Sem imagem própria, ou a que tem falhou a carregar (link morto/bloqueado
+    // — comum nas pendentes vindas de sites externos): mostra um placeholder
+    // genérico em vez de deixar a <Image> sem fonte válida (o que faria o
+    // browser mostrar o `alt`, isto é, o título, sobreposto aos badges).
+    const [imgError, setImgError] = useState(false);
+    const hasRealImage = !!image && !imgError;
+    const handleImageError = () => { if (hasRealImage) setImgError(true); };
+
+    const imagePlaceholder = (
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-50">
+            <div className="w-14 h-14 rounded-md border-2 border-dashed border-slate-300 flex items-center justify-center">
+                <ImageIcon className="w-6 h-6 text-slate-300" strokeWidth={1.5} />
+            </div>
+        </div>
+    );
+
+    const categoryBadges = (
+        <div className="absolute top-4 left-4 right-4 flex flex-wrap justify-end gap-1.5">
+            {displayCategories.map((cat, i) => (
+                <span key={cat} className={`${categoryColor(cat, i)} text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg`}>
+                    {cat}
+                </span>
+            ))}
+            {statusBadge && (
+                <span className="bg-slate-800 text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg">
+                    {statusBadge}
+                </span>
+            )}
+        </div>
+    );
+
     return (
         <div className="flex flex-col h-full">
             <div className={`group relative flex flex-col flex-1 bg-white rounded-[10px] shadow-lg border ${selected ? 'border-emerald-500 ring-2 ring-emerald-500' : 'border-slate-100 hover:border-[#f97316]/50'} transition-all overflow-hidden hover:shadow-xl`}>
-            {image ? (
-                /* Image Section */
-                onCtaClick ? (
-                    <button type="button" onClick={onCtaClick} className="relative aspect-[21/9] sm:aspect-[16/10] overflow-hidden block border-b-4 border-[#f97316] w-full text-left">
+            {/* Image Section — mostra sempre uma imagem (a da notícia ou o
+                fundo de recurso), nunca a área vazia com o alt sobreposto. */}
+            {onCtaClick ? (
+                <button type="button" onClick={onCtaClick} className="relative aspect-[21/9] sm:aspect-[16/10] overflow-hidden block border-b-4 border-[#f97316] w-full text-left bg-slate-100">
+                    {hasRealImage ? (
                         <Image
-                            src={image}
+                            src={image as string}
                             alt={title}
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             className="object-cover transition-transform duration-700 group-hover:scale-110"
+                            onError={handleImageError}
                         />
-                        <div className="absolute top-4 left-4 right-4 flex flex-wrap justify-end gap-1.5">
-                            {displayCategories.map((cat, i) => (
-                                <span key={cat} className={`${categoryColor(cat, i)} text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg`}>
-                                    {cat}
-                                </span>
-                            ))}
-                            {statusBadge && (
-                                <span className="bg-slate-800 text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg">
-                                    {statusBadge}
-                                </span>
-                            )}
-                        </div>
-                    </button>
-                ) : (
-                    <Link href={`/artigos/${slug}`} className="relative aspect-[21/9] sm:aspect-[16/10] overflow-hidden block border-b-4 border-[#f97316]">
-                        <Image
-                            src={image}
-                            alt={title}
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            className="object-cover transition-transform duration-700 group-hover:scale-110"
-                        />
-                        <div className="absolute top-4 left-4 right-4 flex flex-wrap justify-end gap-1.5">
-                            {displayCategories.map((cat, i) => (
-                                <span key={cat} className={`${categoryColor(cat, i)} text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg`}>
-                                    {cat}
-                                </span>
-                            ))}
-                            {statusBadge && (
-                                <span className="bg-slate-800 text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg">
-                                    {statusBadge}
-                                </span>
-                            )}
-                        </div>
-                    </Link>
-                )
+                    ) : imagePlaceholder}
+                    {categoryBadges}
+                </button>
             ) : (
-                /* Sem foto: painel neutro do mesmo tamanho da área de imagem,
-                   para o card ter a mesma altura e o conteúdo alinhar com os
-                   restantes (rodapé fixo em baixo). */
-                <div className="relative aspect-[21/9] sm:aspect-[16/10] bg-slate-100 border-b-4 border-[#f97316]">
-                    <div className="absolute top-4 left-4 right-4 flex flex-wrap justify-end gap-1.5">
-                        {displayCategories.map((cat, i) => (
-                            <span key={cat} className={`${categoryColor(cat, i)} text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg`}>
-                                {cat}
-                            </span>
-                        ))}
-                        {statusBadge && (
-                            <span className="bg-slate-800 text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-[6px] shadow-lg">
-                                {statusBadge}
-                            </span>
-                        )}
-                    </div>
-                </div>
+                <Link href={`/artigos/${slug}`} className="relative aspect-[21/9] sm:aspect-[16/10] overflow-hidden block border-b-4 border-[#f97316] bg-slate-100">
+                    {hasRealImage ? (
+                        <Image
+                            src={image as string}
+                            alt={title}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover transition-transform duration-700 group-hover:scale-110"
+                            onError={handleImageError}
+                        />
+                    ) : imagePlaceholder}
+                    {categoryBadges}
+                </Link>
             )}
 
             {/* Content Section */}

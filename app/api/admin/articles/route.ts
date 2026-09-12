@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const { error: authError } = await requireAdmin();
     if (authError) return authError;
 
-    const { id, payload } = await req.json();
+    const { id, payload, pendingId } = await req.json();
     if (!payload) return NextResponse.json({ error: "Dados em falta." }, { status: 400 });
 
     const admin = createAdminClient();
@@ -45,6 +45,14 @@ export async function POST(req: NextRequest) {
 
     const { data, error } = await admin.from("articles").insert([payload]).select();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    // Notícia criada a partir da fila de pendentes do robô (Central de
+    // Notícias → Pendentes): sai da fila assim que vira artigo real.
+    if (pendingId) {
+        const { error: pendingError } = await admin.from("articles_pending").delete().eq("id", pendingId);
+        if (pendingError) console.error("articles: erro ao remover da fila de pendentes:", pendingError.message);
+    }
+
     return NextResponse.json({ data: data?.[0] });
 }
 

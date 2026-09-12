@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import {
@@ -353,13 +354,13 @@ export default function CentralNoticiasPage() {
                                             <input type="checkbox" checked={selectedIds.has(item.id)} onChange={() => toggleSelect(item.id)} />
                                         </td>
                                         <td className="p-3 align-top">
-                                            <div className="flex items-start gap-3">
+                                            <div className="flex items-center gap-3">
                                                 {item.image_url ? (
-                                                    <div className="w-14 h-14 flex-shrink-0 border border-[#ccd0d4] bg-gray-50 overflow-hidden mt-1 shadow-sm">
-                                                        <img src={item.image_url} className="w-full h-full object-cover" alt="" />
+                                                    <div className="relative w-14 h-14 flex-shrink-0 border border-[#ccd0d4] bg-gray-50 overflow-hidden shadow-sm">
+                                                        <Image src={item.image_url} alt="" fill sizes="56px" className="object-cover" />
                                                     </div>
                                                 ) : (
-                                                    <div className="w-14 h-14 flex-shrink-0 border border-dashed border-amber-300 bg-amber-50 rounded flex items-center justify-center mt-1">
+                                                    <div className="w-14 h-14 flex-shrink-0 border border-dashed border-amber-300 bg-amber-50 rounded flex items-center justify-center">
                                                         <AlertTriangle className="w-6 h-6 text-amber-500" />
                                                     </div>
                                                 )}

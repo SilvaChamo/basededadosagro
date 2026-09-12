@@ -49,6 +49,7 @@ import {
     Scale,
     Coins,
     User,
+    Clock,
 } from "lucide-react";
 
 interface AdminShellProps {
@@ -287,6 +288,7 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                                 <LinkItem href="/admin/central-noticias/categorias" icon={Tag} label="Categorias" isSub />
                                 <LinkItem href="/admin/central-noticias" icon={FileText} label="Publicadas" isSub exact />
                                 <LinkItem href="/admin/central-noticias/rascunho" icon={FileEdit} label="Rascunho" isSub />
+                                <LinkItem href="/admin/central-noticias/pendentes" icon={Clock} label="Pendentes" isSub />
                                 <LinkItem href="/admin/central-noticias/arquivadas" icon={Archive} label="Arquivadas" isSub />
                                 <LinkItem href="/admin/central-noticias/lixo" icon={Trash2} label="Eliminadas" isSub />
 

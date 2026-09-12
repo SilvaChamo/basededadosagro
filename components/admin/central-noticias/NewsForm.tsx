@@ -12,6 +12,9 @@ import { Key, Eye, Calendar, ChevronUp } from "lucide-react";
 interface NewsFormProps {
     initialData?: any;
     isEdit?: boolean;
+    /** Quando a notícia vem da fila de pendentes do robô (Central de Notícias
+     * → Pendentes), remove-a dessa fila assim que é gravada como artigo. */
+    pendingId?: string;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -31,7 +34,7 @@ function toDateInputValue(value: any): string {
     return new Date().toISOString().split("T")[0];
 }
 
-export function NewsForm({ initialData, isEdit = false }: NewsFormProps) {
+export function NewsForm({ initialData, isEdit = false, pendingId }: NewsFormProps) {
     const router = useRouter();
     useAdminTopBar("");
     const categories = useNewsCategories();
@@ -76,7 +79,7 @@ export function NewsForm({ initialData, isEdit = false }: NewsFormProps) {
             const res = await fetch("/api/admin/articles", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: isEdit ? initialData?.id : undefined, payload: { ...formData, status } }),
+                body: JSON.stringify({ id: isEdit ? initialData?.id : undefined, pendingId, payload: { ...formData, status } }),
             });
             const result = await res.json();
             if (!res.ok) throw new Error(result.error || "Erro ao guardar.");
