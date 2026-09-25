@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
     Truck, Store, ShoppingCart, Smartphone, Calendar, FileText,
     Briefcase, Users, GraduationCap, ShieldCheck, Search, Zap,
-    TrendingUp, Gavel, Globe, Star, ChevronRight, ArrowRight, Lightbulb, Monitor
+    TrendingUp, Gavel, Globe, Star, ChevronRight, ArrowRight, Lightbulb, Monitor, Dna
 } from "lucide-react";
 import { IconMap } from "@/lib/icons";
 import { createClient } from "@/utils/supabase/client";
@@ -115,6 +115,7 @@ const serviceCategories: ServiceCategory[] = [
             { title: "Apresentações Visuais", link: "/inovacao/apresentacoes", slug: "apresentacoes", description: "Editor de slides interativos para catálogos e relatórios.", icon: Monitor },
             { title: "Repositório Científico", link: "/inovacao/repositorio-cientifico", slug: "repositorio-cientifico", description: "Pesquisa dinâmica e semântica de artigos académicos.", icon: Search },
             { title: "AgroBotanica AI", link: "/inovacao/agrobotanica", slug: "agrobotanica", description: "Scanner inteligente para diagnóstico de pragas e doenças.", icon: Zap },
+            { title: "Painel IIAM", link: "/iiam", slug: "iiam", description: "Telemetria e rastreio de sementes e variedades agrárias IIAM.", icon: Dna },
             { title: "Identidade Digital", link: "/inovacao/perfil-digital", slug: "perfil-digital", description: "Perfis profissionais e cartões de visita com QR Code.", icon: Users }
         ]
     }

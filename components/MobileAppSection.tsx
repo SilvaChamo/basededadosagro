@@ -2,14 +2,13 @@
 
 import { Scan, Stethoscope, Store, ArrowRight, Download } from "lucide-react";
 import Link from "next/link";
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 
 export function MobileAppSection() {
     const t = useTranslations('MobileAppSection');
 
     return (
         <section className="py-24 bg-white overflow-hidden relative">
-            {/* Background Decor */}
             <div className="absolute top-0 right-0 w-1/2 h-full bg-slate-50/50 -skew-x-12 translate-x-1/4 pointer-events-none"></div>
 
             <div className="container-site relative z-10">
@@ -72,14 +71,11 @@ export function MobileAppSection() {
                                 {t('download_button')}
                                 <ArrowRight className="w-5 h-5 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300" />
                             </button>
-                            <a
-                                href="https://botanicamoz.vercel.app"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <Link href="/inovacao/agrobotanica"
                                 className="inline-flex items-center justify-center gap-3 bg-transparent border-2 border-emerald-600/30 hover:border-[#f97316] text-emerald-700 hover:text-[#f97316] px-6 py-[9px] rounded-[7px] font-bold text-base transition-all duration-300 hover:-translate-y-1"
                             >
                                 {t('test_button')}
-                            </a>
+                            </Link>
                         </div>
                         <p className="text-xs text-slate-400 mt-2 ml-1 font-medium">{t('platforms')}</p>
                     </div>

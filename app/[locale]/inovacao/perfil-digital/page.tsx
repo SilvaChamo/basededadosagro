@@ -4,6 +4,7 @@ import React from "react";
 import { QrCode, Share2, Smartphone, ShieldCheck, User, Globe, ArrowRight, CheckCircle2, Building2, Facebook, MessageCircle, Linkedin } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { QRCodeSVG } from "qrcode.react";
 
 export default function DigitalProfilePage() {
     return (
@@ -47,7 +48,7 @@ export default function DigitalProfilePage() {
                                     <p className="text-[10px] text-slate-500 mb-4">Maputo, Moçambique</p>
 
                                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center">
-                                        <QrCode className="w-24 h-24 text-slate-800 mb-2" />
+                                        <QRCodeSVG value="https://basededadosagro.com/empresas" size={96} level="M" className="mb-2" />
                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Digital Card</p>
                                     </div>
 

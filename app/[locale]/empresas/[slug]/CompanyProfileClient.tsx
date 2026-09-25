@@ -3,13 +3,15 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { StandardBlogTemplate } from "@/components/StandardBlogTemplate";
-import { CheckCircle2, MapPin, Phone, Mail, Globe, Share2, Building2, Package, ArrowRight, FileText, Link as LinkIcon, MessageCircle, Facebook, Linkedin, Twitter } from 'lucide-react';
+import { CheckCircle2, MapPin, Phone, Mail, Globe, Share2, Building2, Package, ArrowRight, FileText, Link as LinkIcon, MessageCircle, Facebook, Linkedin, Twitter, QrCode, Maximize2 } from 'lucide-react';
 import Link from 'next/link';
 import { MapNavigation } from '@/components/MapNavigation';
 import { createClient } from '@/utils/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { QRCodeSVG } from 'qrcode.react';
+import { QRCodeModal } from '@/components/QRCodeModal';
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className || "w-5 h-5"}>
@@ -24,6 +26,7 @@ export default function CompanyProfileClient({ company, slug }: { company: any, 
     const [mounted, setMounted] = React.useState(false);
     const [shareUrl, setShareUrl] = React.useState('');
     const [showLeadModal, setShowLeadModal] = useState(false);
+    const [showQRModal, setShowQRModal] = useState(false);
     const [leadForm, setLeadForm] = useState({ name: '', email: '', phone: '', message: '' });
     const [submittingLead, setSubmittingLead] = useState(false);
     const supabase = createClient();
@@ -174,19 +177,57 @@ export default function CompanyProfileClient({ company, slug }: { company: any, 
 
                     {/* QR Code Section - BELOW CONTACTS */}
                     <div className="card-agro-static text-center py-6">
-                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Acesso Rápido</h4>
-                        <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm inline-block mb-3 min-w-[112px] min-h-[112px]">
-                            {mounted && (
-                                <img
-                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(shareUrl)}`}
-                                    alt="QR Code Empresa"
-                                    className="w-28 h-28"
-                                />
-                            )}
+                        <div className="flex items-center justify-between px-2 mb-4">
+                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cartão Digital QR</h4>
+                            <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                                <QrCode className="w-3 h-3" /> Verificado
+                            </span>
                         </div>
-                        <p className="text-[10px] font-bold text-slate-400 leading-tight px-4 capitalize">Aceda ao perfil digital<br />através do seu smartphone</p>
+
+                        <button
+                            onClick={() => setShowQRModal(true)}
+                            className="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm inline-block mb-3 min-w-[124px] min-h-[124px] group relative hover:border-emerald-500 hover:shadow-md transition-all cursor-pointer"
+                            title="Clique para ampliar e descarregar o QR Code"
+                        >
+                            {mounted && shareUrl ? (
+                                <QRCodeSVG
+                                    value={shareUrl}
+                                    size={112}
+                                    level="H"
+                                    includeMargin={true}
+                                />
+                            ) : (
+                                <div className="w-28 h-28 bg-slate-100 animate-pulse rounded-xl" />
+                            )}
+                            <div className="absolute inset-0 bg-emerald-950/70 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white p-2">
+                                <Maximize2 className="w-5 h-5 mb-1 text-emerald-400" />
+                                <span className="text-[10px] font-black uppercase tracking-wider">Ampliar / Salvar</span>
+                            </div>
+                        </button>
+
+                        <p className="text-[10px] font-bold text-slate-400 leading-tight px-2 mb-3">
+                            Aceda ao perfil no smartphone
+                        </p>
+
+                        <Button
+                            onClick={() => setShowQRModal(true)}
+                            variant="outline"
+                            className="w-full text-xs font-bold border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-emerald-700 h-9 rounded-lg flex items-center justify-center gap-1.5"
+                        >
+                            <QrCode className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Abrir Cartão QR</span>
+                        </Button>
                     </div>
 
+                    {/* QRCodeModal */}
+                    <QRCodeModal
+                        isOpen={showQRModal}
+                        onClose={() => setShowQRModal(false)}
+                        url={shareUrl}
+                        title={company.name}
+                        subtitle={`${company.province || 'Moçambique'} • Base de Dados Agro`}
+                        logoUrl={company.logo_url}
+                    />
                 </div>
             }
             bottomFullWidthContent={

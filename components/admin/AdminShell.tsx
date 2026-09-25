@@ -50,6 +50,8 @@ import {
     Coins,
     User,
     Clock,
+    Dna,
+    ShieldCheck,
 } from "lucide-react";
 
 interface AdminShellProps {
@@ -337,6 +339,7 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                                 <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
                                     {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-2 w-[1.5px] bg-slate-100" />}
                                     <LinkItem href="/admin/empresas" icon={Building2} label="Empresas" isSub />
+                                    <LinkItem href="/admin/empresas/aprovacoes" icon={ShieldCheck} label="Autorização de Empresas" isSub />
                                     <LinkItem href="/admin/lojas" icon={Store} label="Lojas" isSub />
                                     <LinkItem href="/admin/produtos" icon={ShoppingCart} label="Produtos" isSub />
                                     <LinkItem href="/admin/propriedades" icon={LandPlot} label="Propriedades" isSub />
@@ -593,6 +596,9 @@ function AdminShellInner({ children, userEmail, restricted = false, roleLabel = 
                                 <div className="flex flex-col gap-0.5 animate-in slide-in-from-top-1 duration-200 relative">
                                     {!isCollapsed && <div className="absolute left-[30px] top-2 bottom-2 w-[1.5px] bg-slate-100" />}
                                     <LinkItem href="/admin/utilizadores" icon={Users} label="Utilizadores" isSub exact />
+                                    <LinkItem href="/admin/mader-gestao" icon={Dna} label="Gestão MADER / IIAM" isSub exact />
+                                    <LinkItem href="/iiam" icon={Dna} label="Painel IIAM (Direto)" isSub exact />
+                                    <LinkItem href="/mader" icon={ShieldCheck} label="Painel MADER (Direto)" isSub exact />
                                     <LinkItem href="/admin/mensagens/subscritores" icon={Users} label="Subscritores" isSub exact />
                                     <LinkItem href="/admin/contactos" icon={Contact} label="Contactos" isSub />
                                     <LinkItem href="/admin/profissionais" icon={User} label="Profissionais" isSub />

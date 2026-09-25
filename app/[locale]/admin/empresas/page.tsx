@@ -79,7 +79,8 @@ export default function AdminEmpresasPage() {
             const itemSector = item.sector || "";
             const itemName = item.name || "";
 
-            if (filter === 'Públicas') matchesFilter = (itemType === 'Empresa Pública' || itemSector.includes('Public')) && !item.is_archived;
+            if (filter === 'Por Autorizar') matchesFilter = (item.is_verified !== true) && !item.is_archived;
+            else if (filter === 'Públicas') matchesFilter = (itemType === 'Empresa Pública' || itemSector.includes('Public')) && !item.is_archived;
             else if (filter === 'Privadas') matchesFilter = (itemType === 'Empresa Privada' || !item.type) && !item.is_archived;
             else if (filter === 'Internacionais') matchesFilter = (itemType === 'ONG Internacional' || itemName.includes('International')) && !item.is_archived;
             else if (filter === 'Associações') matchesFilter = (itemType === 'Associação' || itemType === 'Cooperativa Agrícola' || itemName.includes('Associação')) && !item.is_archived;
@@ -323,6 +324,7 @@ export default function AdminEmpresasPage() {
                                 className="w-full bg-white border border-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wide rounded-lg pl-4 pr-10 py-2 outline-none focus:border-emerald-500 h-10 appearance-none cursor-pointer"
                             >
                                 <option value="Todas">Todos Tipos</option>
+                                <option value="Por Autorizar">Por Autorizar / Gratuitas</option>
                                 <option value="Públicas">Públicas</option>
                                 <option value="Privadas">Privadas</option>
                                 <option value="Internacionais">Internacionais</option>

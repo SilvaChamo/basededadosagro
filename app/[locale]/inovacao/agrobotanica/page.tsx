@@ -5,6 +5,7 @@ import {
     BarChart3, CloudOff, MousePointer2
 } from "lucide-react";
 import { useState } from "react";
+import Link from "next/link";
 
 export default function AgroBotanicaPage() {
     const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
@@ -77,6 +78,21 @@ export default function AgroBotanicaPage() {
                                         <MousePointer2 className="w-3 h-3 text-orange-600" />
                                     </div>
                                 </div>
+                            </div>
+
+                            <div className="mt-8 flex flex-wrap gap-4">
+                                <Link
+                                    href="/iiam"
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#f97316] hover:bg-orange-600 text-white font-bold rounded-xl shadow-lg transition-all"
+                                >
+                                    <ShieldCheck className="w-5 h-5" /> Entrar no Painel IIAM
+                                </Link>
+                                <Link
+                                    href="/inovacao/rastreabilidade-iiam"
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl transition-all"
+                                >
+                                    Ver Telemetria IIAM
+                                </Link>
                             </div>
                         </div>
 

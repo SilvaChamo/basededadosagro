@@ -18,7 +18,12 @@ import {
     GraduationCap,
     Filter,
     Brain,
-    ChevronDown
+    ChevronDown,
+    Dna,
+    Sprout,
+    Activity,
+    CheckCircle2,
+    ArrowRight
 } from "lucide-react";
 import Link from "next/link";
 
@@ -471,7 +476,96 @@ export default function InovacaoPage() {
                 </div>
             </section>
 
-            {/* 8. AgroBotanica Scanner */}
+            {/* 8. Rastreabilidade & Telemetria IIAM */}
+            <section className="py-24 bg-slate-900 text-white relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1/3 h-full bg-emerald-500/10 blur-[100px] pointer-events-none"></div>
+                <div className="container-site relative z-10">
+                    <div className="grid lg:grid-cols-2 gap-16 items-center">
+                        <div>
+                            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 mb-6">
+                                <Dna className="w-4 h-4 text-[#f97316]" />
+                                <span className="text-xs font-bold uppercase tracking-widest text-[#f97316]">Parceria IIAM & MADER</span>
+                            </div>
+                            <h2 className="text-[42px] font-[900] text-white mb-6 leading-tight tracking-tight">
+                                Rastreabilidade & Telemetria de <br />
+                                <span className="text-[#f97316]">Variedades Agrárias IIAM</span>
+                            </h2>
+                            <p className="text-slate-300 text-lg leading-relaxed mb-8 font-medium">
+                                Acompanhamento em tempo real do desempenho de sementes melhoradas e variedades modificadas pelo IIAM, desde o laboratório até ao resultado real no campo dos produtores moçambicanos.
+                            </p>
+
+                            <div className="space-y-4 mb-8">
+                                <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-800/80 border border-slate-700">
+                                    <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
+                                        <Sprout className="w-5 h-5 text-emerald-400" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-white text-base">Monitorização de Variedades em Campo</h4>
+                                        <p className="text-xs text-slate-400 mt-1">Telemetria de resiliência à seca, resistência a pragas e taxa de adoção regional (ex.: Milho Zapor, Mandioca Muzalaba).</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-800/80 border border-slate-700">
+                                    <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center shrink-0">
+                                        <Activity className="w-5 h-5 text-orange-400" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-white text-base">Relatórios em Tempo Real para MADER</h4>
+                                        <p className="text-xs text-slate-400 mt-1">Geração automática de estatísticas de campo alimentadas pelos scans do AgroBotanica AI.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Link href="/iiam" className="inline-flex items-center gap-3 bg-[#f97316] hover:bg-orange-600 text-white font-bold px-8 h-12 rounded-xl shadow-lg transition-all hover:-translate-y-0.5">
+                                Aceder ao Painel Institucional IIAM <ArrowRight className="w-5 h-5" />
+                            </Link>
+                        </div>
+
+                        {/* Right Column: Visual Dashboard Preview */}
+                        <div className="relative">
+                            <div className="bg-slate-800/90 rounded-2xl border border-slate-700 p-6 shadow-2xl backdrop-blur-sm">
+                                <div className="flex items-center justify-between border-b border-slate-700 pb-4 mb-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                                            <Dna className="w-5 h-5 text-emerald-400" />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-white text-sm">Painel de Telemetria IIAM</h4>
+                                            <p className="text-[10px] text-slate-400 uppercase font-mono">Status das Variedades Certificadas</p>
+                                        </div>
+                                    </div>
+                                    <span className="text-[11px] bg-emerald-500/20 text-emerald-300 font-bold px-2.5 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1.5">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Ativo
+                                    </span>
+                                </div>
+
+                                <div className="space-y-4">
+                                    {[
+                                        { name: "Milho Zapor (Tolerante à Seca)", crop: "Milho", testRange: "Sofala, Manica, Tete", adoption: "84%", score: "96/100" },
+                                        { name: "Mandioca Muzalaba (Resistente à Mosaico)", crop: "Mandioca", testRange: "Nampula, Zambézia", adoption: "91%", score: "98/100" },
+                                        { name: "Feijão Nhemba V2 (Alto Teor Proteico)", crop: "Feijão", testRange: "Gaza, Inhambane", adoption: "78%", score: "92/100" }
+                                    ].map((v, i) => (
+                                        <div key={i} className="p-4 bg-slate-900/90 rounded-xl border border-slate-700/80 flex items-center justify-between gap-4">
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                                    <span className="font-bold text-white text-sm">{v.name}</span>
+                                                </div>
+                                                <p className="text-xs text-slate-400 mt-1">Províncias: {v.testRange}</p>
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <span className="text-xs text-slate-400 block">Adoção</span>
+                                                <span className="font-mono font-bold text-emerald-400 text-sm">{v.adoption}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* 9. AgroBotanica Scanner */}
             <section className="py-24 bg-gradient-to-br from-[#022c22] via-[#043d30] to-[#022c22] text-white relative overflow-hidden">
                 {/* Background Decor */}
                 <div className="absolute top-0 right-0 w-1/2 h-full bg-emerald-900/20 -skew-x-12 translate-x-1/4 pointer-events-none"></div>
@@ -520,6 +614,21 @@ export default function InovacaoPage() {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+
+                            <div className="mt-8 flex flex-wrap gap-4">
+                                <Link
+                                    href="/inovacao/agrobotanica"
+                                    className="px-6 py-3 bg-[#f97316] hover:bg-orange-600 text-white font-bold rounded-xl shadow-lg transition-all"
+                                >
+                                    Experimentar AgroBotanica AI
+                                </Link>
+                                <Link
+                                    href="/inovacao/rastreabilidade-iiam"
+                                    className="px-6 py-3 bg-emerald-800/80 hover:bg-emerald-800 text-white font-bold rounded-xl border border-emerald-600 transition-all"
+                                >
+                                    Ver Rastreabilidade IIAM
+                                </Link>
                             </div>
                         </div>
 

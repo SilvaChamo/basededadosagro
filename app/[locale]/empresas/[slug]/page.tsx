@@ -7,19 +7,29 @@ interface PageProps {
     params: Promise<{ slug: string }>;
 }
 
+async function fetchCompanyByIdentifier(supabase: any, identifier: string) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier);
+    if (isUuid) {
+        const { data } = await supabase
+            .from('companies')
+            .select('*')
+            .or(`id.eq.${identifier},slug.eq.${identifier}`)
+            .maybeSingle();
+        if (data) return data;
+    }
+    const { data } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('slug', identifier)
+        .maybeSingle();
+    return data;
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
     const { slug } = await params;
     const supabase = await createClient();
 
-    // Colunas reais da tabela `companies`: name / description (não
-    // company_name / bio — nomes errados faziam esta query falhar e TODAS
-    // as páginas de empresa caíam para o metadata "Empresa não encontrada",
-    // sem título nem imagem no cartão do Facebook).
-    const { data: company } = await supabase
-        .from('companies')
-        .select('name, description, logo_url, banner_url, activity')
-        .eq('slug', slug)
-        .maybeSingle();
+    const company = await fetchCompanyByIdentifier(supabase, slug);
 
     if (!company) {
         return {
@@ -36,8 +46,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const images: string[] = [];
     if (company.banner_url) images.push(company.banner_url);
     if (company.logo_url) images.push(company.logo_url);
-    // Sem banner/logo: não forçamos imagem aqui — o Next cai para o
-    // opengraph-image.png genérico do site (app/[locale]/opengraph-image.png).
 
     return {
         title: title,
@@ -61,13 +69,9 @@ export default async function CompanyEmpresasPage({ params }: PageProps) {
     const { slug } = await params;
     const supabase = await createClient();
 
-    const { data: company, error } = await supabase
-        .from('companies')
-        .select('*')
-        .eq('slug', slug)
-        .single();
+    const company = await fetchCompanyByIdentifier(supabase, slug);
 
-    if (error || !company) {
+    if (!company) {
         notFound();
     }
 

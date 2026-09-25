@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
@@ -261,17 +262,14 @@ export default function CadastrarEmpresaPage() {
             if (representative) insertData.representative_name = representative;
             if (nuit) insertData.nuit = nuit;
 
-            const { data: inserted, error } = await supabase.from('companies').insert(insertData).select('id').single();
+            const { data: inserted, error } = await supabase.from('companies').insert(insertData).select('id, slug').single();
             if (error) throw error;
 
             localStorage.removeItem('pending_cadastrar_empresa');
 
-            alert("Empresa registada com sucesso! A sua empresa ficará visível em 24 a 48 horas.");
-            if (user) {
-                router.push('/usuario/dashboard/minha-conta');
-            } else {
-                router.push('/auth/login');
-            }
+            const targetSlug = inserted?.slug || inserted?.id || slug;
+            toast.success("Empresa registada com sucesso! Já pode visualizar os detalhes da sua empresa.");
+            router.push(`/empresas/${targetSlug}`);
         } catch (err: any) {
             console.error(err);
             alert("Erro ao guardar empresa: " + (err.message || "Tente novamente."));
