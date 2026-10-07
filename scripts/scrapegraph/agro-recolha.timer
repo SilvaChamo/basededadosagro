@@ -1,0 +1,9 @@
+[Unit]
+Description=Recolha semanal de dados das empresas (segunda-feira às 03:00, hora de Maputo)
+
+[Timer]
+OnCalendar=Mon *-*-* 03:00:00 Africa/Maputo
+Persistent=true
+
+[Install]
+WantedBy=timers.target

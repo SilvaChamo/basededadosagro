@@ -1,0 +1,11 @@
+[Unit]
+Description=Base de Dados Agro - recolha de dados das empresas (ScrapeGraph-ai + Gemini)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/basededadosagro-site/scripts/scrapegraph
+ExecStart=/opt/agro-recolha/venv/bin/python recolher_empresas.py --gravar --relatorios /var/lib/agro-recolha/relatorios
+TimeoutStartSec=6h
+Nice=10
