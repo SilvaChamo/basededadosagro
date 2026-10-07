@@ -325,8 +325,13 @@ def main() -> None:
 
     cfg = carregar_configuracao()
 
-    from supabase import create_client
-    db = create_client(cfg["supabase_url"], cfg["supabase_key"])
+    from supabase import ClientOptions, create_client
+    # As tabelas do projecto estão no esquema `basededados` (não em `public`),
+    # tal como em utils/supabase/*.ts.
+    db = create_client(
+        cfg["supabase_url"], cfg["supabase_key"],
+        options=ClientOptions(schema=os.getenv("SUPABASE_SCHEMA", "basededados")),
+    )
 
     colunas = "id, name, slug, website, email, contact, address, description, province, district, services"
     tem_redes = True

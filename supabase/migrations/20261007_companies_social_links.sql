@@ -3,5 +3,7 @@
 -- Formato: {"facebook": "https://...", "linkedin": "https://..."}
 -- NÃO APLICADA AUTOMATICAMENTE — aplicar só com autorização.
 
-ALTER TABLE public.companies
+ALTER TABLE basededados.companies
   ADD COLUMN IF NOT EXISTS social_links jsonb NOT NULL DEFAULT '{}'::jsonb;
+
+NOTIFY pgrst, 'reload schema';
