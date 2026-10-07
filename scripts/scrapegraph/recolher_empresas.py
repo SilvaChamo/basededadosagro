@@ -263,7 +263,9 @@ def ler_site(url: str, cfg: dict) -> DadosEmpresa:
             },
             "headless": True,
             "verbose": False,
-            "loader_kwargs": {"timeout": 30},
+            # Espera que a página pare de carregar (alguns sites mudam de
+            # página por JavaScript logo após abrir) e tenta até 3 vezes.
+            "loader_kwargs": {"timeout": 45, "load_state": "networkidle", "retry_limit": 3},
         },
     )
     resultado = grafo.run()
@@ -272,6 +274,26 @@ def ler_site(url: str, cfg: dict) -> DadosEmpresa:
     if isinstance(resultado, str):
         resultado = json.loads(resultado)
     return DadosEmpresa.model_validate(resultado or {})
+
+
+ERROS_CONHECIDOS = [
+    ("ERR_NAME_NOT_RESOLVED", "o domínio não existe (sem registo DNS)"),
+    ("ERR_CONNECTION_REFUSED", "o servidor do site recusou a ligação"),
+    ("ERR_CONNECTION_TIMED_OUT", "o site não respondeu a tempo"),
+    ("ERR_CERT", "o certificado de segurança do site é inválido"),
+    ("ERR_TOO_MANY_REDIRECTS", "o site entra em ciclo de redireccionamentos"),
+    ("page is navigating", "a página mudou várias vezes enquanto carregava"),
+    ("Timeout", "o site demorou demasiado a carregar"),
+    ("No HTML body content", "a página está vazia"),
+]
+
+
+def explicar_erro(erro: Exception) -> str:
+    texto = str(erro) or type(erro).__name__
+    for marca, explicacao in ERROS_CONHECIDOS:
+        if marca.lower() in texto.lower():
+            return explicacao
+    return texto.splitlines()[0][:300]
 
 
 def normalizar_url(url: str) -> Optional[str]:
@@ -397,7 +419,7 @@ def main() -> None:
                 print(f"    {estado}: {', '.join(novos.keys()) or '—'}")
             except Exception as erro:  # um site com problema não pára a recolha
                 contagem["erro"] += 1
-                mensagem = str(erro).splitlines()[0][:300] if str(erro) else type(erro).__name__
+                mensagem = explicar_erro(erro)
                 escritor.writerow([nome, empresa.get("slug"), url, "erro", "", "", "", mensagem])
                 print(f"    erro: {mensagem}")
             f.flush()
